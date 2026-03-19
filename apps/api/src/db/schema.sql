@@ -176,14 +176,19 @@ ALTER TABLE trades          ENABLE ROW LEVEL SECURITY;
 ALTER TABLE indexer_cursors ENABLE ROW LEVEL SECURITY;
 
 -- Public read access for the frontend (anon key)
-CREATE POLICY IF NOT EXISTS "anon read assets"
-    ON assets FOR SELECT USING (true);
+-- CREATE POLICY IF NOT EXISTS is not supported in PostgreSQL 15 (Supabase free tier),
+-- so we use DO blocks to swallow the duplicate_object error on re-runs.
+DO $$ BEGIN
+    CREATE POLICY "anon read assets" ON assets FOR SELECT USING (true);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
-CREATE POLICY IF NOT EXISTS "anon read listings"
-    ON listings FOR SELECT USING (true);
+DO $$ BEGIN
+    CREATE POLICY "anon read listings" ON listings FOR SELECT USING (true);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
-CREATE POLICY IF NOT EXISTS "anon read trades"
-    ON trades FOR SELECT USING (true);
+DO $$ BEGIN
+    CREATE POLICY "anon read trades" ON trades FOR SELECT USING (true);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- No public access to internal cursor state
 -- (indexer_cursors only accessible via service-role key)
