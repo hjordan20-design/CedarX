@@ -1,4 +1,46 @@
-// CedarX API entry point
-// Full implementation in Session 2
+/**
+ * CedarX Indexer — entry point.
+ *
+ * Starts the Express API server and all chain pollers.
+ * Pollers run on a background interval; the API server handles incoming requests.
+ */
 
-console.log("CedarX API starting...");
+import { createServer } from "./server";
+import { PORT } from "./config";
+import { FabricaPoller } from "./pollers/fabrica";
+import { OndoPoller } from "./pollers/ondo";
+import { RealTPoller } from "./pollers/realt";
+import { CedarXSwapPoller } from "./pollers/cedarxSwap";
+
+// ── Start API server ──────────────────────────────────────────────────────────
+
+const app = createServer();
+app.listen(PORT, () => {
+    console.log(`CedarX API listening on port ${PORT}`);
+});
+
+// ── Start pollers ─────────────────────────────────────────────────────────────
+
+const pollers = [
+    new FabricaPoller(),
+    new OndoPoller(),
+    new RealTPoller(),
+    new CedarXSwapPoller(),
+];
+
+for (const poller of pollers) {
+    poller.start();
+}
+
+// ── Graceful shutdown ─────────────────────────────────────────────────────────
+
+function shutdown(signal: string) {
+    console.log(`\nReceived ${signal}. Shutting down pollers...`);
+    for (const poller of pollers) {
+        poller.stop();
+    }
+    process.exit(0);
+}
+
+process.on("SIGINT",  () => shutdown("SIGINT"));
+process.on("SIGTERM", () => shutdown("SIGTERM"));
