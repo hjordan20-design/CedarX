@@ -1,0 +1,13 @@
+# Foundry build artifacts
+/out
+/cache
+/broadcast
+
+# Environment
+.env
+
+# Dependencies (reinstall with: forge install)
+/lib
+
+# Coverage reports
+lcov.info
