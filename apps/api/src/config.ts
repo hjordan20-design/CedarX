@@ -28,7 +28,8 @@ export const RPC_URL = CHAIN_ENV === "sepolia" ? ETH_SEPOLIA_RPC : ETH_MAINNET_R
 
 // ─── Contract addresses ───────────────────────────────────────────────────────
 
-export const CEDARX_SWAP_ADDRESS = require_env("CEDARX_SWAP_CONTRACT_ADDRESS") as `0x${string}`;
+// Optional until the contract is deployed — the CedarXSwapPoller skips if empty
+export const CEDARX_SWAP_ADDRESS = optional_env("CEDARX_SWAP_CONTRACT_ADDRESS", "") as `0x${string}`;
 
 // Fabrica
 export const FABRICA_TOKEN_V2 = optional_env(

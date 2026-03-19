@@ -11,11 +11,22 @@
  *   - Structured logging (every log line prefixed with the poller ID)
  *
  * Subclasses implement `poll(fromBlock, toBlock)` and nothing else.
+ *
+ * Chain selection:
+ *   Pass 'mainnet' to pin to Ethereum mainnet regardless of CHAIN_ENV.
+ *   Omit (or pass undefined) to follow CHAIN_ENV — used by CedarXSwapPoller
+ *   so it can follow the deployment chain (Sepolia for testing).
  */
 
 import { createPublicClient, http, type PublicClient } from "viem";
 import { mainnet, sepolia } from "viem/chains";
-import { CHAIN_ENV, POLL_INTERVAL_MS, BLOCKS_PER_SCAN, RPC_URL } from "../config";
+import {
+    CHAIN_ENV,
+    POLL_INTERVAL_MS,
+    BLOCKS_PER_SCAN,
+    ETH_MAINNET_RPC,
+    ETH_SEPOLIA_RPC,
+} from "../config";
 import { getCursor, setCursor } from "../db/queries";
 
 export abstract class BasePoller {
@@ -30,9 +41,19 @@ export abstract class BasePoller {
     private _timer: ReturnType<typeof setInterval> | null = null;
     private _running = false;
 
-    constructor() {
-        const chain = CHAIN_ENV === "sepolia" ? sepolia : mainnet;
-        this.client = createPublicClient({ chain, transport: http(RPC_URL) }) as PublicClient;
+    /**
+     * @param chain  Force a specific chain. Protocol pollers pass 'mainnet'
+     *               so they always read from Ethereum L1 regardless of CHAIN_ENV.
+     *               CedarXSwapPoller omits this to follow CHAIN_ENV.
+     */
+    constructor(chain?: "mainnet" | "sepolia") {
+        const resolved = chain ?? CHAIN_ENV;
+        const viemChain = resolved === "sepolia" ? sepolia : mainnet;
+        const rpcUrl = resolved === "sepolia" ? ETH_SEPOLIA_RPC : ETH_MAINNET_RPC;
+        this.client = createPublicClient({
+            chain: viemChain,
+            transport: http(rpcUrl),
+        }) as PublicClient;
     }
 
     // ─── Lifecycle ────────────────────────────────────────────────────────────
