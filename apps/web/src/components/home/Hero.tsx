@@ -73,6 +73,17 @@ export function Hero() {
         }}
       />
 
+      {/* Center-left warm glow — amber + forest green light source */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: [
+            "radial-gradient(ellipse 55% 45% at 22% 52%, rgba(196,133,42,0.08) 0%, transparent 70%)",
+            "radial-gradient(ellipse 40% 35% at 18% 58%, rgba(58,102,72,0.06) 0%, transparent 65%)",
+          ].join(", "),
+        }}
+      />
+
       {/* Topographic background element */}
       <TopoBackground />
 
