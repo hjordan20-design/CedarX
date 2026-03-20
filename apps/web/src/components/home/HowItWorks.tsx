@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { Wallet, Search, Zap } from "lucide-react";
+import { useInView } from "@/hooks/useInView";
 
 const STEPS = [
   {
@@ -22,11 +23,36 @@ const STEPS = [
   },
 ];
 
+function Step({ number, icon, title, body, index }: typeof STEPS[number] & { index: number }) {
+  const { ref, inView } = useInView();
+
+  return (
+    <div
+      ref={ref as React.Ref<HTMLDivElement>}
+      className={`space-y-5 scroll-fade${inView ? " in-view" : ""}`}
+      style={{ transitionDelay: inView ? `${index * 100}ms` : "0ms" }}
+    >
+      <div className="flex items-center gap-4">
+        <span className="font-mono text-cedar-amber text-sm opacity-60">{number}</span>
+        <div className="w-px h-4 bg-cedar-border" />
+        <span className="text-cedar-amber">{icon}</span>
+      </div>
+      <h3 className="font-sans text-base font-medium text-cedar-text">{title}</h3>
+      <p className="text-cedar-muted text-sm leading-relaxed">{body}</p>
+    </div>
+  );
+}
+
 export function HowItWorks() {
+  const { ref: headingRef, inView: headingInView } = useInView();
+
   return (
     <section className="border-t border-cedar-border">
       <div className="max-w-7xl mx-auto px-6 py-24">
-        <div className="mb-16">
+        <div
+          ref={headingRef as React.Ref<HTMLDivElement>}
+          className={`mb-16 scroll-fade${headingInView ? " in-view" : ""}`}
+        >
           <h2 className="display text-display-md text-cedar-text mb-3">
             How it works
           </h2>
@@ -36,25 +62,11 @@ export function HowItWorks() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-          {STEPS.map(({ number, icon, title, body }) => (
-            <div key={number} className="space-y-5">
-              {/* Step number + icon */}
-              <div className="flex items-center gap-4">
-                <span className="font-mono text-cedar-amber text-sm opacity-60">{number}</span>
-                <div className="w-px h-4 bg-cedar-border" />
-                <span className="text-cedar-amber">{icon}</span>
-              </div>
-
-              {/* Content */}
-              <h3 className="font-sans text-base font-medium text-cedar-text">
-                {title}
-              </h3>
-              <p className="text-cedar-muted text-sm leading-relaxed">{body}</p>
-            </div>
+          {STEPS.map((step, i) => (
+            <Step key={step.number} {...step} index={i} />
           ))}
         </div>
 
-        {/* CTA row */}
         <div className="mt-16 pt-12 border-t border-cedar-border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
           <p className="text-cedar-muted text-sm max-w-md">
             Every swap is executed by a{" "}

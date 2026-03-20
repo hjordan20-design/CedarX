@@ -1,4 +1,4 @@
-import { CardSkeleton, ErrorMessage } from "@/components/common/LoadingStates";
+import { CardSkeleton } from "@/components/common/LoadingStates";
 import { AssetCard } from "./AssetCard";
 import type { Asset } from "@/lib/types";
 
@@ -14,8 +14,14 @@ interface AssetGridProps {
 export function AssetGrid({ assets, isLoading, isError, isFetching }: AssetGridProps) {
   if (isError) {
     return (
-      <div className="py-20 flex flex-col items-center gap-3">
-        <ErrorMessage message="Failed to load assets. Check that the indexer API is running." />
+      <div className="py-24 flex flex-col items-center gap-4 text-center">
+        <div className="w-8 h-px bg-cedar-amber mb-2" />
+        <p className="text-cedar-text font-sans text-base">
+          Assets loading soon.
+        </p>
+        <p className="text-cedar-muted font-sans text-sm max-w-sm leading-relaxed">
+          CedarX is currently indexing protocols. Check back shortly — listings will appear here once the indexer syncs.
+        </p>
       </div>
     );
   }
