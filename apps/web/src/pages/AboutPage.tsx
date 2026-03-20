@@ -63,19 +63,23 @@ const FAQ_SECTIONS: { heading: string; items: FAQItem[] }[] = [
     items: [
       {
         q: "What is Fabrica?",
-        a: "Fabrica is a protocol that tokenizes real property deeds on Ethereum. Each Fabrica token represents full legal ownership of a US land parcel, backed by a deed held in a Wyoming LLC. Ownership of the token equals ownership of the land.",
+        a: "Fabrica is a protocol that tokenizes real property deeds on Ethereum. Each Fabrica token (ERC-721) represents full legal ownership of a US land parcel, backed by a deed held in a Wyoming LLC. Ownership of the token equals ownership of the land.",
       },
       {
-        q: "What is Ondo Finance?",
-        a: "Ondo Finance issues tokenized US Treasury instruments on Ethereum. Their OUSG and USDY tokens are yield-bearing and backed by short-duration government securities held by qualified custodians. Access may be restricted to accredited investors in certain jurisdictions.",
+        q: "What is Propy?",
+        a: "Propy is a real estate transaction platform that issues property title NFTs on Ethereum. Propy-facilitated sales close with the deed recorded onchain, giving buyers a verifiable, tradeable ownership record.",
       },
       {
-        q: "What is RealT?",
-        a: "RealT fractionalizes residential rental properties into ERC-20 tokens. Each token entitles the holder to a proportional share of rental income, distributed weekly in USDC directly to your wallet.",
+        q: "What is Roofstock onChain?",
+        a: "Roofstock onChain tokenizes single-family rental homes as ERC-721 NFTs. Buying the token transfers legal ownership of the property through an LLC structure, including any existing tenants and lease agreements.",
+      },
+      {
+        q: "What asset categories are coming?",
+        a: "CedarX is expanding to luxury goods (watches, jewelry, handbags), physical art, and collectibles. These categories require new protocol integrations and physical authentication partners — announcements will be made via @cedarxio as they go live.",
       },
       {
         q: "Are there eligibility requirements for individual assets?",
-        a: "Yes — each underlying protocol has its own requirements. Ondo Finance assets are typically restricted to non-US persons or accredited US investors. Fabrica land tokens have no general restrictions. RealT has jurisdiction-specific rules. CedarX displays these requirements on each listing. It is your responsibility to verify eligibility before purchasing.",
+        a: "Each underlying protocol has its own requirements. Fabrica, Propy, and Roofstock assets are generally available to any Ethereum wallet holder, though individual property transactions may have jurisdiction-specific restrictions. CedarX displays requirements on each listing — it is your responsibility to verify eligibility before purchasing.",
       },
     ],
   },
@@ -120,18 +124,13 @@ const FAQ_SECTIONS: { heading: string; items: FAQItem[] }[] = [
         a: (
           <>
             Follow{" "}
-            <a
-              href="https://x.com/cedarxio"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-cedar-amber hover:text-cedar-amber-lt transition-colors"
-            >
+            <a href="https://x.com/cedarxio" target="_blank" rel="noopener noreferrer" className="text-cedar-amber hover:text-cedar-amber-lt transition-colors">
               @cedarxio on X
             </a>{" "}
             for product updates and announcements. For protocol-specific questions, refer to the documentation of{" "}
             <a href="https://fabrica.land" target="_blank" rel="noopener noreferrer" className="text-cedar-amber hover:text-cedar-amber-lt transition-colors">Fabrica</a>,{" "}
-            <a href="https://ondo.finance" target="_blank" rel="noopener noreferrer" className="text-cedar-amber hover:text-cedar-amber-lt transition-colors">Ondo Finance</a>, or{" "}
-            <a href="https://realt.co" target="_blank" rel="noopener noreferrer" className="text-cedar-amber hover:text-cedar-amber-lt transition-colors">RealT</a>.
+            <a href="https://propy.com" target="_blank" rel="noopener noreferrer" className="text-cedar-amber hover:text-cedar-amber-lt transition-colors">Propy</a>, or{" "}
+            <a href="https://onchain.roofstock.com" target="_blank" rel="noopener noreferrer" className="text-cedar-amber hover:text-cedar-amber-lt transition-colors">Roofstock onChain</a>.
           </>
         ),
       },
@@ -173,7 +172,7 @@ export function AboutPage() {
       <div className="mb-16">
         <h1 className="display text-display-md text-cedar-text mb-4">How it works</h1>
         <p className="text-cedar-muted text-sm leading-relaxed max-w-xl">
-          CedarX is a non-custodial marketplace for tokenized real-world assets on Ethereum. Below are answers to common questions about how the platform works, the protocols it indexes, and the risks involved.
+          CedarX is a non-custodial marketplace for real-world asset NFTs on Ethereum. Any ERC-721 or ERC-1155 token representing a verified real-world asset — real estate, luxury goods, art, collectibles — belongs here. Below are answers to common questions about how the platform works, the protocols it indexes, and the risks involved.
         </p>
       </div>
 
