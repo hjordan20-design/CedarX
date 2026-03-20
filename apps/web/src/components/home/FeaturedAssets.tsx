@@ -23,7 +23,7 @@ const FEATURED: FeaturedAsset[] = [
     metric: { label: "Acreage", value: "10 ac" },
     protocolLabel: "Fabrica",
     category: "land",
-    imageUrl: "https://source.unsplash.com/600x340/?arizona,desert,aerial,landscape",
+    imageUrl: "https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?w=800&h=400&fit=crop",
     imageAlt: "Aerial view of Arizona desert landscape",
   },
   {
@@ -34,7 +34,7 @@ const FEATURED: FeaturedAsset[] = [
     metric: { label: "Acreage", value: "40 ac" },
     protocolLabel: "Fabrica",
     category: "land",
-    imageUrl: "https://source.unsplash.com/600x340/?texas,ranch,land,field,aerial",
+    imageUrl: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800&h=400&fit=crop",
     imageAlt: "Aerial view of Texas ranchland",
   },
   {
@@ -45,7 +45,7 @@ const FEATURED: FeaturedAsset[] = [
     metric: { label: "APY", value: "4.25%" },
     protocolLabel: "Ondo Finance",
     category: "fixed-income",
-    imageUrl: "https://source.unsplash.com/600x340/?finance,chart,graph,abstract",
+    imageUrl: "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=800&h=400&fit=crop",
     imageAlt: "Abstract financial chart",
   },
   {
@@ -56,7 +56,7 @@ const FEATURED: FeaturedAsset[] = [
     metric: { label: "Rental yield", value: "9.2%" },
     protocolLabel: "RealT",
     category: "rental-property",
-    imageUrl: "https://source.unsplash.com/600x340/?house,residential,neighborhood,brick",
+    imageUrl: "https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=800&h=400&fit=crop",
     imageAlt: "Residential property on a Detroit street",
   },
 ];

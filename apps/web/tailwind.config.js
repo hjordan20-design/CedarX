@@ -29,7 +29,7 @@ export default {
       },
       backgroundImage: {
         // Layered radial warmth for the hero section
-        "hero-glow": "radial-gradient(ellipse 100% 60% at 50% -5%, rgba(196,133,42,0.13) 0%, rgba(196,133,42,0.04) 40%, transparent 70%), radial-gradient(ellipse 60% 40% at 20% 80%, rgba(58,102,72,0.06) 0%, transparent 60%)",
+        "hero-glow": "radial-gradient(ellipse 100% 60% at 50% -5%, rgba(196,133,42,0.20) 0%, rgba(196,133,42,0.07) 40%, transparent 70%), radial-gradient(ellipse 60% 40% at 20% 80%, rgba(58,102,72,0.10) 0%, transparent 60%)",
       },
       animation: {
         "fade-up": "fadeUp 0.6s ease both",
