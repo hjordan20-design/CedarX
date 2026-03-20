@@ -65,7 +65,7 @@ export function Hero() {
     <section className="relative min-h-screen flex items-center bg-hero-glow">
       {/* Grain texture overlay */}
       <div
-        className="absolute inset-0 opacity-[0.04] pointer-events-none"
+        className="absolute inset-0 opacity-[0.045] pointer-events-none"
         style={{
           backgroundImage:
             "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E\")",
@@ -78,8 +78,8 @@ export function Hero() {
         className="absolute inset-0 pointer-events-none"
         style={{
           background: [
-            "radial-gradient(ellipse 55% 45% at 22% 52%, rgba(196,133,42,0.08) 0%, transparent 70%)",
-            "radial-gradient(ellipse 40% 35% at 18% 58%, rgba(58,102,72,0.06) 0%, transparent 65%)",
+            "radial-gradient(ellipse 65% 55% at 22% 50%, rgba(196,133,42,0.18) 0%, rgba(196,133,42,0.06) 50%, transparent 75%)",
+            "radial-gradient(ellipse 50% 40% at 15% 60%, rgba(58,102,72,0.11) 0%, transparent 65%)",
           ].join(", "),
         }}
       />
