@@ -1,7 +1,7 @@
 {
   "buildCommand": "pnpm --filter @cedarx/web build",
   "outputDirectory": "apps/web/dist",
-  "installCommand": "pnpm install",
+  "installCommand": "corepack enable && corepack prepare pnpm@9.0.0 --activate && pnpm install",
   "framework": null,
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
