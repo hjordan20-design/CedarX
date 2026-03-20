@@ -1,5 +1,5 @@
 {
-  "buildCommand": "pnpm --filter @cedarx/web build",
+  "buildCommand": "cd apps/web && pnpm build",
   "outputDirectory": "apps/web/dist",
 "framework": null,
   "rewrites": [
