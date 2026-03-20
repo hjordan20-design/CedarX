@@ -1,18 +1,12 @@
 import { Search, X } from "lucide-react";
-import type { AssetFilters, Category, Protocol } from "@/lib/types";
+import type { AssetFilters, Category } from "@/lib/types";
 
 const CATEGORIES: { value: Category | ""; label: string }[] = [
-  { value: "",                label: "All" },
-  { value: "land",            label: "Land" },
-  { value: "fixed-income",    label: "Fixed income" },
-  { value: "rental-property", label: "Rental property" },
-];
-
-const PROTOCOLS: { value: Protocol | ""; label: string }[] = [
-  { value: "",        label: "All" },
-  { value: "fabrica", label: "Fabrica" },
-  { value: "ondo",    label: "Ondo" },
-  { value: "realt",   label: "RealT" },
+  { value: "",              label: "All" },
+  { value: "real-estate",  label: "Real Estate" },
+  { value: "luxury-goods", label: "Luxury Goods" },
+  { value: "art",          label: "Art" },
+  { value: "collectibles", label: "Collectibles" },
 ];
 
 const SORT_OPTIONS: { value: AssetFilters["sort"]; label: string }[] = [
@@ -60,8 +54,7 @@ function PillGroup<T extends string>({
 }
 
 export function FilterBar({ filters, onChange, total }: FilterBarProps) {
-  const hasActiveFilters =
-    filters.category || filters.protocol || filters.search || filters.sort !== "newest";
+  const hasActiveFilters = filters.category || filters.search || filters.sort !== "newest";
 
   function set(partial: Partial<AssetFilters>) {
     onChange({ ...filters, ...partial, page: 1 });
@@ -69,7 +62,6 @@ export function FilterBar({ filters, onChange, total }: FilterBarProps) {
 
   return (
     <div className="space-y-4">
-      {/* Search row */}
       <div className="flex items-center gap-3">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cedar-muted pointer-events-none" />
@@ -83,7 +75,6 @@ export function FilterBar({ filters, onChange, total }: FilterBarProps) {
           />
         </div>
 
-        {/* Sort */}
         <select
           value={filters.sort ?? "newest"}
           onChange={(e) => set({ sort: e.target.value as AssetFilters["sort"] })}
@@ -95,7 +86,6 @@ export function FilterBar({ filters, onChange, total }: FilterBarProps) {
           ))}
         </select>
 
-        {/* Result count + clear */}
         <div className="flex items-center gap-3 ml-auto">
           {total !== undefined && (
             <span className="text-cedar-muted text-xs font-mono tabular-nums whitespace-nowrap">
@@ -114,23 +104,12 @@ export function FilterBar({ filters, onChange, total }: FilterBarProps) {
         </div>
       </div>
 
-      {/* Category pills */}
       <div className="flex items-center gap-4 flex-wrap">
         <span className="text-cedar-muted text-xs font-sans tracking-widest uppercase w-16 shrink-0">Category</span>
         <PillGroup
           options={CATEGORIES}
           value={(filters.category ?? "") as Category | ""}
           onSelect={(v) => set({ category: v || undefined })}
-        />
-      </div>
-
-      {/* Protocol pills */}
-      <div className="flex items-center gap-4 flex-wrap">
-        <span className="text-cedar-muted text-xs font-sans tracking-widest uppercase w-16 shrink-0">Protocol</span>
-        <PillGroup
-          options={PROTOCOLS}
-          value={(filters.protocol ?? "") as Protocol | ""}
-          onSelect={(v) => set({ protocol: v || undefined })}
         />
       </div>
     </div>

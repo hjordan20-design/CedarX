@@ -1,11 +1,11 @@
 // ─── Asset ────────────────────────────────────────────────────────────────────
 
-export type Protocol = "fabrica" | "ondo" | "realt";
-export type Category = "land" | "fixed-income" | "rental-property";
-export type TokenStandard = "ERC-721" | "ERC-1155" | "ERC-20";
+export type Protocol = "fabrica" | "propy" | "roofstock";
+export type Category = "real-estate" | "luxury-goods" | "art" | "collectibles";
+export type TokenStandard = "ERC-721" | "ERC-1155";
 
 export interface AssetDetails {
-  // Land (Fabrica)
+  // Real estate (Fabrica, Propy, Roofstock onChain)
   location?: string;
   acreage?: number;
   parcel_id?: string;
@@ -13,22 +13,26 @@ export interface AssetDetails {
   state?: string;
   lat?: number;
   lng?: number;
-  // Fixed Income (Ondo)
-  apy?: number;
-  nav_per_token?: number;
-  total_supply?: number;
-  // Rental Property (RealT)
-  property_address?: string;
-  property_type?: string;
-  annual_rent?: number;
-  rental_yield?: number;
-  token_price?: number;
-  total_tokens?: number;
+  bedrooms?: number;
+  bathrooms?: number;
+  sqft?: number;
+  // Luxury goods (watches, jewelry, handbags)
+  brand?: string;
+  model?: string;
+  year?: number;
+  condition?: string;
+  serial?: string;
+  // Art & collectibles
+  artist?: string;
+  medium?: string;
+  dimensions?: string;
+  provenance?: string;
+  edition?: string;
 }
 
 export interface Asset {
   id: string;
-  protocol: Protocol;
+  protocol?: Protocol;
   contractAddress: string;
   tokenId?: string;
   tokenStandard: TokenStandard;
@@ -65,7 +69,7 @@ export interface Listing {
   asset?: {
     id: string;
     name: string;
-    protocol: Protocol;
+    protocol?: Protocol;
     category: Category;
     imageUrl?: string;
     details: AssetDetails;
@@ -79,7 +83,7 @@ export interface MarketStats {
   activeListings: number;
   totalVolume: string;
   totalTrades: number;
-  byProtocol: Record<Protocol, number>;
+  byProtocol: Record<string, number>;
 }
 
 export interface ProtocolInfo {
