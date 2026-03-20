@@ -241,6 +241,87 @@ export async function updateAssetMarketData(
     if (error) throw error;
 }
 
+// ─── Asset ID lookup (used by cedarxSwap poller) ─────────────────────────────
+
+/**
+ * Look up an asset's internal ID from its onchain token contract + token ID.
+ *
+ * For ERC-721 / ERC-1155: matches on contract_address AND token_id.
+ * For ERC-20 (isNFT = false): matches on contract_address only (token_id IS NULL).
+ *
+ * Returns null if the asset hasn't been indexed yet — the listing will be stored
+ * with a null asset_id and back-filled on the next protocol poller tick.
+ */
+export async function getAssetIdByToken(
+    contractAddress: string,
+    tokenId: string | null,
+    isNFT: boolean
+): Promise<string | null> {
+    const db = getDb();
+    let query = db
+        .from("assets")
+        .select("id")
+        .eq("contract_address", contractAddress.toLowerCase());
+
+    if (isNFT && tokenId != null) {
+        query = query.eq("token_id", tokenId);
+    } else {
+        query = query.is("token_id", null);
+    }
+
+    const { data } = await query.maybeSingle();
+    return data?.id ?? null;
+}
+
+/**
+ * Fetch a single listing row by its onchain listing ID.
+ * Used by the swap poller to resolve asset_id when handling
+ * Cancelled / PriceUpdated / Sold events.
+ */
+export async function getListingById(listingId: number) {
+    const db = getDb();
+    const { data } = await db
+        .from("listings")
+        .select("*")
+        .eq("listing_id", listingId)
+        .maybeSingle();
+    return data ?? null;
+}
+
+/**
+ * Update only the asking_price of a listing (for PriceUpdated events).
+ */
+export async function updateListingAskingPrice(
+    listingId: number,
+    newAskingPrice: string
+): Promise<void> {
+    const db = getDb();
+    const { error } = await db
+        .from("listings")
+        .update({ asking_price: newAskingPrice })
+        .eq("listing_id", listingId);
+    if (error) throw error;
+}
+
+/**
+ * Find the lowest asking_price among active listings for a given asset.
+ * Called after a Cancelled event to keep current_listing_price accurate
+ * when an asset has multiple active listings.
+ * Returns null if no active listings remain.
+ */
+export async function getCheapestActiveListingPrice(assetId: string): Promise<number | null> {
+    const db = getDb();
+    const { data } = await db
+        .from("listings")
+        .select("asking_price")
+        .eq("asset_id", assetId)
+        .eq("status", "active")
+        .order("asking_price", { ascending: true })
+        .limit(1)
+        .maybeSingle();
+    return data ? Number(data.asking_price) : null;
+}
+
 // ─── Listings: writes (used by cedarxSwap poller) ────────────────────────────
 
 export async function upsertListing(listing: ListingInsert): Promise<void> {
