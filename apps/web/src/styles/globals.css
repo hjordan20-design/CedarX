@@ -70,6 +70,19 @@
   }
 }
 
+/* ── Scroll-triggered fade-in ────────────────────────────────────────────── */
+
+.scroll-fade {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.65s ease, transform 0.65s ease;
+}
+
+.scroll-fade.in-view {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 /* ── RainbowKit overrides — match CedarX dark palette ───────────────────── */
 
 [data-rk] {

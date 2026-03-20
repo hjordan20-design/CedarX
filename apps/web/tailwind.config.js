@@ -28,8 +28,8 @@ export default {
         "display-md": ["clamp(2rem, 4vw, 3.5rem)", { lineHeight: "1.1",  letterSpacing: "-0.015em" }],
       },
       backgroundImage: {
-        // Subtle radial warmth for the hero section
-        "hero-glow": "radial-gradient(ellipse 80% 50% at 50% -10%, rgba(196,133,42,0.08) 0%, transparent 60%)",
+        // Layered radial warmth for the hero section
+        "hero-glow": "radial-gradient(ellipse 100% 60% at 50% -5%, rgba(196,133,42,0.13) 0%, rgba(196,133,42,0.04) 40%, transparent 70%), radial-gradient(ellipse 60% 40% at 20% 80%, rgba(58,102,72,0.06) 0%, transparent 60%)",
       },
       animation: {
         "fade-up": "fadeUp 0.6s ease both",
