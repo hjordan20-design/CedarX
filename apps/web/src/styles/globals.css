@@ -1,0 +1,107 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  html {
+    background-color: #0C0E09;
+    color: #EBE7D5;
+    font-family: "DM Sans", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Remove default RainbowKit modal background conflict */
+  body {
+    background-color: #0C0E09;
+    min-height: 100vh;
+  }
+
+  /* Scrollbar — keep it warm and minimal */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: #0C0E09; }
+  ::-webkit-scrollbar-thumb { background: #272D1A; border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: #3A4220; }
+
+  /* Selection */
+  ::selection { background: rgba(196, 133, 42, 0.25); color: #EBE7D5; }
+}
+
+@layer components {
+  /* ── Typography ─────────────────────────────────────────────────────────── */
+
+  .display {
+    font-family: "Cormorant Garamond", Georgia, serif;
+    letter-spacing: -0.02em;
+    line-height: 1.05;
+  }
+
+  /* ── Buttons ─────────────────────────────────────────────────────────────── */
+
+  .btn-primary {
+    @apply inline-flex items-center gap-2 bg-cedar-amber text-cedar-bg font-sans font-medium
+           px-6 py-3 text-sm tracking-wide
+           transition-colors duration-150
+           hover:bg-cedar-amber-lt
+           focus-visible:outline focus-visible:outline-2 focus-visible:outline-cedar-amber focus-visible:outline-offset-2;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center gap-2 border border-cedar-border text-cedar-text font-sans font-medium
+           px-6 py-3 text-sm tracking-wide
+           transition-colors duration-150
+           hover:border-cedar-muted hover:text-cedar-text;
+  }
+
+  /* ── Cards ───────────────────────────────────────────────────────────────── */
+
+  .card {
+    @apply bg-cedar-surface border border-cedar-border;
+  }
+
+  /* ── Divider ─────────────────────────────────────────────────────────────── */
+
+  .divider {
+    @apply border-t border-cedar-border;
+  }
+}
+
+/* ── RainbowKit overrides — match CedarX dark palette ───────────────────── */
+
+[data-rk] {
+  --rk-colors-accentColor: #C4852A !important;
+  --rk-colors-accentColorForeground: #0C0E09 !important;
+  --rk-colors-actionButtonBorder: #272D1A !important;
+  --rk-colors-actionButtonBorderMobile: #272D1A !important;
+  --rk-colors-actionButtonSecondaryBackground: #1A1E10 !important;
+  --rk-colors-closeButton: #8D8B72 !important;
+  --rk-colors-closeButtonBackground: #1A1E10 !important;
+  --rk-colors-connectButtonBackground: #1A1E10 !important;
+  --rk-colors-connectButtonBackgroundError: #7A3535 !important;
+  --rk-colors-connectButtonInnerBackground: #131508 !important;
+  --rk-colors-connectButtonText: #EBE7D5 !important;
+  --rk-colors-connectButtonTextError: #EBE7D5 !important;
+  --rk-colors-connectionIndicator: #3A6648 !important;
+  --rk-colors-error: #7A3535 !important;
+  --rk-colors-generalBorder: #272D1A !important;
+  --rk-colors-generalBorderDim: #1A1E10 !important;
+  --rk-colors-menuItemBackground: #1A1E10 !important;
+  --rk-colors-modalBackground: #131508 !important;
+  --rk-colors-modalBorder: #272D1A !important;
+  --rk-colors-modalText: #EBE7D5 !important;
+  --rk-colors-modalTextDim: #8D8B72 !important;
+  --rk-colors-modalTextSecondary: #8D8B72 !important;
+  --rk-colors-profileAction: #1A1E10 !important;
+  --rk-colors-profileActionHover: #272D1A !important;
+  --rk-colors-profileForeground: #131508 !important;
+  --rk-radii-actionButton: 0 !important;
+  --rk-radii-connectButton: 0 !important;
+  --rk-radii-menuButton: 0 !important;
+  --rk-radii-modal: 0 !important;
+  --rk-radii-modalMobile: 0 !important;
+  --rk-fonts-body: "DM Sans", system-ui, sans-serif !important;
+}
