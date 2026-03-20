@@ -12,6 +12,52 @@ function StatPill({ label, value }: { label: string; value: string }) {
   );
 }
 
+/** Faint topographic contour lines — CSS/SVG background element */
+function TopoBackground() {
+  return (
+    <div
+      className="absolute inset-0 pointer-events-none overflow-hidden"
+      style={{
+        maskImage: "linear-gradient(to right, transparent 30%, rgba(0,0,0,0.6) 60%, black 80%)",
+        WebkitMaskImage: "linear-gradient(to right, transparent 30%, rgba(0,0,0,0.6) 60%, black 80%)",
+      }}
+    >
+      <svg
+        viewBox="0 0 900 700"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        className="absolute right-0 top-1/2 -translate-y-1/2 w-[55%] opacity-[0.055] text-cedar-amber"
+        aria-hidden="true"
+        preserveAspectRatio="xMidYMid meet"
+      >
+        {/* Topographic contour lines — irregular concentric paths */}
+        <path d="M450,350 C470,330 510,318 540,328 C570,338 585,360 575,385 C565,410 535,422 505,416 C475,410 450,390 450,350 Z"
+          stroke="currentColor" strokeWidth="1" />
+        <path d="M430,360 C455,320 515,295 565,310 C615,325 640,368 628,410 C616,452 572,472 528,462 C484,452 445,415 430,360 Z"
+          stroke="currentColor" strokeWidth="1" />
+        <path d="M405,375 C435,315 510,278 580,295 C650,312 688,372 674,435 C660,498 605,525 545,512 C485,499 430,448 405,375 Z"
+          stroke="currentColor" strokeWidth="1" />
+        <path d="M375,392 C410,312 500,262 590,280 C680,298 728,375 712,458 C696,541 630,578 555,562 C480,546 410,484 375,392 Z"
+          stroke="currentColor" strokeWidth="1" />
+        <path d="M340,408 C385,305 490,245 600,265 C710,285 768,378 750,480 C732,582 652,628 562,610 C472,592 388,518 340,408 Z"
+          stroke="currentColor" strokeWidth="1" />
+        <path d="M300,425 C355,295 478,225 610,248 C742,271 810,382 790,505 C770,628 676,682 572,660 C468,638 364,552 300,425 Z"
+          stroke="currentColor" strokeWidth="1" />
+        <path d="M258,442 C325,285 462,205 618,230 C774,255 852,387 830,530 C808,673 700,736 582,710 C464,684 340,584 258,442 Z"
+          stroke="currentColor" strokeWidth="1" />
+        <path d="M210,460 C292,272 445,182 625,210 C805,238 895,392 870,555 C845,718 722,790 590,762 C458,734 314,618 210,460 Z"
+          stroke="currentColor" strokeWidth="1" />
+        {/* Cross-hatch accent lines — subtle grid suggesting a parcel survey */}
+        <line x1="480" y1="200" x2="480" y2="580" stroke="currentColor" strokeWidth="0.5" strokeDasharray="3 8" opacity="0.5" />
+        <line x1="560" y1="200" x2="560" y2="580" stroke="currentColor" strokeWidth="0.5" strokeDasharray="3 8" opacity="0.5" />
+        <line x1="640" y1="220" x2="640" y2="560" stroke="currentColor" strokeWidth="0.5" strokeDasharray="3 8" opacity="0.5" />
+        <line x1="300" y1="390" x2="780" y2="390" stroke="currentColor" strokeWidth="0.5" strokeDasharray="3 8" opacity="0.5" />
+        <line x1="260" y1="460" x2="820" y2="460" stroke="currentColor" strokeWidth="0.5" strokeDasharray="3 8" opacity="0.5" />
+      </svg>
+    </div>
+  );
+}
+
 export function Hero() {
   const { data: stats } = useStats();
 
@@ -27,6 +73,9 @@ export function Hero() {
         }}
       />
 
+      {/* Topographic background element */}
+      <TopoBackground />
+
       {/* Subtle vignette */}
       <div
         className="absolute inset-0 pointer-events-none"
@@ -35,7 +84,7 @@ export function Hero() {
         }}
       />
 
-      <div className="relative max-w-7xl mx-auto px-6 pt-20 pb-24 w-full">
+      <div className="relative max-w-7xl mx-auto px-6 pt-14 pb-24 w-full">
         <div className="max-w-3xl">
           {/* Headline */}
           <h1
