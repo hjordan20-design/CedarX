@@ -65,9 +65,11 @@ export function PlaceholderCard({ asset, index }: { asset: PlaceholderAsset; ind
 
   return (
     <div
-      className="group relative bg-cedar-surface border border-cedar-border flex flex-col overflow-hidden snap-start
-        transition-all duration-300 hover:-translate-y-1 hover:border-cedar-amber/40 hover:shadow-[0_12px_40px_rgba(0,0,0,0.5)]"
-      style={{ transitionDelay: `${index * 70}ms` }}
+      className="group relative bg-cedar-surface border flex flex-col overflow-hidden snap-start
+        transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(0,0,0,0.5)]"
+      style={{ transitionDelay: `${index * 70}ms`, borderColor: "rgba(255,255,255,0.06)" }}
+      onMouseEnter={e => (e.currentTarget.style.borderColor = "rgba(196,133,42,0.4)")}
+      onMouseLeave={e => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.06)")}
     >
       <div className="absolute top-0 left-0 right-0 h-px bg-cedar-amber scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left z-10" />
 
@@ -132,7 +134,7 @@ export function PlaceholderCard({ asset, index }: { asset: PlaceholderAsset; ind
 export function FeaturedAssets() {
   return (
     <div>
-      <div className="grid grid-flow-col auto-cols-[72vw] gap-3 overflow-x-auto -mx-6 px-6 snap-x snap-mandatory card-scroll-row sm:grid-flow-row sm:auto-cols-auto sm:grid-cols-2 sm:gap-px sm:bg-cedar-border sm:overflow-visible sm:mx-0 sm:px-0 xl:grid-cols-4">
+      <div className="grid grid-flow-col auto-cols-[72vw] gap-3 overflow-x-auto -mx-6 px-6 snap-x snap-mandatory card-scroll-row sm:grid-flow-row sm:auto-cols-auto sm:grid-cols-2 sm:gap-px sm:bg-[rgba(255,255,255,0.06)] sm:overflow-visible sm:mx-0 sm:px-0 xl:grid-cols-4">
         {PLACEHOLDER_ASSETS.map((asset, i) => (
           <PlaceholderCard key={asset.id} asset={asset} index={i} />
         ))}

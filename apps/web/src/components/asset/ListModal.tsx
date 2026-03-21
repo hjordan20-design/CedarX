@@ -67,7 +67,7 @@ export function ListModal({
         onClick={canDismiss ? onClose : undefined}
       />
 
-      <div className="relative z-10 w-full max-w-md bg-cedar-surface border border-cedar-border">
+      <div className="relative z-10 w-full max-w-md bg-cedar-surface" style={{ border: "1px solid rgba(255,255,255,0.06)" }}>
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-cedar-border">
           <h2 className="font-sans font-medium text-cedar-text text-sm tracking-wide">
