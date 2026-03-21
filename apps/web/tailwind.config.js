@@ -5,12 +5,12 @@ export default {
     extend: {
       colors: {
         cedar: {
-          bg:          "#0C0E09",
-          surface:     "#131508",
-          "surface-alt": "#1A1E10",
-          border:      "#272D1A",
+          bg:          "#111110",
+          surface:     "#191918",
+          "surface-alt": "#222221",
+          border:      "#2C2C2B",
           text:        "#EBE7D5",
-          muted:       "#8D8B72",
+          muted:       "#8D8B78",
           amber:       "#C4852A",
           "amber-lt":  "#D4952F",
           green:       "#3A6648",
@@ -29,7 +29,7 @@ export default {
       },
       backgroundImage: {
         // Layered radial warmth for the hero section
-        "hero-glow": "radial-gradient(ellipse 100% 60% at 50% -5%, rgba(196,133,42,0.20) 0%, rgba(196,133,42,0.07) 40%, transparent 70%), radial-gradient(ellipse 60% 40% at 20% 80%, rgba(58,102,72,0.10) 0%, transparent 60%)",
+        "hero-glow": "radial-gradient(ellipse 100% 60% at 50% -5%, rgba(196,133,42,0.18) 0%, rgba(196,133,42,0.06) 40%, transparent 70%)",
       },
       animation: {
         "fade-up": "fadeUp 0.6s ease both",

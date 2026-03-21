@@ -8,7 +8,7 @@
   }
 
   html {
-    background-color: #0C0E09;
+    background-color: #111110;
     color: #EBE7D5;
     font-family: "DM Sans", system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
@@ -17,7 +17,7 @@
 
   /* Remove default RainbowKit modal background conflict */
   body {
-    background-color: #0C0E09;
+    background-color: #111110;
     /* Global noise texture — opacity encoded in feColorMatrix (A-out = 0.025 × noise) */
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.93 0 0 0 0 0.88 0 0 0 0 0.75 0.045 0 0 0 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
     background-size: 200px 200px;
@@ -26,9 +26,9 @@
 
   /* Scrollbar — keep it warm and minimal */
   ::-webkit-scrollbar { width: 6px; }
-  ::-webkit-scrollbar-track { background: #0C0E09; }
-  ::-webkit-scrollbar-thumb { background: #272D1A; border-radius: 3px; }
-  ::-webkit-scrollbar-thumb:hover { background: #3A4220; }
+  ::-webkit-scrollbar-track { background: #111110; }
+  ::-webkit-scrollbar-thumb { background: #2C2C2B; border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: #3A3A38; }
 
   /* Selection */
   ::selection { background: rgba(196, 133, 42, 0.25); color: #EBE7D5; }
@@ -100,30 +100,30 @@
 
 [data-rk] {
   --rk-colors-accentColor: #C4852A !important;
-  --rk-colors-accentColorForeground: #0C0E09 !important;
-  --rk-colors-actionButtonBorder: #272D1A !important;
-  --rk-colors-actionButtonBorderMobile: #272D1A !important;
-  --rk-colors-actionButtonSecondaryBackground: #1A1E10 !important;
-  --rk-colors-closeButton: #8D8B72 !important;
-  --rk-colors-closeButtonBackground: #1A1E10 !important;
-  --rk-colors-connectButtonBackground: #1A1E10 !important;
+  --rk-colors-accentColorForeground: #111110 !important;
+  --rk-colors-actionButtonBorder: #2C2C2B !important;
+  --rk-colors-actionButtonBorderMobile: #2C2C2B !important;
+  --rk-colors-actionButtonSecondaryBackground: #222221 !important;
+  --rk-colors-closeButton: #8D8B78 !important;
+  --rk-colors-closeButtonBackground: #222221 !important;
+  --rk-colors-connectButtonBackground: #222221 !important;
   --rk-colors-connectButtonBackgroundError: #7A3535 !important;
-  --rk-colors-connectButtonInnerBackground: #131508 !important;
+  --rk-colors-connectButtonInnerBackground: #191918 !important;
   --rk-colors-connectButtonText: #EBE7D5 !important;
   --rk-colors-connectButtonTextError: #EBE7D5 !important;
   --rk-colors-connectionIndicator: #3A6648 !important;
   --rk-colors-error: #7A3535 !important;
-  --rk-colors-generalBorder: #272D1A !important;
-  --rk-colors-generalBorderDim: #1A1E10 !important;
-  --rk-colors-menuItemBackground: #1A1E10 !important;
-  --rk-colors-modalBackground: #131508 !important;
-  --rk-colors-modalBorder: #272D1A !important;
+  --rk-colors-generalBorder: #2C2C2B !important;
+  --rk-colors-generalBorderDim: #222221 !important;
+  --rk-colors-menuItemBackground: #222221 !important;
+  --rk-colors-modalBackground: #191918 !important;
+  --rk-colors-modalBorder: #2C2C2B !important;
   --rk-colors-modalText: #EBE7D5 !important;
-  --rk-colors-modalTextDim: #8D8B72 !important;
-  --rk-colors-modalTextSecondary: #8D8B72 !important;
-  --rk-colors-profileAction: #1A1E10 !important;
-  --rk-colors-profileActionHover: #272D1A !important;
-  --rk-colors-profileForeground: #131508 !important;
+  --rk-colors-modalTextDim: #8D8B78 !important;
+  --rk-colors-modalTextSecondary: #8D8B78 !important;
+  --rk-colors-profileAction: #222221 !important;
+  --rk-colors-profileActionHover: #2C2C2B !important;
+  --rk-colors-profileForeground: #191918 !important;
   --rk-radii-actionButton: 0 !important;
   --rk-radii-connectButton: 0 !important;
   --rk-radii-menuButton: 0 !important;
