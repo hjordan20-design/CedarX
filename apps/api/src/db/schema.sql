@@ -23,7 +23,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE TABLE IF NOT EXISTS assets (
     -- Identity
     id                   TEXT        PRIMARY KEY,
-    protocol             TEXT        NOT NULL CHECK (protocol IN ('fabrica', 'ondo', 'realt')),
+    protocol             TEXT        NOT NULL CHECK (protocol IN ('fabrica', '4k', 'courtyard')),
     contract_address     TEXT        NOT NULL,
     token_id             TEXT,                          -- NULL for ERC-20
     token_standard       TEXT        NOT NULL CHECK (token_standard IN ('ERC-721', 'ERC-1155', 'ERC-20')),
@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS assets (
     -- Display
     name                 TEXT        NOT NULL,
     description          TEXT,
-    category             TEXT        NOT NULL CHECK (category IN ('land', 'fixed-income', 'rental-property')),
+    category             TEXT        NOT NULL CHECK (category IN ('real-estate', 'luxury-goods', 'art', 'collectibles')),
     image_url            TEXT,
 
     -- Protocol-specific details (flexible JSONB)
@@ -142,10 +142,37 @@ CREATE TABLE IF NOT EXISTS indexer_cursors (
 -- Seed the cursor rows so pollers can UPDATE rather than INSERT-or-UPDATE
 INSERT INTO indexer_cursors (poller_id, last_block) VALUES
     ('fabrica',      0),
-    ('ondo',         0),
-    ('realt',        0),
+    ('4k',           0),
+    ('courtyard',    0),
     ('cedarx-swap',  0)
 ON CONFLICT (poller_id) DO NOTHING;
+
+-- ---------------------------------------------------------------------------
+-- Migration: upgrading an existing deployment from Ondo/RealT to 4K/Courtyard
+-- ---------------------------------------------------------------------------
+-- Run these statements ONCE on existing Supabase databases.
+-- They are idempotent (use IF EXISTS / IF NOT EXISTS).
+--
+-- 1. Drop old CHECK constraints and add new ones:
+-- ALTER TABLE assets DROP CONSTRAINT IF EXISTS assets_protocol_check;
+-- ALTER TABLE assets ADD CONSTRAINT assets_protocol_check
+--     CHECK (protocol IN ('fabrica', '4k', 'courtyard'));
+--
+-- ALTER TABLE assets DROP CONSTRAINT IF EXISTS assets_category_check;
+-- ALTER TABLE assets ADD CONSTRAINT assets_category_check
+--     CHECK (category IN ('real-estate', 'luxury-goods', 'art', 'collectibles'));
+--
+-- 2. Rename existing Fabrica asset categories:
+-- UPDATE assets SET category = 'real-estate' WHERE category = 'land';
+--
+-- 3. Remove Ondo and RealT data (optional — they will never update again):
+-- DELETE FROM assets WHERE protocol IN ('ondo', 'realt');
+-- DELETE FROM indexer_cursors WHERE poller_id IN ('ondo', 'realt');
+--
+-- 4. Add new cursor rows:
+-- INSERT INTO indexer_cursors (poller_id, last_block)
+--     VALUES ('4k', 0), ('courtyard', 0)
+--     ON CONFLICT (poller_id) DO NOTHING;
 
 -- ---------------------------------------------------------------------------
 -- Helper: auto-update updated_at on listings

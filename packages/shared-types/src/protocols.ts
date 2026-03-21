@@ -1,7 +1,7 @@
 /**
  * Supported RWA protocol identifiers
  */
-export type ProtocolId = "fabrica" | "ondo" | "realt";
+export type ProtocolId = "fabrica" | "4k" | "courtyard";
 
 /**
  * Supported blockchain networks

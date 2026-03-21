@@ -72,6 +72,13 @@ async function fetchJson<T>(url: string): Promise<T> {
 }
 
 /**
+ * Universal token metadata fetcher — handles both ipfs:// URIs and plain HTTP
+ * URLs. Alias for fetchIPFSJson kept under a more descriptive name for pollers
+ * that deal with non-IPFS metadata hosts.
+ */
+export const fetchTokenMetadata = fetchIPFSJson;
+
+/**
  * Resolve an IPFS image URI to a public HTTP URL (for storing in image_url).
  * Returns null if the URI is empty or undefined.
  */

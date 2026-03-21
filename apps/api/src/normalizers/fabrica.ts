@@ -41,7 +41,7 @@ export function normalizeFabricaAsset(
         chain: "ethereum",
         name: metadata.name ?? `Fabrica Land #${tokenId}`,
         description: metadata.description ?? null,
-        category: "land",
+        category: "real-estate",
         image_url: metadata.image ?? null,
         external_url: metadata.external_url ?? `https://fabrica.land/token/${tokenId}`,
         details: {

@@ -1,8 +1,8 @@
 /**
  * BasePoller — abstract base class for all CedarX chain pollers.
  *
- * Each protocol (Fabrica, Ondo, RealT) and the CedarX swap contract gets its
- * own concrete subclass.  The base class handles:
+ * Each protocol (Fabrica, 4K, Courtyard) and the CedarX swap contract gets its
+ * own concrete subclass. The base class handles:
  *
  *   - Cursor management (read last processed block from DB, persist after
  *     each successful tick so restarts resume cleanly)
@@ -14,20 +14,24 @@
  *
  * Chain selection:
  *   Pass 'mainnet' to pin to Ethereum mainnet regardless of CHAIN_ENV.
+ *   Pass 'polygon' to use the Polygon RPC.
  *   Omit (or pass undefined) to follow CHAIN_ENV — used by CedarXSwapPoller
  *   so it can follow the deployment chain (Sepolia for testing).
  */
 
 import { createPublicClient, http, type PublicClient } from "viem";
-import { mainnet, sepolia } from "viem/chains";
+import { mainnet, sepolia, polygon } from "viem/chains";
 import {
     CHAIN_ENV,
     POLL_INTERVAL_MS,
     BLOCKS_PER_SCAN,
     ETH_MAINNET_RPC,
     ETH_SEPOLIA_RPC,
+    POLYGON_RPC,
 } from "../config";
 import { getCursor, setCursor } from "../db/queries";
+
+export type PollerChain = "mainnet" | "sepolia" | "polygon";
 
 export abstract class BasePoller {
     /** Unique identifier for this poller — stored in indexer_cursors.poller_id */
@@ -42,14 +46,27 @@ export abstract class BasePoller {
     private _running = false;
 
     /**
-     * @param chain  Force a specific chain. Protocol pollers pass 'mainnet'
-     *               so they always read from Ethereum L1 regardless of CHAIN_ENV.
-     *               CedarXSwapPoller omits this to follow CHAIN_ENV.
+     * @param chain  Force a specific chain.
+     *               - 'mainnet': always Ethereum L1 (Fabrica, 4K)
+     *               - 'polygon': always Polygon PoS (Courtyard)
+     *               - 'sepolia': Ethereum Sepolia testnet
+     *               - undefined: follow CHAIN_ENV (CedarXSwapPoller)
      */
-    constructor(chain?: "mainnet" | "sepolia") {
+    constructor(chain?: PollerChain) {
         const resolved = chain ?? CHAIN_ENV;
-        const viemChain = resolved === "sepolia" ? sepolia : mainnet;
-        const rpcUrl = resolved === "sepolia" ? ETH_SEPOLIA_RPC : ETH_MAINNET_RPC;
+        let viemChain, rpcUrl: string;
+
+        if (resolved === "polygon") {
+            viemChain = polygon;
+            rpcUrl = POLYGON_RPC;
+        } else if (resolved === "sepolia") {
+            viemChain = sepolia;
+            rpcUrl = ETH_SEPOLIA_RPC;
+        } else {
+            viemChain = mainnet;
+            rpcUrl = ETH_MAINNET_RPC;
+        }
+
         this.client = createPublicClient({
             chain: viemChain,
             transport: http(rpcUrl),
@@ -64,7 +81,6 @@ export abstract class BasePoller {
         this._running = true;
         this.log("starting");
 
-        // Fire immediately, then on interval
         void this._tick();
         this._timer = setInterval(() => void this._tick(), POLL_INTERVAL_MS);
     }
@@ -83,7 +99,6 @@ export abstract class BasePoller {
             const latestBlock = Number(await this.client.getBlockNumber());
             const lastProcessed = await getCursor(this.pollerId);
 
-            // Respect the protocol's deployment block
             const fromBlock = Math.max(lastProcessed + 1, this.startBlock);
 
             if (fromBlock > latestBlock) {
@@ -91,7 +106,6 @@ export abstract class BasePoller {
                 return;
             }
 
-            // Scan in chunks to stay within Alchemy log limits
             let cursor = fromBlock;
             while (cursor <= latestBlock) {
                 const toBlock = Math.min(cursor + BLOCKS_PER_SCAN - 1, latestBlock);
@@ -101,19 +115,12 @@ export abstract class BasePoller {
                 cursor = toBlock + 1;
             }
         } catch (err) {
-            // Log but don't rethrow — poller keeps running
             this.logError("tick failed", err);
         }
     }
 
     // ─── Abstract interface ───────────────────────────────────────────────────
 
-    /**
-     * Scan the block range [fromBlock, toBlock] for events relevant to this
-     * protocol.  Write any discovered assets/listings/trades to the database.
-     *
-     * Called by the base class — do not call directly.
-     */
     protected abstract poll(fromBlock: number, toBlock: number): Promise<void>;
 
     // ─── Logging ─────────────────────────────────────────────────────────────
