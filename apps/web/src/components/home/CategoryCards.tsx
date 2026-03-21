@@ -97,7 +97,7 @@ export function CategoryCards() {
   const { ref: headingRef, inView: headingInView } = useInView();
 
   return (
-    <section className="max-w-7xl mx-auto px-6 py-24">
+    <section className="max-w-7xl mx-auto px-6 py-24" style={{ background: "linear-gradient(to bottom, #111110, #0D0D0C)" }}>
       <div
         ref={headingRef as React.Ref<HTMLDivElement>}
         className={`mb-12 scroll-fade${headingInView ? " in-view" : ""}`}

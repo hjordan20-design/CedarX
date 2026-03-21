@@ -20,24 +20,12 @@ export function Hero({ filters, onFilterChange }: HeroProps) {
   }
 
   return (
-    <section className="relative bg-hero-glow overflow-hidden">
-      {/* Grain */}
-      <div
-        className="absolute inset-0 opacity-[0.045] pointer-events-none"
-        style={{
-          backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E\")",
-          backgroundSize: "256px 256px",
-        }}
-      />
-      {/* Center-left warm glow */}
+    <section className="relative bg-cedar-bg overflow-hidden">
+      {/* Amber glow — centered behind headline, amber-only, no green */}
       <div
         className="absolute inset-0 pointer-events-none"
-        style={{
-          background: "radial-gradient(ellipse 65% 55% at 22% 50%, rgba(196,133,42,0.15) 0%, rgba(196,133,42,0.05) 50%, transparent 75%)",
-        }}
+        style={{ background: "radial-gradient(ellipse 70% 55% at 40% 55%, rgba(196,133,42,0.06) 0%, transparent 70%)" }}
       />
-      {/* Bottom fade */}
-      <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-cedar-bg to-transparent pointer-events-none" />
 
       <div className="relative max-w-7xl mx-auto px-6 pt-24 pb-10">
         {/* Headline — compact, single visual line */}
