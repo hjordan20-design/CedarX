@@ -21,47 +21,51 @@ export const ALCHEMY_API_KEY = require_env("ALCHEMY_API_KEY");
 
 export const ETH_MAINNET_RPC = `https://eth-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY}`;
 export const ETH_SEPOLIA_RPC = `https://eth-sepolia.g.alchemy.com/v2/${ALCHEMY_API_KEY}`;
+export const POLYGON_RPC     = optional_env(
+    "POLYGON_RPC_URL",
+    `https://polygon-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY}`
+);
 
-// Which chain the indexer reads from: "mainnet" or "sepolia"
+// Which chain the CedarX swap contract is on: "mainnet" or "sepolia"
 export const CHAIN_ENV = optional_env("CHAIN_ENV", "mainnet") as "mainnet" | "sepolia";
 export const RPC_URL = CHAIN_ENV === "sepolia" ? ETH_SEPOLIA_RPC : ETH_MAINNET_RPC;
 
 // ─── Contract addresses ───────────────────────────────────────────────────────
 
-// Optional until the contract is deployed — the CedarXSwapPoller skips if empty
+// CedarX swap — optional until deployed; CedarXSwapPoller skips if empty
 export const CEDARX_SWAP_ADDRESS = optional_env("CEDARX_SWAP_CONTRACT_ADDRESS", "") as `0x${string}`;
+// Polygon swap contract (separate deployment; optional)
+export const CEDARX_SWAP_POLYGON_ADDRESS = optional_env("CEDARX_SWAP_POLYGON_ADDRESS", "") as `0x${string}`;
 
-// Fabrica
+// Fabrica Token V2 (Ethereum mainnet)
 export const FABRICA_TOKEN_V2 = optional_env(
     "FABRICA_CONTRACT_ADDRESS",
     "0x8d96b4ab6c741a4c8679ae323a100d74f085ba8f"
 ) as `0x${string}`;
 
-// Ondo
-export const ONDO_OUSG  = optional_env("ONDO_OUSG_ADDRESS",  "0x1b19c19393e2d034d8ff31ff34c81252fcbbee92") as `0x${string}`;
-export const ONDO_USDY  = optional_env("ONDO_USDY_ADDRESS",  "0x96f6ef951840721adbf46ac996b59e0235cb985c") as `0x${string}`;
-export const ONDO_ROUSG = optional_env("ONDO_ROUSG_ADDRESS", "0x6e9a65d98474f1c68406e2fe02695fe5a3e7cb0d") as `0x${string}`;
+// 4K Protocol (ERC-721 luxury goods, Ethereum mainnet)
+// IMPORTANT: verify address at etherscan.io/token/... before production
+export const FOURTK_CONTRACT = optional_env(
+    "FOURTK_CONTRACT_ADDRESS",
+    "0x30015b88e33773bce3b8a32A93a13bA23CF91db3"
+) as `0x${string}`;
 
-// RealT — comma-separated list of known property token addresses
-// The RealT poller also fetches the authoritative list from the RealT API at runtime.
-export const REALT_KNOWN_ADDRESSES = optional_env("REALT_CONTRACT_ADDRESSES", "")
-    .split(",")
-    .map((a) => a.trim().toLowerCase())
-    .filter(Boolean) as `0x${string}`[];
+// Courtyard NFT (ERC-721 collectibles, Polygon)
+// IMPORTANT: verify address at polygonscan.com/token/... before production
+export const COURTYARD_CONTRACT = optional_env(
+    "COURTYARD_CONTRACT_ADDRESS",
+    "0xD8A5a9b31c3C0232E196d518E89Fd8bF83AcAd43"
+) as `0x${string}`;
 
 // ─── Indexer behaviour ────────────────────────────────────────────────────────
 
-// How often each poller runs (milliseconds)
 export const POLL_INTERVAL_MS = Number(optional_env("POLL_INTERVAL_MS", "180000")); // 3 min
-
-// How many blocks to scan per poller tick (to stay within Alchemy's log limit)
-export const BLOCKS_PER_SCAN = Number(optional_env("BLOCKS_PER_SCAN", "2000"));
+export const BLOCKS_PER_SCAN  = Number(optional_env("BLOCKS_PER_SCAN", "2000"));
 
 // ─── API server ───────────────────────────────────────────────────────────────
 
 export const PORT = Number(optional_env("PORT", "3001"));
 
-// Allowed CORS origins (comma-separated)
 export const CORS_ORIGINS = optional_env("CORS_ORIGINS", "http://localhost:5173,https://cedarx.io")
     .split(",")
     .map((o) => o.trim());

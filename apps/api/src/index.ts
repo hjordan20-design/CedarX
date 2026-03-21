@@ -7,9 +7,9 @@
 
 import { createServer } from "./server";
 import { PORT } from "./config";
-import { FabricaPoller } from "./pollers/fabrica";
-import { OndoPoller } from "./pollers/ondo";
-import { RealTPoller } from "./pollers/realt";
+import { FabricaPoller }   from "./pollers/fabrica";
+import { FourKPoller }     from "./pollers/4k";
+import { CourtyardPoller } from "./pollers/courtyard";
 import { CedarXSwapPoller } from "./pollers/cedarxSwap";
 
 // ── Start API server ──────────────────────────────────────────────────────────
@@ -22,10 +22,10 @@ app.listen(PORT, () => {
 // ── Start pollers ─────────────────────────────────────────────────────────────
 
 const pollers = [
-    new FabricaPoller(),
-    new OndoPoller(),
-    new RealTPoller(),
-    new CedarXSwapPoller(),
+    new FabricaPoller(),    // ERC-721 real estate, Ethereum
+    new FourKPoller(),      // ERC-721 luxury goods, Ethereum
+    new CourtyardPoller(),  // ERC-721 collectibles, Polygon
+    new CedarXSwapPoller(), // Swap contract events (follows CHAIN_ENV)
 ];
 
 for (const poller of pollers) {

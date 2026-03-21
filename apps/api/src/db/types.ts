@@ -32,14 +32,14 @@ export interface Database {
 
 export interface AssetRow {
     id: string;
-    protocol: "fabrica" | "ondo" | "realt";
+    protocol: "fabrica" | "4k" | "courtyard";
     contract_address: string;
     token_id: string | null;
     token_standard: "ERC-721" | "ERC-1155" | "ERC-20";
     chain: string;
     name: string;
     description: string | null;
-    category: "land" | "fixed-income" | "rental-property";
+    category: "real-estate" | "luxury-goods" | "art" | "collectibles";
     image_url: string | null;
     details: AssetDetails;
     last_sale_price: number | null;
@@ -54,7 +54,7 @@ export type AssetInsert = Omit<AssetRow, "created_at"> & { created_at?: string }
 
 // Protocol-specific details stored as JSONB
 export interface AssetDetails {
-    // Land (Fabrica)
+    // Real Estate (Fabrica, Propy, Roofstock)
     location?: string;
     acreage?: number;
     parcel_id?: string;
@@ -62,19 +62,25 @@ export interface AssetDetails {
     state?: string;
     lat?: number;
     lng?: number;
+    bedrooms?: number;
+    bathrooms?: number;
+    sqft?: number;
 
-    // Fixed Income (Ondo)
-    apy?: number;
-    nav_per_token?: number;
-    total_supply?: number;
+    // Luxury Goods (4K)
+    brand?: string;
+    model?: string;
+    year?: number;
+    condition?: string;
+    serial?: string;
 
-    // Rental Property (RealT)
-    property_address?: string;
-    property_type?: string;
-    annual_rent?: number;
-    rental_yield?: number;
-    token_price?: number;
-    total_tokens?: number;
+    // Art & Collectibles (Courtyard, future)
+    artist?: string;
+    medium?: string;
+    dimensions?: string;
+    provenance?: string;
+    edition?: string;
+    series?: string;
+    grade?: string;
 }
 
 // ─── listings ────────────────────────────────────────────────────────────────
