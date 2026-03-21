@@ -108,7 +108,7 @@ export function CategoryCards() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px bg-cedar-border">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px bg-[rgba(255,255,255,0.06)]">
         {CATEGORIES.map((cat, i) => (
           <CategoryCard key={cat.category} {...cat} index={i} />
         ))}

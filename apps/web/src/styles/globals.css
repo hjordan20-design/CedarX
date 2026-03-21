@@ -63,7 +63,8 @@
   /* ── Cards ───────────────────────────────────────────────────────────────── */
 
   .card {
-    @apply bg-cedar-surface border border-cedar-border;
+    @apply bg-cedar-surface;
+    border: 1px solid rgba(255, 255, 255, 0.06);
   }
 
   /* ── Divider ─────────────────────────────────────────────────────────────── */
