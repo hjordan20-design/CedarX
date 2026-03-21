@@ -4,7 +4,7 @@ import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { Menu, X, ChevronDown } from "lucide-react";
 import { useAccount, useChainId, useSwitchChain } from "wagmi";
 
-// ─── CedarX mark — geometric three-tier cedar tree ───────────────────────────
+// ─── CedarX mark ─────────────────────────────────────────────────────────────
 function CedarMark({ className }: { className?: string }) {
   return (
     <svg
@@ -47,8 +47,8 @@ function NavLink({
     <Link
       to={to}
       onClick={onClick}
-      className={`text-[13px] tracking-widest uppercase font-sans transition-colors duration-150 ${
-        active ? "text-cedar-text" : "text-cedar-muted hover:text-cedar-text"
+      className={`text-[13px] tracking-widest uppercase font-sans transition-colors duration-300 ${
+        active ? "text-cedar-text" : "text-cedar-muted/70 hover:text-cedar-text"
       }`}
     >
       {children}
@@ -86,28 +86,39 @@ function ChainSwitcher() {
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen((o) => !o)}
-        className="flex items-center gap-1.5 px-2.5 py-1.5 border border-cedar-border
-          text-cedar-muted hover:text-cedar-text hover:border-cedar-muted
-          text-[11px] tracking-widest uppercase transition-colors"
+        className="flex items-center gap-1.5 px-2.5 py-1.5
+          text-cedar-muted/60 hover:text-cedar-text
+          text-[11px] tracking-widest uppercase transition-all duration-300"
+        style={{ border: "1px solid rgba(255,255,255,0.08)" }}
+        onMouseEnter={e => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.15)")}
+        onMouseLeave={e => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)")}
         aria-label="Switch network"
       >
         <span className={`w-1.5 h-1.5 rounded-full ${current?.dot ?? "bg-cedar-muted"}`} />
         {current?.short ?? "Net"}
         <ChevronDown
           size={10}
-          className={`transition-transform duration-150 ${open ? "rotate-180" : ""}`}
+          className={`transition-transform duration-300 ${open ? "rotate-180" : ""}`}
         />
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-1 w-36 bg-cedar-surface border border-cedar-border z-50 shadow-lg">
+        <div
+          className="absolute right-0 top-full mt-1 w-36 z-50"
+          style={{
+            background: "rgba(20,20,19,0.96)",
+            backdropFilter: "blur(12px)",
+            WebkitBackdropFilter: "blur(12px)",
+            border: "1px solid rgba(255,255,255,0.08)",
+          }}
+        >
           {SUPPORTED_CHAINS.map((chain) => (
             <button
               key={chain.id}
               onClick={() => { switchChain({ chainId: chain.id }); setOpen(false); }}
               className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-[11px] tracking-widest uppercase
-                hover:bg-cedar-surface-alt transition-colors ${
-                  chain.id === chainId ? "text-cedar-text" : "text-cedar-muted"
+                transition-colors duration-300 hover:bg-[rgba(255,255,255,0.04)] ${
+                  chain.id === chainId ? "text-cedar-text" : "text-cedar-muted/60"
                 }`}
             >
               <span className={`w-1.5 h-1.5 rounded-full ${chain.dot}`} />
@@ -123,13 +134,36 @@ function ChainSwitcher() {
   );
 }
 
+// ─── Outline wallet button — luxury-style ghost/outline ──────────────────────
+function WalletButton() {
+  return (
+    <ConnectButton.Custom>
+      {({ account, chain, openAccountModal, openConnectModal, mounted }) => {
+        const connected = mounted && account && chain;
+        return (
+          <button
+            onClick={connected ? openAccountModal : openConnectModal}
+            type="button"
+            className="px-4 py-1.5 text-[12px] font-sans tracking-widest uppercase
+              text-cedar-amber bg-transparent
+              transition-all duration-300
+              hover:bg-cedar-amber hover:text-cedar-bg"
+            style={{ border: "1px solid #C4852A" }}
+          >
+            {connected ? account.displayName : "Connect wallet"}
+          </button>
+        );
+      }}
+    </ConnectButton.Custom>
+  );
+}
+
 // ─── Header ──────────────────────────────────────────────────────────────────
 export function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const { pathname } = useLocation();
 
-  // Close mobile menu on route change
   useEffect(() => { setMobileOpen(false); }, [pathname]);
 
   useEffect(() => {
@@ -138,34 +172,33 @@ export function Header() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // Prevent body scroll when mobile menu is open
   useEffect(() => {
     document.body.style.overflow = mobileOpen ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };
   }, [mobileOpen]);
 
   const navLinks = [
-    { to: "/",       label: "Home" },
+    { to: "/",        label: "Home" },
     { to: "/explore", label: "Explore" },
-    { to: "/about",  label: "How It Works" },
+    { to: "/about",   label: "How It Works" },
   ];
 
   return (
     <>
       <header
-        className={`
-          fixed top-0 left-0 right-0 z-50
-          transition-all duration-300
-          ${scrolled || mobileOpen
-            ? "bg-cedar-bg/95 backdrop-blur-md border-b border-cedar-border"
-            : "bg-transparent border-b border-transparent"}
-        `}
+        className="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
+        style={{
+          backgroundColor: scrolled || mobileOpen ? "rgba(13,13,12,0.94)" : "rgba(13,13,12,0.80)",
+          backdropFilter: "blur(12px)",
+          WebkitBackdropFilter: "blur(12px)",
+          borderBottom: "1px solid rgba(255,255,255,0.06)",
+        }}
       >
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between gap-4">
           {/* Logo */}
           <Link
             to="/"
-            className="flex items-center gap-2.5 shrink-0 text-cedar-text hover:text-cedar-amber-lt transition-colors"
+            className="flex items-center gap-2.5 shrink-0 text-cedar-text hover:text-cedar-amber transition-colors duration-300"
           >
             <CedarMark className="w-5 h-[22px]" />
             <CedarXWordmark />
@@ -181,17 +214,12 @@ export function Header() {
           {/* Desktop right: chain switcher + wallet */}
           <div className="hidden md:flex items-center gap-3 shrink-0">
             <ChainSwitcher />
-            <ConnectButton
-              label="Connect wallet"
-              accountStatus="address"
-              chainStatus="none"
-              showBalance={false}
-            />
+            <WalletButton />
           </div>
 
           {/* Mobile: hamburger */}
           <button
-            className="md:hidden text-cedar-muted hover:text-cedar-text transition-colors p-1"
+            className="md:hidden text-cedar-muted/60 hover:text-cedar-text transition-colors duration-300 p-1"
             onClick={() => setMobileOpen((o) => !o)}
             aria-label={mobileOpen ? "Close menu" : "Open menu"}
             aria-expanded={mobileOpen}
@@ -204,17 +232,24 @@ export function Header() {
       {/* Mobile menu */}
       {mobileOpen && (
         <div className="fixed inset-0 z-40 md:hidden">
-          {/* Backdrop */}
           <div
-            className="absolute inset-0 bg-cedar-bg/60 backdrop-blur-sm"
+            className="absolute inset-0"
+            style={{ background: "rgba(13,13,12,0.65)", backdropFilter: "blur(4px)", WebkitBackdropFilter: "blur(4px)" }}
             onClick={() => setMobileOpen(false)}
           />
 
-          {/* Panel — slides in from top below the header */}
-          <div className="absolute top-16 left-0 right-0 bg-cedar-bg border-b border-cedar-border">
+          <div
+            className="absolute top-16 left-0 right-0"
+            style={{
+              background: "rgba(13,13,12,0.96)",
+              backdropFilter: "blur(12px)",
+              WebkitBackdropFilter: "blur(12px)",
+              borderBottom: "1px solid rgba(255,255,255,0.06)",
+            }}
+          >
             <nav className="px-6 py-5 space-y-1">
               {navLinks.map(({ to, label }) => (
-                <div key={to} className="py-2.5 border-b border-cedar-border/50 last:border-0">
+                <div key={to} className="py-2.5 border-b border-[rgba(255,255,255,0.06)] last:border-0">
                   <NavLink to={to} onClick={() => setMobileOpen(false)}>
                     {label}
                   </NavLink>
@@ -222,20 +257,14 @@ export function Header() {
               ))}
             </nav>
 
-            {/* Chain + wallet at the bottom of the panel */}
             <div className="px-6 pb-6 pt-2 flex flex-col gap-3">
               <div className="flex items-center justify-between">
-                <span className="text-cedar-muted text-[10px] tracking-widest uppercase">
+                <span className="text-cedar-muted/40 text-[10px] tracking-widest uppercase">
                   Network
                 </span>
                 <ChainSwitcher />
               </div>
-              <ConnectButton
-                label="Connect wallet"
-                accountStatus="address"
-                chainStatus="none"
-                showBalance={false}
-              />
+              <WalletButton />
             </div>
           </div>
         </div>

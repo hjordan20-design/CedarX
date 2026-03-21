@@ -10,7 +10,7 @@ export default {
           "surface-alt": "#1C1C1A",
           border:      "#2C2C2B",
           footer:      "#0A0A09",
-          text:        "#EBE7D5",
+          text:        "#C4C0B4",  /* rgba(255,255,255,0.75) warm equivalent */
           muted:       "#8D8B78",
           amber:       "#C4852A",
           "amber-lt":  "#D4952F",

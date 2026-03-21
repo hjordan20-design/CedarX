@@ -9,29 +9,29 @@
 
   html {
     background-color: #0D0D0C;
-    color: #EBE7D5;
+    /* Softer body text — rgba(255,255,255,0.75) on #0D0D0C, warm off-white */
+    color: rgba(255, 255, 255, 0.75);
     font-family: "DM Sans", system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
-  /* Remove default RainbowKit modal background conflict */
   body {
     background-color: #0D0D0C;
-    /* Warm grain — feColorMatrix forces noise to (0.95, 0.90, 0.80) cream, max 2% opacity. No green channel dominance. */
+    /* Warm grain texture — cream-tinted noise at max 2% opacity */
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.95 0 0 0 0 0.90 0 0 0 0 0.80 0.02 0 0 0 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
     background-size: 200px 200px;
     min-height: 100vh;
   }
 
-  /* Scrollbar — keep it warm and minimal */
+  /* Scrollbar — minimal, warm */
   ::-webkit-scrollbar { width: 6px; }
   ::-webkit-scrollbar-track { background: #0D0D0C; }
   ::-webkit-scrollbar-thumb { background: #2C2C2B; border-radius: 3px; }
   ::-webkit-scrollbar-thumb:hover { background: #3A3A38; }
 
   /* Selection */
-  ::selection { background: rgba(196, 133, 42, 0.25); color: #EBE7D5; }
+  ::selection { background: rgba(196, 133, 42, 0.25); color: rgba(255,255,255,0.9); }
 }
 
 @layer components {
@@ -45,33 +45,53 @@
 
   /* ── Buttons ─────────────────────────────────────────────────────────────── */
 
+  /* Outline amber — luxury signal: confidence over urgency */
   .btn-primary {
-    @apply inline-flex items-center gap-2 bg-cedar-amber text-cedar-bg font-sans font-medium
+    @apply inline-flex items-center gap-2 font-sans font-medium
            px-6 py-3 text-sm tracking-wide
-           transition-colors duration-150
-           hover:bg-cedar-amber-lt
+           transition-all duration-300
            focus-visible:outline focus-visible:outline-2 focus-visible:outline-cedar-amber focus-visible:outline-offset-2;
+    color: #C4852A;
+    background: transparent;
+    border: 1px solid #C4852A;
+  }
+  .btn-primary:hover {
+    background: #C4852A;
+    color: #0D0D0C;
   }
 
   .btn-ghost {
-    @apply inline-flex items-center gap-2 border border-cedar-border text-cedar-text font-sans font-medium
+    @apply inline-flex items-center gap-2 font-sans font-medium
            px-6 py-3 text-sm tracking-wide
-           transition-colors duration-150
-           hover:border-cedar-muted hover:text-cedar-text;
+           transition-all duration-300;
+    color: rgba(255,255,255,0.75);
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  .btn-ghost:hover {
+    border-color: rgba(255,255,255,0.18);
+    color: rgba(255,255,255,0.95);
   }
 
   /* ── Cards ───────────────────────────────────────────────────────────────── */
 
   .card {
-    @apply bg-cedar-surface;
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 12px;
   }
 
   /* ── Divider ─────────────────────────────────────────────────────────────── */
 
   .divider {
-    @apply border-t border-cedar-border;
+    border-top: 1px solid rgba(255,255,255,0.06);
   }
+}
+
+/* ── Search input focus — amber border ─────────────────────────────────────── */
+
+.search-input:focus {
+  border-color: rgba(196, 133, 42, 0.35) !important;
+  outline: none;
 }
 
 /* ── Mobile horizontal card scroll row ──────────────────────────────────── */
@@ -102,26 +122,27 @@
 [data-rk] {
   --rk-colors-accentColor: #C4852A !important;
   --rk-colors-accentColorForeground: #0D0D0C !important;
-  --rk-colors-actionButtonBorder: #2C2C2B !important;
-  --rk-colors-actionButtonBorderMobile: #2C2C2B !important;
+  --rk-colors-actionButtonBorder: rgba(255,255,255,0.08) !important;
+  --rk-colors-actionButtonBorderMobile: rgba(255,255,255,0.08) !important;
   --rk-colors-actionButtonSecondaryBackground: #1C1C1A !important;
-  --rk-colors-closeButton: #8D8B78 !important;
+  --rk-colors-closeButton: rgba(255,255,255,0.4) !important;
   --rk-colors-closeButtonBackground: #1C1C1A !important;
   --rk-colors-connectButtonBackground: #1C1C1A !important;
   --rk-colors-connectButtonBackgroundError: #7A3535 !important;
   --rk-colors-connectButtonInnerBackground: #141413 !important;
-  --rk-colors-connectButtonText: #EBE7D5 !important;
-  --rk-colors-connectButtonTextError: #EBE7D5 !important;
-  --rk-colors-connectionIndicator: #3A6648 !important;
+  --rk-colors-connectButtonText: rgba(255,255,255,0.75) !important;
+  --rk-colors-connectButtonTextError: rgba(255,255,255,0.75) !important;
+  /* Amber connection indicator — no green anywhere */
+  --rk-colors-connectionIndicator: #C4852A !important;
   --rk-colors-error: #7A3535 !important;
-  --rk-colors-generalBorder: #2C2C2B !important;
+  --rk-colors-generalBorder: rgba(255,255,255,0.08) !important;
   --rk-colors-generalBorderDim: #1C1C1A !important;
   --rk-colors-menuItemBackground: #1C1C1A !important;
   --rk-colors-modalBackground: #141413 !important;
-  --rk-colors-modalBorder: #2C2C2B !important;
-  --rk-colors-modalText: #EBE7D5 !important;
-  --rk-colors-modalTextDim: #8D8B78 !important;
-  --rk-colors-modalTextSecondary: #8D8B78 !important;
+  --rk-colors-modalBorder: rgba(255,255,255,0.08) !important;
+  --rk-colors-modalText: rgba(255,255,255,0.75) !important;
+  --rk-colors-modalTextDim: rgba(255,255,255,0.4) !important;
+  --rk-colors-modalTextSecondary: rgba(255,255,255,0.4) !important;
   --rk-colors-profileAction: #1C1C1A !important;
   --rk-colors-profileActionHover: #2C2C2B !important;
   --rk-colors-profileForeground: #141413 !important;
