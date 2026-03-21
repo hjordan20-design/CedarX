@@ -2,8 +2,8 @@
  * 4K normalizer — converts 4K Protocol NFT metadata into the unified
  * CedarXAsset schema stored in the `assets` table.
  *
- * 4K tokenizes luxury physical goods (watches, bags, jewellery) as ERC-721
- * on Ethereum mainnet. Burning the NFT redeems the physical item from custody.
+ * 4K tokenizes luxury physical goods (watches, bags, jewellery) as ERC-1155
+ * on Ethereum mainnet. Burning the token redeems the physical item from custody.
  */
 
 import type { AssetInsert } from "../db/types";
@@ -36,7 +36,7 @@ export function normalize4KAsset(
         protocol: "4k",
         contract_address: FOURTK_CONTRACT.toLowerCase(),
         token_id: tokenId,
-        token_standard: "ERC-721",
+        token_standard: "ERC-1155",
         chain: "ethereum",
         name: metadata.name ?? `4K Item #${tokenId}`,
         description: metadata.description ?? null,

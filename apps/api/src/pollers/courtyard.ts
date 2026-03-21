@@ -7,8 +7,8 @@
  *   3. For each token: read tokenURI, fetch metadata, read owner.
  *   4. Normalize into CedarXAsset and upsert into the database.
  *
- * Courtyard NFT: 0xD8A5a9b31c3C0232E196d518E89Fd8bF83AcAd43 (ERC-721, Polygon)
- * Verify at: https://polygonscan.com/token/0xd8a5a9b31c3c0232e196d518e89fd8bf83acad43
+ * Courtyard NFT: 0x251be3a17af4892035c37ebf5890f4a4d889dcad (ERC-721, Polygon)
+ * Verified at: https://polygonscan.com/token/0x251be3a17af4892035c37ebf5890f4a4d889dcad
  */
 
 import { parseAbiItem, parseAbi } from "viem";

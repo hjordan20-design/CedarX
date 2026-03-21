@@ -43,18 +43,18 @@ export const FABRICA_TOKEN_V2 = optional_env(
     "0x8d96b4ab6c741a4c8679ae323a100d74f085ba8f"
 ) as `0x${string}`;
 
-// 4K Protocol (ERC-721 luxury goods, Ethereum mainnet)
-// IMPORTANT: verify address at etherscan.io/token/... before production
+// 4K Protocol (ERC-1155 luxury goods, Ethereum mainnet)
+// Verified: https://etherscan.io/address/0xEBf19415d94be89A1d692F82af391685dC1Bff79
 export const FOURTK_CONTRACT = optional_env(
     "FOURTK_CONTRACT_ADDRESS",
-    "0x30015b88e33773bce3b8a32A93a13bA23CF91db3"
+    "0xEBf19415d94be89A1d692F82af391685dC1Bff79"
 ) as `0x${string}`;
 
 // Courtyard NFT (ERC-721 collectibles, Polygon)
-// IMPORTANT: verify address at polygonscan.com/token/... before production
+// Verified: https://polygonscan.com/token/0x251be3a17af4892035c37ebf5890f4a4d889dcad
 export const COURTYARD_CONTRACT = optional_env(
     "COURTYARD_CONTRACT_ADDRESS",
-    "0xD8A5a9b31c3C0232E196d518E89Fd8bF83AcAd43"
+    "0x251be3a17af4892035c37ebf5890f4a4d889dcad"
 ) as `0x${string}`;
 
 // ─── Indexer behaviour ────────────────────────────────────────────────────────
