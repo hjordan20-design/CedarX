@@ -188,9 +188,9 @@ export function Header() {
       <header
         className="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
         style={{
-          backgroundColor: scrolled || mobileOpen ? "rgba(13,13,12,0.94)" : "rgba(13,13,12,0.80)",
-          backdropFilter: "blur(12px)",
-          WebkitBackdropFilter: "blur(12px)",
+          backgroundColor: scrolled || mobileOpen ? "rgba(13,13,12,0.95)" : "rgba(13,13,12,0.85)",
+          backdropFilter: "blur(16px)",
+          WebkitBackdropFilter: "blur(16px)",
           borderBottom: "1px solid rgba(255,255,255,0.06)",
         }}
       >
@@ -242,8 +242,8 @@ export function Header() {
             className="absolute top-16 left-0 right-0"
             style={{
               background: "rgba(13,13,12,0.96)",
-              backdropFilter: "blur(12px)",
-              WebkitBackdropFilter: "blur(12px)",
+              backdropFilter: "blur(16px)",
+              WebkitBackdropFilter: "blur(16px)",
               borderBottom: "1px solid rgba(255,255,255,0.06)",
             }}
           >

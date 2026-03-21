@@ -45,22 +45,23 @@ function CategoryCard({ category, label, description, protocols, index }: Catego
       to={`/explore?category=${category}`}
       ref={ref as React.Ref<HTMLAnchorElement>}
       className={`group relative flex flex-col gap-6 p-8 overflow-hidden
-        transition-all duration-300
-        hover:-translate-y-0.5
         scroll-fade${inView ? " in-view" : ""}`}
       style={{
         transitionDelay: inView ? `${index * 70}ms` : "0ms",
         background: "rgba(255,255,255,0.03)",
         border: "1px solid rgba(255,255,255,0.06)",
         borderRadius: "12px",
+        transition: "border-color 0.4s ease, box-shadow 0.4s ease, transform 0.4s ease",
       }}
       onMouseEnter={e => {
-        (e.currentTarget as HTMLElement).style.borderColor = "rgba(196,133,42,0.15)";
-        (e.currentTarget as HTMLElement).style.boxShadow = "0 -2px 16px rgba(196,133,42,0.08), 0 8px 24px rgba(0,0,0,0.3)";
+        (e.currentTarget as HTMLElement).style.borderColor = "rgba(196,133,42,0.20)";
+        (e.currentTarget as HTMLElement).style.boxShadow = "0 -2px 20px rgba(196,133,42,0.12), 0 8px 24px rgba(0,0,0,0.3)";
+        (e.currentTarget as HTMLElement).style.transform = "translateY(-3px)";
       }}
       onMouseLeave={e => {
         (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.06)";
         (e.currentTarget as HTMLElement).style.boxShadow = "";
+        (e.currentTarget as HTMLElement).style.transform = "";
       }}
     >
       <div className="absolute top-0 left-0 right-0 h-px bg-cedar-amber scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
@@ -88,18 +89,20 @@ function ComingSoonCard({ index }: { index: number }) {
       to="/explore"
       ref={ref as React.Ref<HTMLAnchorElement>}
       className={`group relative flex flex-col items-center justify-center gap-4 p-8 overflow-hidden
-        transition-all duration-300
         scroll-fade${inView ? " in-view" : ""}`}
       style={{
         transitionDelay: inView ? `${index * 70}ms` : "0ms",
         border: "1px dashed rgba(255,255,255,0.08)",
         borderRadius: "12px",
+        transition: "border-color 0.4s ease, transform 0.4s ease",
       }}
       onMouseEnter={e => {
         (e.currentTarget as HTMLElement).style.borderColor = "rgba(196,133,42,0.20)";
+        (e.currentTarget as HTMLElement).style.transform = "translateY(-3px)";
       }}
       onMouseLeave={e => {
         (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.08)";
+        (e.currentTarget as HTMLElement).style.transform = "";
       }}
     >
       <div

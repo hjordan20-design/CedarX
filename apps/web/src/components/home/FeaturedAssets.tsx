@@ -65,21 +65,23 @@ export function PlaceholderCard({ asset, index }: { asset: PlaceholderAsset; ind
 
   return (
     <div
-      className="group relative flex flex-col overflow-hidden snap-start
-        transition-all duration-300 hover:-translate-y-0.5"
+      className="group relative flex flex-col overflow-hidden snap-start"
       style={{
-        transitionDelay: `${index * 70}ms`,
         background: "rgba(255,255,255,0.03)",
         border: "1px solid rgba(255,255,255,0.06)",
         borderRadius: "12px",
+        transition: "border-color 0.4s ease, box-shadow 0.4s ease, transform 0.4s ease",
+        transitionDelay: `${index * 70}ms`,
       }}
       onMouseEnter={e => {
-        e.currentTarget.style.borderColor = "rgba(196,133,42,0.18)";
-        e.currentTarget.style.boxShadow = "0 -2px 16px rgba(196,133,42,0.10), 0 8px 32px rgba(0,0,0,0.35)";
+        e.currentTarget.style.borderColor = "rgba(196,133,42,0.20)";
+        e.currentTarget.style.boxShadow = "0 -2px 20px rgba(196,133,42,0.12), 0 8px 32px rgba(0,0,0,0.35)";
+        e.currentTarget.style.transform = "translateY(-3px)";
       }}
       onMouseLeave={e => {
         e.currentTarget.style.borderColor = "rgba(255,255,255,0.06)";
         e.currentTarget.style.boxShadow = "";
+        e.currentTarget.style.transform = "";
       }}
     >
       {/* Top-edge amber reveal on hover */}
