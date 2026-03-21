@@ -24,12 +24,12 @@ export function Hero({ filters, onFilterChange }: HeroProps) {
 
       {/* ── Atmosphere layers (back → front) ─────────────────────────── */}
 
-      {/* 1. Dot grid — architectural depth across entire hero */}
+      {/* 1. Dot grid — fine architectural texture across entire hero */}
       <div
         aria-hidden="true"
         className="absolute inset-0 pointer-events-none"
         style={{
-          backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.035) 1px, transparent 1px)",
+          backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.055) 1px, transparent 1px)",
           backgroundSize: "40px 40px",
         }}
       />
@@ -65,16 +65,63 @@ export function Hero({ filters, onFilterChange }: HeroProps) {
         }}
       />
 
-      {/* 5. Architectural circles — blueprint / gallery accent */}
+      {/* 5. Cartographic composition — bleeds off right edge, ~40% visible */}
       <svg
         aria-hidden="true"
         className="absolute pointer-events-none"
-        style={{ top: "-260px", left: "26%", width: "900px", height: "900px", opacity: 0.045 }}
-        viewBox="0 0 900 900"
+        style={{
+          top: "50%",
+          right: "-300px",
+          transform: "translateY(-50%)",
+          width: "760px",
+          height: "760px",
+        }}
+        viewBox="0 0 760 760"
         fill="none"
+        xmlns="http://www.w3.org/2000/svg"
       >
-        <circle cx="450" cy="450" r="449" stroke="#C4852A" strokeWidth="1" />
-        <circle cx="450" cy="450" r="334" stroke="#C4852A" strokeWidth="0.5" />
+        <defs>
+          {/* Soft amber glow centred on the composition */}
+          <radialGradient id="comp-glow" cx="50%" cy="50%" r="50%" gradientUnits="userSpaceOnUse"
+            x1="0" y1="0" x2="760" y2="0">
+            <stop offset="0%"   stopColor="#C4852A" stopOpacity="0.06" />
+            <stop offset="60%"  stopColor="#C4852A" stopOpacity="0.025" />
+            <stop offset="100%" stopColor="#C4852A" stopOpacity="0" />
+          </radialGradient>
+        </defs>
+
+        {/* Ambient glow blob — 400px effective radius */}
+        <circle cx="370" cy="380" r="400" fill="url(#comp-glow)" />
+
+        {/* ── Diagonal survey lines ── */}
+        <line x1="0"   y1="190" x2="760" y2="540" stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
+        <line x1="80"  y1="740" x2="620" y2="20"  stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
+        <line x1="0"   y1="470" x2="760" y2="310" stroke="rgba(255,255,255,0.025)" strokeWidth="1" />
+
+        {/* ── Concentric offset circles (largest → smallest) ── */}
+        {/* 600px Ø — outermost ring, loose and airy */}
+        <circle cx="400" cy="370" r="300"
+          stroke="rgba(196,133,42,0.08)" strokeWidth="1" />
+
+        {/* 420px Ø — second ring, shifted down-left */}
+        <circle cx="368" cy="400" r="210"
+          stroke="rgba(196,133,42,0.10)" strokeWidth="1" />
+
+        {/* 280px Ø — third ring, shifted up-right */}
+        <circle cx="420" cy="335" r="140"
+          stroke="rgba(196,133,42,0.12)" strokeWidth="1" />
+
+        {/* 190px Ø — innermost ring */}
+        <circle cx="385" cy="365" r="95"
+          stroke="rgba(196,133,42,0.09)" strokeWidth="1" />
+
+        {/* ── Pin dot — at the visual intersection of line 1 and the third circle arc ── */}
+        {/*   Line 1 at x=295: y ≈ 190 + (350/760)*295 ≈ 336. Circle 3 at cx=420,cy=335,r=140:
+              dist from (295,336) ≈ 125 — sits just inside the arc, near the crossing. */}
+        <circle cx="297" cy="336" r="2.5" fill="rgba(196,133,42,0.45)" />
+        {/* Tiny outer ring on the pin for a crosshair feel */}
+        <circle cx="297" cy="336" r="6"
+          stroke="rgba(196,133,42,0.18)" strokeWidth="0.75" />
       </svg>
 
       {/* ── Content ─────────────────────────────────────────────────── */}
