@@ -5,9 +5,9 @@ export default {
     extend: {
       colors: {
         cedar: {
-          bg:          "#111110",
-          surface:     "#191918",
-          "surface-alt": "#222221",
+          bg:          "#0D0D0C",
+          surface:     "#161614",
+          "surface-alt": "#1C1C1A",
           border:      "#2C2C2B",
           text:        "#EBE7D5",
           muted:       "#8D8B78",
