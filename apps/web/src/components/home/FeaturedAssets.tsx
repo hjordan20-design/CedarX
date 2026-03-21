@@ -65,14 +65,14 @@ export function PlaceholderCard({ asset, index }: { asset: PlaceholderAsset; ind
 
   return (
     <div
-      className="group relative bg-cedar-surface border border-cedar-border flex flex-col overflow-hidden
+      className="group relative bg-cedar-surface border border-cedar-border flex flex-col overflow-hidden snap-start
         transition-all duration-300 hover:-translate-y-1 hover:border-cedar-amber/40 hover:shadow-[0_12px_40px_rgba(0,0,0,0.5)]"
       style={{ transitionDelay: `${index * 70}ms` }}
     >
       <div className="absolute top-0 left-0 right-0 h-px bg-cedar-amber scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left z-10" />
 
       {/* Thumbnail */}
-      <div className="relative h-44 overflow-hidden bg-cedar-surface-alt shrink-0">
+      <div className="relative h-[120px] sm:h-44 overflow-hidden bg-cedar-surface-alt shrink-0">
         <img
           src={asset.imageUrl}
           alt={asset.imageAlt}
@@ -89,7 +89,7 @@ export function PlaceholderCard({ asset, index }: { asset: PlaceholderAsset; ind
       </div>
 
       {/* Body */}
-      <div className="p-5 flex flex-col gap-3 flex-1">
+      <div className="p-3 sm:p-5 flex flex-col gap-2 sm:gap-3 flex-1">
         <div>
           <h3 className="display text-[1.25rem] leading-tight text-cedar-text mb-1 group-hover:text-cedar-amber transition-colors duration-200">
             {asset.name}
@@ -120,7 +120,7 @@ export function PlaceholderCard({ asset, index }: { asset: PlaceholderAsset; ind
       </div>
 
       {/* Hover CTA */}
-      <div className="px-5 py-3 border-t border-cedar-border bg-cedar-surface-alt flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+      <div className="px-3 sm:px-5 py-3 border-t border-cedar-border bg-cedar-surface-alt flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity duration-200">
         <span className="text-cedar-amber text-xs tracking-widest uppercase">View asset</span>
         <ArrowRight size={12} className="text-cedar-amber" />
       </div>
@@ -132,7 +132,7 @@ export function PlaceholderCard({ asset, index }: { asset: PlaceholderAsset; ind
 export function FeaturedAssets() {
   return (
     <div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-px bg-cedar-border">
+      <div className="grid grid-flow-col auto-cols-[72vw] gap-3 overflow-x-auto -mx-6 px-6 snap-x snap-mandatory card-scroll-row sm:grid-flow-row sm:auto-cols-auto sm:grid-cols-2 sm:gap-px sm:bg-cedar-border sm:overflow-visible sm:mx-0 sm:px-0 xl:grid-cols-4">
         {PLACEHOLDER_ASSETS.map((asset, i) => (
           <PlaceholderCard key={asset.id} asset={asset} index={i} />
         ))}

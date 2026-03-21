@@ -73,6 +73,16 @@
   }
 }
 
+/* ── Mobile horizontal card scroll row ──────────────────────────────────── */
+
+.card-scroll-row {
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.card-scroll-row::-webkit-scrollbar {
+  display: none;
+}
+
 /* ── Scroll-triggered fade-in ────────────────────────────────────────────── */
 
 .scroll-fade {
