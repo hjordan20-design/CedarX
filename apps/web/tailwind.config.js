@@ -6,9 +6,10 @@ export default {
       colors: {
         cedar: {
           bg:          "#0D0D0C",
-          surface:     "#161614",
+          surface:     "#141413",
           "surface-alt": "#1C1C1A",
           border:      "#2C2C2B",
+          footer:      "#0A0A09",
           text:        "#EBE7D5",
           muted:       "#8D8B78",
           amber:       "#C4852A",
@@ -28,8 +29,8 @@ export default {
         "display-md": ["clamp(2rem, 4vw, 3.5rem)", { lineHeight: "1.1",  letterSpacing: "-0.015em" }],
       },
       backgroundImage: {
-        // Layered radial warmth for the hero section
-        "hero-glow": "radial-gradient(ellipse 100% 60% at 50% -5%, rgba(196,133,42,0.18) 0%, rgba(196,133,42,0.06) 40%, transparent 70%)",
+        // Subtle amber warmth for the hero section — amber only, no green
+        "hero-glow": "radial-gradient(ellipse 80% 50% at 40% 60%, rgba(196,133,42,0.06) 0%, transparent 70%)",
       },
       animation: {
         "fade-up": "fadeUp 0.6s ease both",
