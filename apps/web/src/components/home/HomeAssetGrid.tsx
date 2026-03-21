@@ -21,9 +21,9 @@ export function HomeAssetGrid({ filters }: HomeAssetGridProps) {
   const showPlaceholder = isError || isEmpty;
 
   return (
-    <section className="max-w-7xl mx-auto px-6 py-10">
+    <section className="max-w-7xl mx-auto px-6 pt-4 pb-10 sm:py-10">
       {/* Section header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-3 sm:mb-6">
         <div className="flex items-center gap-3">
           <h2 className="font-sans text-sm font-medium text-cedar-text tracking-widest uppercase">
             {isLoading ? "Loading" : showPlaceholder ? "Featured listings" : "Latest listings"}
@@ -44,18 +44,18 @@ export function HomeAssetGrid({ filters }: HomeAssetGridProps) {
 
       {/* Loading skeletons */}
       {isLoading && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-px bg-cedar-border">
+        <div className="grid grid-flow-col auto-cols-[72vw] gap-3 overflow-x-auto -mx-6 px-6 snap-x snap-mandatory card-scroll-row sm:grid-flow-row sm:auto-cols-auto sm:grid-cols-2 sm:gap-px sm:bg-cedar-border sm:overflow-visible sm:mx-0 sm:px-0 lg:grid-cols-3 xl:grid-cols-4">
           {Array.from({ length: SKELETON_COUNT }).map((_, i) => (
-            <div key={i} className="bg-cedar-bg"><CardSkeleton /></div>
+            <div key={i} className="snap-start bg-cedar-bg"><CardSkeleton /></div>
           ))}
         </div>
       )}
 
       {/* Live asset grid */}
       {!isLoading && !showPlaceholder && assets && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-px bg-cedar-border">
+        <div className="grid grid-flow-col auto-cols-[72vw] gap-3 overflow-x-auto -mx-6 px-6 snap-x snap-mandatory card-scroll-row sm:grid-flow-row sm:auto-cols-auto sm:grid-cols-2 sm:gap-px sm:bg-cedar-border sm:overflow-visible sm:mx-0 sm:px-0 lg:grid-cols-3 xl:grid-cols-4">
           {assets.map((asset) => (
-            <div key={asset.id} className="bg-cedar-bg">
+            <div key={asset.id} className="snap-start bg-cedar-bg">
               <AssetCard asset={asset} />
             </div>
           ))}
