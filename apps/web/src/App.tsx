@@ -25,7 +25,7 @@ const queryClient = new QueryClient({
 // do the heavy lifting; this just sets the baseline.
 const rkTheme = darkTheme({
   accentColor: "#C4852A",
-  accentColorForeground: "#0C0E09",
+  accentColorForeground: "#111110",
   borderRadius: "none",
   fontStack: "system",
   overlayBlur: "small",

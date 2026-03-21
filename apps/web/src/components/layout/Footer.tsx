@@ -64,29 +64,23 @@ export function Footer() {
           {/* Protocols */}
           <div className="space-y-4">
             <h3 className="text-cedar-muted text-[11px] tracking-widest uppercase font-sans">Indexed protocols</h3>
-            <div className="space-y-1">
-              <p className="text-cedar-muted/50 text-[10px] tracking-widest uppercase mb-2">Real Estate</p>
-              <nav className="space-y-3 mb-5">
-                {[
-                  { href: "https://fabrica.land",          label: "Fabrica" },
-                  { href: "https://propy.com",             label: "Propy" },
-                  { href: "https://onchain.roofstock.com", label: "Roofstock onChain" },
-                ].map(({ href, label }) => (
-                  <a
-                    key={href}
-                    href={href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block text-sm text-cedar-muted hover:text-cedar-text transition-colors"
-                  >
-                    {label}
-                  </a>
-                ))}
-              </nav>
-              <p className="text-cedar-muted/40 text-xs">
-                Luxury goods, art &amp; collectibles protocols coming soon.
-              </p>
-            </div>
+            <nav className="space-y-3">
+              {[
+                { href: "https://fabrica.land",      label: "Fabrica" },
+                { href: "https://www.4kprotocol.com", label: "4K Protocol" },
+                { href: "https://courtyard.io",       label: "Courtyard" },
+              ].map(({ href, label }) => (
+                <a
+                  key={href}
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block text-sm text-cedar-muted hover:text-cedar-text transition-colors"
+                >
+                  {label}
+                </a>
+              ))}
+            </nav>
           </div>
         </div>
 

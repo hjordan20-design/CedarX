@@ -14,35 +14,6 @@ interface HeroProps {
   onFilterChange: (next: AssetFilters) => void;
 }
 
-/** Faint topographic contour lines — right-side background element */
-function TopoBackground() {
-  return (
-    <div
-      className="absolute inset-0 pointer-events-none overflow-hidden"
-      style={{
-        maskImage: "linear-gradient(to right, transparent 30%, rgba(0,0,0,0.6) 60%, black 80%)",
-        WebkitMaskImage: "linear-gradient(to right, transparent 30%, rgba(0,0,0,0.6) 60%, black 80%)",
-      }}
-    >
-      <svg
-        viewBox="0 0 900 700" fill="none" xmlns="http://www.w3.org/2000/svg"
-        className="absolute right-0 top-1/2 -translate-y-1/2 w-[55%] opacity-[0.055] text-cedar-amber"
-        aria-hidden="true" preserveAspectRatio="xMidYMid meet"
-      >
-        <path d="M450,350 C470,330 510,318 540,328 C570,338 585,360 575,385 C565,410 535,422 505,416 C475,410 450,390 450,350 Z" stroke="currentColor" strokeWidth="1" />
-        <path d="M430,360 C455,320 515,295 565,310 C615,325 640,368 628,410 C616,452 572,472 528,462 C484,452 445,415 430,360 Z" stroke="currentColor" strokeWidth="1" />
-        <path d="M405,375 C435,315 510,278 580,295 C650,312 688,372 674,435 C660,498 605,525 545,512 C485,499 430,448 405,375 Z" stroke="currentColor" strokeWidth="1" />
-        <path d="M375,392 C410,312 500,262 590,280 C680,298 728,375 712,458 C696,541 630,578 555,562 C480,546 410,484 375,392 Z" stroke="currentColor" strokeWidth="1" />
-        <path d="M340,408 C385,305 490,245 600,265 C710,285 768,378 750,480 C732,582 652,628 562,610 C472,592 388,518 340,408 Z" stroke="currentColor" strokeWidth="1" />
-        <path d="M300,425 C355,295 478,225 610,248 C742,271 810,382 790,505 C770,628 676,682 572,660 C468,638 364,552 300,425 Z" stroke="currentColor" strokeWidth="1" />
-        <line x1="480" y1="200" x2="480" y2="580" stroke="currentColor" strokeWidth="0.5" strokeDasharray="3 8" opacity="0.5" />
-        <line x1="560" y1="200" x2="560" y2="580" stroke="currentColor" strokeWidth="0.5" strokeDasharray="3 8" opacity="0.5" />
-        <line x1="300" y1="390" x2="780" y2="390" stroke="currentColor" strokeWidth="0.5" strokeDasharray="3 8" opacity="0.5" />
-      </svg>
-    </div>
-  );
-}
-
 export function Hero({ filters, onFilterChange }: HeroProps) {
   function set(partial: Partial<AssetFilters>) {
     onFilterChange({ ...filters, ...partial, page: 1 });
@@ -62,13 +33,9 @@ export function Hero({ filters, onFilterChange }: HeroProps) {
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
-          background: [
-            "radial-gradient(ellipse 65% 55% at 22% 50%, rgba(196,133,42,0.18) 0%, rgba(196,133,42,0.06) 50%, transparent 75%)",
-            "radial-gradient(ellipse 50% 40% at 15% 60%, rgba(58,102,72,0.11) 0%, transparent 65%)",
-          ].join(", "),
+          background: "radial-gradient(ellipse 65% 55% at 22% 50%, rgba(196,133,42,0.15) 0%, rgba(196,133,42,0.05) 50%, transparent 75%)",
         }}
       />
-      <TopoBackground />
       {/* Bottom fade */}
       <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-cedar-bg to-transparent pointer-events-none" />
 
