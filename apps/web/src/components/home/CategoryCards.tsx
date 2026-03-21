@@ -97,22 +97,43 @@ export function CategoryCards() {
   const { ref: headingRef, inView: headingInView } = useInView();
 
   return (
-    <section className="max-w-7xl mx-auto px-6 py-24" style={{ background: "linear-gradient(to bottom, #111110, #0D0D0C)" }}>
+    <section className="relative" style={{ background: "#0A0A09" }}>
+      {/* Amber top-edge glow line */}
       <div
-        ref={headingRef as React.Ref<HTMLDivElement>}
-        className={`mb-12 scroll-fade${headingInView ? " in-view" : ""}`}
-      >
-        <h2 className="display text-display-md text-cedar-text mb-3">What trades on CedarX</h2>
-        <p className="text-cedar-muted text-sm tracking-widest uppercase">
-          Any verified real-world asset NFT. One marketplace.
-        </p>
-      </div>
+        aria-hidden="true"
+        className="absolute top-0 left-0 right-0 pointer-events-none"
+        style={{
+          height: "1px",
+          background: "linear-gradient(to right, transparent 0%, rgba(196,133,42,0.30) 35%, rgba(196,133,42,0.30) 65%, transparent 100%)",
+        }}
+      />
+      {/* Faint amber top bloom behind the heading */}
+      <div
+        aria-hidden="true"
+        className="absolute top-0 left-0 right-0 pointer-events-none"
+        style={{
+          height: "320px",
+          background: "radial-gradient(ellipse 60% 100% at 50% 0%, rgba(196,133,42,0.05) 0%, transparent 70%)",
+        }}
+      />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px bg-[rgba(255,255,255,0.06)]">
-        {CATEGORIES.map((cat, i) => (
-          <CategoryCard key={cat.category} {...cat} index={i} />
-        ))}
-        <ComingSoonCard index={CATEGORIES.length} />
+      <div className="relative max-w-7xl mx-auto px-6 py-24">
+        <div
+          ref={headingRef as React.Ref<HTMLDivElement>}
+          className={`mb-12 scroll-fade${headingInView ? " in-view" : ""}`}
+        >
+          <h2 className="display text-display-md text-cedar-text mb-3">What trades on CedarX</h2>
+          <p className="text-cedar-muted text-sm tracking-widest uppercase">
+            Any verified real-world asset NFT. One marketplace.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px bg-[rgba(255,255,255,0.06)]">
+          {CATEGORIES.map((cat, i) => (
+            <CategoryCard key={cat.category} {...cat} index={i} />
+          ))}
+          <ComingSoonCard index={CATEGORIES.length} />
+        </div>
       </div>
     </section>
   );

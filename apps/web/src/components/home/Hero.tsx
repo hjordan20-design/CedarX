@@ -21,14 +21,43 @@ export function Hero({ filters, onFilterChange }: HeroProps) {
 
   return (
     <section className="relative bg-cedar-bg overflow-hidden">
-      {/* Amber glow — centered behind headline, amber-only, no green */}
+
+      {/* ── Atmosphere ─────────────────────────────────────────────────── */}
+
+      {/* Primary amber halo — gallery light on the headline */}
       <div
+        aria-hidden="true"
         className="absolute inset-0 pointer-events-none"
-        style={{ background: "radial-gradient(ellipse 70% 55% at 40% 55%, rgba(196,133,42,0.06) 0%, transparent 70%)" }}
+        style={{
+          background: "radial-gradient(ellipse 70% 90% at 38% 42%, rgba(196,133,42,0.10) 0%, rgba(196,133,42,0.05) 50%, transparent 72%)",
+        }}
       />
 
+      {/* Top-right cool accent — depth + asymmetry */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: "radial-gradient(ellipse 55% 65% at 88% 10%, rgba(255,255,255,0.025) 0%, transparent 65%)",
+        }}
+      />
+
+      {/* Architectural circle — blueprint / gallery accent */}
+      <svg
+        aria-hidden="true"
+        className="absolute pointer-events-none"
+        style={{ top: "-260px", left: "28%", width: "860px", height: "860px", opacity: 0.04 }}
+        viewBox="0 0 860 860"
+        fill="none"
+      >
+        <circle cx="430" cy="430" r="429" stroke="#C4852A" strokeWidth="1" />
+        <circle cx="430" cy="430" r="318" stroke="#C4852A" strokeWidth="0.6" />
+      </svg>
+
+      {/* ── Content ─────────────────────────────────────────────────────── */}
+
       <div className="relative max-w-7xl mx-auto px-6 pt-24 pb-10">
-        {/* Headline — compact, single visual line */}
+        {/* Headline */}
         <h1 className="display text-display-lg text-cedar-text mb-2 animate-fade-up" style={{ animationDelay: "40ms" }}>
           Real assets. <em className="not-italic text-cedar-amber">Onchain.</em>
         </h1>

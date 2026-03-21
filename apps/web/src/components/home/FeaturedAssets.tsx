@@ -66,10 +66,16 @@ export function PlaceholderCard({ asset, index }: { asset: PlaceholderAsset; ind
   return (
     <div
       className="group relative bg-cedar-surface border flex flex-col overflow-hidden snap-start
-        transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(0,0,0,0.5)]"
+        transition-all duration-300 hover:-translate-y-1"
       style={{ transitionDelay: `${index * 70}ms`, borderColor: "rgba(255,255,255,0.06)" }}
-      onMouseEnter={e => (e.currentTarget.style.borderColor = "rgba(196,133,42,0.4)")}
-      onMouseLeave={e => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.06)")}
+      onMouseEnter={e => {
+        e.currentTarget.style.borderColor = "rgba(196,133,42,0.4)";
+        e.currentTarget.style.boxShadow = "0 -2px 20px rgba(196,133,42,0.15), 0 16px 48px rgba(0,0,0,0.6)";
+      }}
+      onMouseLeave={e => {
+        e.currentTarget.style.borderColor = "rgba(255,255,255,0.06)";
+        e.currentTarget.style.boxShadow = "";
+      }}
     >
       <div className="absolute top-0 left-0 right-0 h-px bg-cedar-amber scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left z-10" />
 
