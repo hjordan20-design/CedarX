@@ -37,29 +37,25 @@ export const PROTOCOL_WHITELIST: WhitelistedContract[] = [
   },
 
   // ─── 4K Protocol ──────────────────────────────────────────────────────────
-  // ERC-721 luxury goods NFTs on Ethereum mainnet.
-  // Each NFT represents a physical item (watch, bag, jewellery) held in secure
-  // custody. Burning the NFT redeems the item.
-  //
-  // IMPORTANT: Verify the contract address at etherscan.io before deploying.
-  // Set FOURTK_CONTRACT_ADDRESS in .env to override.
+  // ERC-1155 luxury goods NFTs on Ethereum mainnet.
+  // Each token represents a physical item (watch, bag, jewellery) held in
+  // secure custody by a 4K Guardian. Burning the token redeems the item.
+  // Verified: https://etherscan.io/address/0xEBf19415d94be89A1d692F82af391685dC1Bff79
   {
-    address: "0x30015b88e33773bce3b8a32A93a13bA23CF91db3" as `0x${string}`,
+    address: "0xEBf19415d94be89A1d692F82af391685dC1Bff79" as `0x${string}`,
     chainId: 1,
     protocolId: "4k",
-    label: "4K Genesis Keys",
-    deployedBlock: 16_800_000,
+    label: "4K Physically-Backed NFT",
+    deployedBlock: 13_200_000,
   },
 
   // ─── Courtyard ────────────────────────────────────────────────────────────
   // ERC-721 collectibles NFTs on Polygon.
   // Physical items (trading cards, Pokémon cards, sports memorabilia) stored
   // in Courtyard's vault. Token holders can redeem the physical item.
-  //
-  // IMPORTANT: Verify the contract address at polygonscan.com before deploying.
-  // Set COURTYARD_CONTRACT_ADDRESS in .env to override.
+  // Verified: https://polygonscan.com/token/0x251be3a17af4892035c37ebf5890f4a4d889dcad
   {
-    address: "0xD8A5a9b31c3C0232E196d518E89Fd8bF83AcAd43" as `0x${string}`,
+    address: "0x251be3a17af4892035c37ebf5890f4a4d889dcad" as `0x${string}`,
     chainId: 137,
     protocolId: "courtyard",
     label: "Courtyard NFT (Polygon)",
