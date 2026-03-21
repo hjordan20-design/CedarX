@@ -65,33 +65,47 @@ export function PlaceholderCard({ asset, index }: { asset: PlaceholderAsset; ind
 
   return (
     <div
-      className="group relative bg-cedar-surface border flex flex-col overflow-hidden snap-start
-        transition-all duration-300 hover:-translate-y-1"
-      style={{ transitionDelay: `${index * 70}ms`, borderColor: "rgba(255,255,255,0.06)" }}
+      className="group relative flex flex-col overflow-hidden snap-start
+        transition-all duration-300 hover:-translate-y-0.5"
+      style={{
+        transitionDelay: `${index * 70}ms`,
+        background: "rgba(255,255,255,0.03)",
+        border: "1px solid rgba(255,255,255,0.06)",
+        borderRadius: "12px",
+      }}
       onMouseEnter={e => {
-        e.currentTarget.style.borderColor = "rgba(196,133,42,0.4)";
-        e.currentTarget.style.boxShadow = "0 -2px 20px rgba(196,133,42,0.15), 0 16px 48px rgba(0,0,0,0.6)";
+        e.currentTarget.style.borderColor = "rgba(196,133,42,0.18)";
+        e.currentTarget.style.boxShadow = "0 -2px 16px rgba(196,133,42,0.10), 0 8px 32px rgba(0,0,0,0.35)";
       }}
       onMouseLeave={e => {
         e.currentTarget.style.borderColor = "rgba(255,255,255,0.06)";
         e.currentTarget.style.boxShadow = "";
       }}
     >
-      <div className="absolute top-0 left-0 right-0 h-px bg-cedar-amber scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left z-10" />
+      {/* Top-edge amber reveal on hover */}
+      <div
+        className="absolute top-0 left-0 right-0 h-px bg-cedar-amber scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left z-10"
+      />
 
       {/* Thumbnail */}
-      <div className="relative h-[120px] sm:h-44 overflow-hidden bg-cedar-surface-alt shrink-0">
+      <div
+        className="relative h-[120px] sm:h-44 overflow-hidden shrink-0"
+        style={{ background: "rgba(255,255,255,0.04)", borderRadius: "12px 12px 0 0" }}
+      >
         <img
           src={asset.imageUrl}
           alt={asset.imageAlt}
           className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
           loading="lazy"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-cedar-surface via-cedar-surface/20 to-transparent" />
-        <span className="absolute bottom-3 left-4 inline-flex items-center px-2 py-0.5 text-[10px] tracking-widest uppercase font-sans border border-cedar-border/60 text-cedar-muted bg-cedar-bg/80 backdrop-blur-sm">
+        <div className="absolute inset-0 bg-gradient-to-t from-[rgba(13,13,12,0.9)] via-[rgba(13,13,12,0.15)] to-transparent" />
+        <span
+          className="absolute bottom-3 left-4 inline-flex items-center px-2 py-0.5 text-[10px] tracking-widest uppercase font-sans text-cedar-muted/70 bg-[rgba(13,13,12,0.8)] backdrop-blur-sm"
+          style={{ border: "1px solid rgba(255,255,255,0.10)", borderRadius: "2px" }}
+        >
           {asset.protocolLabel}
         </span>
-        <span className="absolute bottom-3 right-4 text-cedar-muted/60 text-[10px] tracking-widest uppercase">
+        <span className="absolute bottom-3 right-4 text-cedar-muted/40 text-[10px] tracking-widest uppercase">
           {asset.category.replace(/-/g, " ")}
         </span>
       </div>
@@ -99,12 +113,12 @@ export function PlaceholderCard({ asset, index }: { asset: PlaceholderAsset; ind
       {/* Body */}
       <div className="p-3 sm:p-5 flex flex-col gap-2 sm:gap-3 flex-1">
         <div>
-          <h3 className="display text-[1.25rem] leading-tight text-cedar-text mb-1 group-hover:text-cedar-amber transition-colors duration-200">
+          <h3 className="display text-[1.25rem] leading-tight text-cedar-text mb-1 group-hover:text-cedar-amber transition-colors duration-300">
             {asset.name}
           </h3>
-          <p className="text-cedar-muted text-xs flex items-center gap-1.5">
+          <p className="text-cedar-muted/60 text-xs flex items-center gap-1.5">
             {isYield
-              ? <Percent size={11} className="text-cedar-green shrink-0" />
+              ? <Percent size={11} className="text-cedar-amber opacity-60 shrink-0" />
               : <MapPin size={11} className="text-cedar-amber opacity-60 shrink-0" />
             }
             {asset.sublabel}
@@ -112,15 +126,18 @@ export function PlaceholderCard({ asset, index }: { asset: PlaceholderAsset; ind
         </div>
 
         {asset.metric && (
-          <div className="mt-auto pt-3 border-t border-cedar-border flex items-end justify-between gap-4">
+          <div
+            className="mt-auto pt-3 flex items-end justify-between gap-4"
+            style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}
+          >
             <div>
-              <p className="text-cedar-muted text-[10px] tracking-widest uppercase mb-1">{asset.metric.label}</p>
-              <p className={`font-mono text-base font-medium tracking-tight ${isYield ? "text-cedar-green" : "text-cedar-text"}`}>
+              <p className="text-cedar-muted/40 text-[10px] tracking-widest uppercase mb-1">{asset.metric.label}</p>
+              <p className="font-mono text-base font-medium tracking-tight text-cedar-text">
                 {asset.metric.value}
               </p>
             </div>
             <div className="text-right">
-              <p className="text-cedar-muted text-[10px] tracking-widest uppercase mb-1">Price</p>
+              <p className="text-cedar-muted/40 text-[10px] tracking-widest uppercase mb-1">Price</p>
               <p className="font-mono text-base text-cedar-text tracking-tight">{asset.price}</p>
             </div>
           </div>
@@ -128,7 +145,10 @@ export function PlaceholderCard({ asset, index }: { asset: PlaceholderAsset; ind
       </div>
 
       {/* Hover CTA */}
-      <div className="px-3 sm:px-5 py-3 border-t border-cedar-border bg-cedar-surface-alt flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+      <div
+        className="px-3 sm:px-5 py-3 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+        style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}
+      >
         <span className="text-cedar-amber text-xs tracking-widest uppercase">View asset</span>
         <ArrowRight size={12} className="text-cedar-amber" />
       </div>
@@ -140,13 +160,13 @@ export function PlaceholderCard({ asset, index }: { asset: PlaceholderAsset; ind
 export function FeaturedAssets() {
   return (
     <div>
-      <div className="grid grid-flow-col auto-cols-[72vw] gap-3 overflow-x-auto -mx-6 px-6 snap-x snap-mandatory card-scroll-row sm:grid-flow-row sm:auto-cols-auto sm:grid-cols-2 sm:gap-px sm:bg-[rgba(255,255,255,0.06)] sm:overflow-visible sm:mx-0 sm:px-0 xl:grid-cols-4">
+      <div className="grid grid-flow-col auto-cols-[72vw] gap-3 overflow-x-auto -mx-6 px-6 snap-x snap-mandatory card-scroll-row sm:grid-flow-row sm:auto-cols-auto sm:grid-cols-2 sm:gap-4 sm:overflow-visible sm:mx-0 sm:px-0 xl:grid-cols-4">
         {PLACEHOLDER_ASSETS.map((asset, i) => (
           <PlaceholderCard key={asset.id} asset={asset} index={i} />
         ))}
       </div>
       <div className="mt-6 flex items-center justify-between">
-        <p className="text-cedar-muted/40 text-[11px] tracking-wide">
+        <p className="text-cedar-muted/30 text-[11px] tracking-wide">
           Sample listings — updates automatically once CedarX finishes indexing.
         </p>
         <Link to="/explore" className="btn-ghost text-sm">
