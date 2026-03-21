@@ -12,15 +12,15 @@ const FAQ_SECTIONS: { heading: string; items: FAQItem[] }[] = [
     items: [
       {
         q: "What is CedarX?",
-        a: "CedarX is a peer-to-peer marketplace for tokenized real-world assets on Ethereum. We index listings from protocols like Fabrica (land), Ondo Finance (fixed income), and RealT (rental property), and let you buy and sell them in one place using USDC.",
+        a: "CedarX is a peer-to-peer marketplace for tokenized real-world assets on Ethereum and Polygon. We index listings from protocols like Fabrica (land), 4K Protocol (luxury goods), and Courtyard (collectibles), and let you buy and sell them in one place using USDC.",
       },
       {
         q: "Who is CedarX for?",
-        a: "Anyone with an Ethereum wallet who wants exposure to real-world assets onchain — without going through a broker, fund, or custodian. CedarX is a permissionless interface. There are no accounts to create and no KYC at the marketplace level, though individual asset protocols may have their own eligibility requirements.",
+        a: "Anyone with an Ethereum or Polygon-compatible wallet who wants exposure to real-world assets onchain — without going through a broker, fund, or custodian. CedarX is a permissionless interface. There are no accounts to create and no KYC at the marketplace level, though individual asset protocols may have their own eligibility requirements.",
       },
       {
         q: "Is CedarX a custodian?",
-        a: "No. CedarX never holds your tokens or your funds. All trades are peer-to-peer, executed by a non-custodial smart contract on Ethereum L1. Tokens stay in sellers' wallets until the moment of settlement.",
+        a: "No. CedarX never holds your tokens or your funds. All trades are peer-to-peer, executed by non-custodial smart contracts on Ethereum and Polygon. Tokens stay in sellers' wallets until the moment of settlement.",
       },
     ],
   },
@@ -42,11 +42,11 @@ const FAQ_SECTIONS: { heading: string; items: FAQItem[] }[] = [
       },
       {
         q: "What wallets are supported?",
-        a: "MetaMask, Coinbase Wallet, and any WalletConnect v2-compatible wallet. If your wallet can sign Ethereum transactions, it works with CedarX.",
+        a: "MetaMask, Coinbase Wallet, and any WalletConnect v2-compatible wallet. If your wallet can sign Ethereum and Polygon transactions, it works with CedarX. Most modern wallets support both networks out of the box — you can switch networks directly in the CedarX header.",
       },
       {
         q: "What is the payment token?",
-        a: "All trades settle in USDC on Ethereum mainnet. You'll need USDC in your connected wallet to buy assets. Sellers receive USDC directly — no wrapping or bridging required.",
+        a: "All trades settle in USDC. On Ethereum mainnet, you pay with USDC on Ethereum. On Polygon, you pay with USDC on Polygon. CedarX supports both chains — select your network in the header before browsing or buying.",
       },
       {
         q: "What fees does CedarX charge?",
@@ -66,20 +66,20 @@ const FAQ_SECTIONS: { heading: string; items: FAQItem[] }[] = [
         a: "Fabrica is a protocol that tokenizes real property deeds on Ethereum. Each Fabrica token (ERC-721) represents full legal ownership of a US land parcel, backed by a deed held in a Wyoming LLC. Ownership of the token equals ownership of the land.",
       },
       {
-        q: "What is Propy?",
-        a: "Propy is a real estate transaction platform that issues property title NFTs on Ethereum. Propy-facilitated sales close with the deed recorded onchain, giving buyers a verifiable, tradeable ownership record.",
+        q: "What is 4K Protocol?",
+        a: "4K Protocol tokenizes authenticated luxury goods — watches, jewelry, handbags, and more — as ERC-721 NFTs on Ethereum. Each token is backed by a physically authenticated item stored with a custodian. Owning the NFT gives you the right to redeem the physical item.",
       },
       {
-        q: "What is Roofstock onChain?",
-        a: "Roofstock onChain tokenizes single-family rental homes as ERC-721 NFTs. Buying the token transfers legal ownership of the property through an LLC structure, including any existing tenants and lease agreements.",
+        q: "What is Courtyard?",
+        a: "Courtyard is a platform that tokenizes collectibles — trading cards, sports memorabilia, graded coins, and more — as ERC-721 NFTs on Polygon. Items are authenticated and vaulted by Courtyard. Holders can trade the NFT or redeem for the physical item at any time.",
       },
       {
-        q: "What asset categories are coming?",
-        a: "CedarX is expanding to luxury goods (watches, jewelry, handbags), physical art, and collectibles. These categories require new protocol integrations and physical authentication partners — announcements will be made via @cedarxio as they go live.",
+        q: "What asset categories does CedarX support?",
+        a: "CedarX currently supports real estate (Fabrica land parcels on Ethereum), luxury goods (4K Protocol on Ethereum), and collectibles (Courtyard on Polygon). Additional protocols and categories will be added — follow @cedarxio for announcements.",
       },
       {
         q: "Are there eligibility requirements for individual assets?",
-        a: "Each underlying protocol has its own requirements. Fabrica, Propy, and Roofstock assets are generally available to any Ethereum wallet holder, though individual property transactions may have jurisdiction-specific restrictions. CedarX displays requirements on each listing — it is your responsibility to verify eligibility before purchasing.",
+        a: "Each underlying protocol has its own requirements. Fabrica assets are generally available to any Ethereum wallet holder, though individual property transactions may have jurisdiction-specific restrictions. Courtyard and 4K redemptions may require identity verification. CedarX displays requirements on each listing — it is your responsibility to verify eligibility before purchasing.",
       },
     ],
   },
@@ -91,8 +91,8 @@ const FAQ_SECTIONS: { heading: string; items: FAQItem[] }[] = [
         a: "The CedarX swap contract is currently in development and has not yet undergone a third-party security audit. Trade amounts should reflect this. An audit is planned prior to the production launch of the swap contract.",
       },
       {
-        q: "What network does CedarX use?",
-        a: "Ethereum mainnet (L1). CedarX does not currently support Layer 2 networks. All assets and USDC settlements occur on Ethereum L1.",
+        q: "What networks does CedarX use?",
+        a: "CedarX supports Ethereum mainnet (L1) and Polygon PoS. Ethereum assets (Fabrica land, 4K luxury goods) settle on Ethereum L1. Polygon assets (Courtyard collectibles) settle on Polygon. Use the network switcher in the header to select your active chain.",
       },
       {
         q: "Are transactions reversible?",
@@ -129,8 +129,8 @@ const FAQ_SECTIONS: { heading: string; items: FAQItem[] }[] = [
             </a>{" "}
             for product updates and announcements. For protocol-specific questions, refer to the documentation of{" "}
             <a href="https://fabrica.land" target="_blank" rel="noopener noreferrer" className="text-cedar-amber hover:text-cedar-amber-lt transition-colors">Fabrica</a>,{" "}
-            <a href="https://propy.com" target="_blank" rel="noopener noreferrer" className="text-cedar-amber hover:text-cedar-amber-lt transition-colors">Propy</a>, or{" "}
-            <a href="https://onchain.roofstock.com" target="_blank" rel="noopener noreferrer" className="text-cedar-amber hover:text-cedar-amber-lt transition-colors">Roofstock onChain</a>.
+            <a href="https://4k.io" target="_blank" rel="noopener noreferrer" className="text-cedar-amber hover:text-cedar-amber-lt transition-colors">4K Protocol</a>, or{" "}
+            <a href="https://courtyard.io" target="_blank" rel="noopener noreferrer" className="text-cedar-amber hover:text-cedar-amber-lt transition-colors">Courtyard</a>.
           </>
         ),
       },
@@ -172,7 +172,7 @@ export function AboutPage() {
       <div className="mb-16">
         <h1 className="display text-display-md text-cedar-text mb-4">How it works</h1>
         <p className="text-cedar-muted text-sm leading-relaxed max-w-xl">
-          CedarX is a non-custodial marketplace for real-world asset NFTs on Ethereum. Any ERC-721 or ERC-1155 token representing a verified real-world asset — real estate, luxury goods, art, collectibles — belongs here. Below are answers to common questions about how the platform works, the protocols it indexes, and the risks involved.
+          CedarX is a non-custodial marketplace for real-world asset NFTs on Ethereum and Polygon. Any ERC-721 or ERC-1155 token representing a verified real-world asset — real estate, luxury goods, art, collectibles — belongs here. Below are answers to common questions about how the platform works, the protocols it indexes, and the risks involved.
         </p>
       </div>
 

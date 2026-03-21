@@ -13,7 +13,7 @@ const STEPS = [
     number: "02",
     icon: <Search size={18} strokeWidth={1.5} />,
     title: "Browse real assets",
-    body: "Filter by category, protocol, and price. Every listing is backed by a real-world asset token on Ethereum.",
+    body: "Filter by category, protocol, and price. Every listing is backed by a real-world asset token on Ethereum or Polygon.",
   },
   {
     number: "03",
@@ -71,7 +71,7 @@ export function HowItWorks() {
           <p className="text-cedar-muted text-sm max-w-md">
             Every swap is executed by a{" "}
             <span className="text-cedar-text">non-custodial smart contract</span>{" "}
-            on Ethereum L1. CedarX never holds your tokens or funds.
+            on Ethereum or Polygon. CedarX never holds your tokens or funds.
           </p>
           <Link to="/about" className="btn-ghost shrink-0">
             Read the full FAQ
