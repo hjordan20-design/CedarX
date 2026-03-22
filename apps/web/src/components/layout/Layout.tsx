@@ -3,7 +3,21 @@ import { Footer } from "./Footer";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-cedar-bg flex flex-col">
+    <div className="min-h-screen flex flex-col">
+      {/* Fixed left vertical rule — architectural detail */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: "fixed",
+          left: "52px",
+          top: 0,
+          bottom: 0,
+          width: "1px",
+          pointerEvents: "none",
+          zIndex: 2,
+          background: "linear-gradient(180deg, transparent 0%, rgba(196,133,42,0.25) 15%, rgba(196,133,42,0.12) 80%, transparent 100%)",
+        }}
+      />
       <Header />
       <main className="flex-1">{children}</main>
       <Footer />

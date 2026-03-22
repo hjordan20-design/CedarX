@@ -28,12 +28,23 @@ export function ExplorePage() {
   }, []);
 
   return (
-    <div className="max-w-[1440px] mx-auto px-6 pt-28 pb-24">
+    <div className="max-w-[1440px] mx-auto px-6 pb-24" style={{ paddingTop: "calc(66px + 48px)" }}>
       {/* Page header */}
-      <div className="mb-10">
-        <h1 className="display text-display-md text-cedar-text mb-2">Explore assets</h1>
-        <p className="text-cedar-muted font-sans text-sm">
-          Browse tokenized real-world assets across land, fixed income, and rental property.
+      <div style={{ marginBottom: "40px" }}>
+        <h1
+          style={{
+            fontFamily: "Cormorant Garamond, Georgia, serif",
+            fontWeight: 300,
+            fontSize: "clamp(2rem, 4vw, 3.5rem)",
+            letterSpacing: "-0.02em",
+            color: "#1C1710",
+            marginBottom: "8px",
+          }}
+        >
+          Explore assets
+        </h1>
+        <p style={{ fontFamily: "DM Sans, system-ui, sans-serif", fontWeight: 300, fontSize: "14px", color: "rgba(28,23,16,0.55)" }}>
+          Browse tokenized real-world assets across land, luxury goods, and collectibles.
         </p>
       </div>
 
