@@ -5,12 +5,19 @@
  *   1. Scan TransferSingle and TransferBatch events on the Fabrica Land contract.
  *   2. Collect every unique token ID and its latest recipient (= current owner).
  *      Skip burns (to = zeroAddress).
- *   3. For each token ID: read uri(), resolve any {id} template, fetch IPFS metadata.
- *   4. Normalize into CedarXAsset and upsert into the database.
+ *   3. Resolve the metadata URL for each token via a two-tier strategy:
+ *        Tier 1: call uri(tokenId) on the main contract.
+ *        Tier 2 (fallback): read defaultValidator() → baseUri() once, then
+ *                           construct {baseUri}{decimal(tokenId)} directly.
+ *      Tier 2 is needed because uri() reverts if the contract's _defaultValidator
+ *      is address(0) — the validator's uri() concatenates _baseUri + decimal id,
+ *      so we can replicate that without going through the main contract.
+ *   4. Fetch the metadata JSON (HTTPS or IPFS).
+ *   5. Normalize into CedarXAsset and upsert into the database.
  *
  * Fabrica Land (FAB): 0x5cbeb7A0df7Ed85D82a472FD56d81ed550f3Ea95 (ERC-1155, Ethereum mainnet)
- * Metadata: IPFS JSON with name, description, image, and trait attributes
- *           (Parcel ID, County, State, Address, Acreage, etc.)
+ * Validator pattern: baseUri + Strings.toString(tokenId)  (decimal, no {id} template)
+ * Metadata host:     metadata.fabrica.land/{network}/{contractAddress}/{tokenId}
  */
 
 import { parseAbiItem, parseAbi, zeroAddress } from "viem";
@@ -28,18 +35,33 @@ const TRANSFER_BATCH_EVENT = parseAbiItem(
     "event TransferBatch(address indexed operator, address indexed from, address indexed to, uint256[] ids, uint256[] values)"
 );
 
-// ERC-1155 read ABI — uri() returns the metadata URI (may contain {id} template)
-const FABRICA_READ_ABI = parseAbi([
+// Main contract: standard ERC-1155 uri() + defaultValidator() getter
+const FABRICA_MAIN_ABI = parseAbi([
     "function uri(uint256 id) view returns (string)",
+    "function defaultValidator() view returns (address)",
 ]);
 
-// Small delay between IPFS fetches to avoid hammering gateways
-const IPFS_FETCH_DELAY_MS = 300;
+// Validator contract: baseUri() getter (FabricaValidator.sol)
+const FABRICA_VALIDATOR_ABI = parseAbi([
+    "function uri(uint256 id) view returns (string)",
+    "function baseUri() view returns (string)",
+]);
+
+// Known fallback pattern if on-chain reads fail (matches validator _baseUri in production)
+const METADATA_FALLBACK_BASE =
+    `https://metadata.fabrica.land/mainnet/${FABRICA_TOKEN_V2}/`;
+
+// Small delay between metadata fetches to avoid hammering remote servers
+const FETCH_DELAY_MS = 300;
 
 export class FabricaPoller extends BasePoller {
     readonly pollerId = "fabrica";
     // Fabrica Land (FAB) ERC-1155 — first transfers around block 17_000_000
     readonly startBlock = 17_000_000;
+
+    // Cached base URI resolved from defaultValidator().baseUri()
+    // undefined = not yet resolved; string = resolved (may be the fallback)
+    private _metadataBaseUri: string | undefined;
 
     constructor() {
         super("mainnet"); // always Ethereum mainnet
@@ -47,10 +69,8 @@ export class FabricaPoller extends BasePoller {
 
     protected async poll(fromBlock: number, toBlock: number): Promise<void> {
         // ── Step 1: Collect token IDs and their latest recipient ──────────────
-        // Map<tokenId, latestTo> — later events in the block range overwrite earlier ones
         const tokenOwners = new Map<bigint, `0x${string}`>();
 
-        // TransferSingle — one token per event
         const singleLogs = await this.client.getLogs({
             address: FABRICA_TOKEN_V2,
             event: TRANSFER_SINGLE_EVENT,
@@ -65,7 +85,6 @@ export class FabricaPoller extends BasePoller {
             }
         }
 
-        // TransferBatch — multiple token IDs per event
         const batchLogs = await this.client.getLogs({
             address: FABRICA_TOKEN_V2,
             event: TRANSFER_BATCH_EVENT,
@@ -95,33 +114,80 @@ export class FabricaPoller extends BasePoller {
         for (const [tokenId, owner] of tokenOwners) {
             try {
                 await this._processToken(tokenId, owner);
-                await sleep(IPFS_FETCH_DELAY_MS);
+                await sleep(FETCH_DELAY_MS);
             } catch (err) {
                 this.logError(`failed to process token #${tokenId}`, err);
             }
         }
     }
 
+    /**
+     * Resolve the metadata base URI once per process lifetime.
+     *
+     * Tier 1: read defaultValidator() from the main contract, then baseUri()
+     *         from the validator contract.
+     * Tier 2: fall back to the known production URL pattern so the poller keeps
+     *         running even if on-chain reads fail.
+     */
+    private async _resolveBaseUri(): Promise<string> {
+        if (this._metadataBaseUri !== undefined) return this._metadataBaseUri;
+
+        try {
+            const validatorAddr = await this.client.readContract({
+                address: FABRICA_TOKEN_V2,
+                abi: FABRICA_MAIN_ABI,
+                functionName: "defaultValidator",
+            });
+
+            if (!validatorAddr || validatorAddr === zeroAddress) {
+                throw new Error("defaultValidator() returned zero address");
+            }
+
+            const base = await this.client.readContract({
+                address: validatorAddr,
+                abi: FABRICA_VALIDATOR_ABI,
+                functionName: "baseUri",
+            });
+
+            if (!base) throw new Error("baseUri() returned empty string");
+
+            this._metadataBaseUri = base;
+            this.log(`metadata base URI (from validator): ${base}`);
+        } catch (err) {
+            this._metadataBaseUri = METADATA_FALLBACK_BASE;
+            this.log(
+                `could not read validator baseUri() (${String(err)}), ` +
+                `using fallback: ${METADATA_FALLBACK_BASE}`
+            );
+        }
+
+        return this._metadataBaseUri;
+    }
+
     private async _processToken(tokenId: bigint, owner: `0x${string}`): Promise<void> {
-        let tokenUri: string;
+        // ── Tier 1: standard ERC-1155 uri() ───────────────────────────────────
+        let tokenUri: string | null = null;
         try {
             tokenUri = await this.client.readContract({
                 address: FABRICA_TOKEN_V2,
-                abi: FABRICA_READ_ABI,
+                abi: FABRICA_MAIN_ABI,
                 functionName: "uri",
                 args: [tokenId],
             });
         } catch {
-            this.log(`skipping token #${tokenId} — uri() reverted (burned or invalid)`);
-            return;
+            // uri() reverts — expected when _defaultValidator is not set.
+            // Fall through to Tier 2.
         }
 
+        // ── Tier 2: defaultValidator().baseUri() + decimal tokenId ────────────
         if (!tokenUri) {
-            this.log(`token #${tokenId} has no URI — skipping`);
-            return;
+            const baseUri = await this._resolveBaseUri();
+            // FabricaValidator.uri() = _baseUri + Strings.toString(id)  (decimal)
+            tokenUri = `${baseUri}${tokenId.toString(10)}`;
+            this.log(`token #${tokenId}: using constructed URI ${tokenUri}`);
         }
 
-        // ERC-1155 URI template: replace {id} with zero-padded 64-char lowercase hex
+        // ERC-1155 {id} template substitution (if the URI uses it)
         const resolvedUri = tokenUri.replace(
             "{id}",
             tokenId.toString(16).padStart(64, "0")
