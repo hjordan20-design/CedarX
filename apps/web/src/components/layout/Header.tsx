@@ -4,18 +4,10 @@ import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { Menu, X, ChevronDown } from "lucide-react";
 import { useAccount, useChainId, useSwitchChain } from "wagmi";
 
-// ─── Diamond mark — geometric logo ───────────────────────────────────────────
+// ─── Diamond mark ─────────────────────────────────────────────────────────────
 function DiamondMark({ className }: { className?: string }) {
   return (
-    <svg
-      width="20"
-      height="20"
-      viewBox="0 0 24 24"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      className={className}
-      aria-hidden="true"
-    >
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">
       <polygon points="12,2 22,12 12,22 2,12" stroke="#C4852A" strokeWidth="1.2" fill="none" />
       <polygon points="12,6 18,12 12,18 6,12" stroke="#C4852A" strokeWidth="0.7" strokeOpacity="0.45" fill="none" />
       <circle cx="12" cy="12" r="1.5" fill="#C4852A" opacity="0.6" />
@@ -37,10 +29,12 @@ function NavLink({
   to,
   onClick,
   children,
+  mobile,
 }: {
   to: string;
   onClick?: () => void;
   children: React.ReactNode;
+  mobile?: boolean;
 }) {
   const { pathname } = useLocation();
   const active = pathname === to || (to !== "/" && pathname.startsWith(to));
@@ -49,15 +43,15 @@ function NavLink({
       to={to}
       onClick={onClick}
       style={{
-        fontSize: "12px",
-        letterSpacing: "0.06em",
+        fontSize: mobile ? "16px" : "12px",
+        letterSpacing: mobile ? "0.02em" : "0.06em",
         fontFamily: "DM Sans, system-ui, sans-serif",
+        fontWeight: mobile ? 300 : 400,
         transition: "color 0.3s cubic-bezier(.16,1,.3,1)",
-        color: active ? "rgba(28,23,16,0.70)" : "rgba(28,23,16,0.38)",
+        color: active ? "rgba(28,23,16,0.80)" : "rgba(28,23,16,0.45)",
         textDecoration: "none",
+        display: "block",
       }}
-      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "rgba(28,23,16,0.70)"; }}
-      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = active ? "rgba(28,23,16,0.70)" : "rgba(28,23,16,0.38)"; }}
     >
       {children}
     </Link>
@@ -91,20 +85,14 @@ function ChainSwitcher() {
   const current = SUPPORTED_CHAINS.find((c) => c.id === chainId);
 
   return (
-    <div ref={ref} className="relative">
+    <div ref={ref} style={{ position: "relative" }}>
       <button
         onClick={() => setOpen((o) => !o)}
         style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "6px",
-          padding: "6px 10px",
-          fontSize: "11px",
-          letterSpacing: "0.06em",
-          color: "rgba(28,23,16,0.50)",
-          background: "transparent",
-          border: "1px solid rgba(196,133,42,0.20)",
-          cursor: "pointer",
+          display: "flex", alignItems: "center", gap: "6px",
+          padding: "6px 10px", fontSize: "11px", letterSpacing: "0.06em",
+          color: "rgba(28,23,16,0.50)", background: "transparent",
+          border: "1px solid rgba(196,133,42,0.20)", cursor: "pointer",
           transition: "all 0.3s cubic-bezier(.16,1,.3,1)",
         }}
         onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(196,133,42,0.40)"; }}
@@ -113,41 +101,23 @@ function ChainSwitcher() {
       >
         <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: current?.dotColor ?? "#8B7355", display: "inline-block" }} />
         {current?.short ?? "Net"}
-        <ChevronDown
-          size={10}
-          style={{ transition: "transform 0.3s ease", transform: open ? "rotate(180deg)" : "rotate(0deg)", color: "rgba(28,23,16,0.38)" }}
-        />
+        <ChevronDown size={10} style={{ transition: "transform 0.3s ease", transform: open ? "rotate(180deg)" : "rotate(0deg)", color: "rgba(28,23,16,0.38)" }} />
       </button>
 
       {open && (
-        <div
-          style={{
-            position: "absolute",
-            right: 0,
-            top: "calc(100% + 4px)",
-            width: "144px",
-            zIndex: 50,
-            background: "rgba(249,246,240,0.96)",
-            backdropFilter: "blur(12px)",
-            WebkitBackdropFilter: "blur(12px)",
-            border: "1px solid rgba(196,133,42,0.18)",
-          }}
-        >
+        <div style={{
+          position: "absolute", right: 0, top: "calc(100% + 4px)", width: "144px", zIndex: 50,
+          background: "rgba(249,246,240,0.96)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)",
+          border: "1px solid rgba(196,133,42,0.18)",
+        }}>
           {SUPPORTED_CHAINS.map((chain) => (
             <button
               key={chain.id}
               onClick={() => { switchChain({ chainId: chain.id }); setOpen(false); }}
               style={{
-                width: "100%",
-                display: "flex",
-                alignItems: "center",
-                gap: "10px",
-                padding: "10px 12px",
-                fontSize: "11px",
-                letterSpacing: "0.06em",
-                cursor: "pointer",
-                background: "transparent",
-                border: "none",
+                width: "100%", display: "flex", alignItems: "center", gap: "10px",
+                padding: "10px 12px", fontSize: "11px", letterSpacing: "0.06em",
+                cursor: "pointer", background: "transparent", border: "none",
                 color: chain.id === chainId ? "rgba(28,23,16,0.80)" : "rgba(28,23,16,0.42)",
                 transition: "background 0.2s ease",
               }}
@@ -156,9 +126,7 @@ function ChainSwitcher() {
             >
               <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: chain.dotColor, display: "inline-block" }} />
               {chain.name}
-              {chain.id === chainId && (
-                <span style={{ marginLeft: "auto", color: "#C4852A", fontSize: "10px" }}>✓</span>
-              )}
+              {chain.id === chainId && <span style={{ marginLeft: "auto", color: "#C4852A", fontSize: "10px" }}>✓</span>}
             </button>
           ))}
         </div>
@@ -168,7 +136,7 @@ function ChainSwitcher() {
 }
 
 // ─── Wallet button ────────────────────────────────────────────────────────────
-function WalletButton() {
+function WalletButton({ fullWidth }: { fullWidth?: boolean }) {
   return (
     <ConnectButton.Custom>
       {({ account, chain, openAccountModal, openConnectModal, mounted }) => {
@@ -178,7 +146,7 @@ function WalletButton() {
             onClick={connected ? openAccountModal : openConnectModal}
             type="button"
             style={{
-              padding: "6px 16px",
+              padding: "8px 16px",
               fontSize: "11px",
               letterSpacing: "0.12em",
               fontFamily: "DM Sans, system-ui, sans-serif",
@@ -189,6 +157,7 @@ function WalletButton() {
               border: "1px solid rgba(196,133,42,0.55)",
               cursor: "pointer",
               transition: "all 0.3s cubic-bezier(.16,1,.3,1)",
+              width: fullWidth ? "100%" : "auto",
             }}
             onMouseEnter={e => {
               (e.currentTarget as HTMLElement).style.background = "#C4852A";
@@ -237,92 +206,71 @@ export function Header() {
           borderBottom: "1px solid rgba(196,133,42,0.10)",
         }}
       >
-        <div
-          style={{
-            maxWidth: "100%",
-            padding: "0 52px 0 80px",
-            height: "66px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: "32px",
-          }}
-        >
+        {/* Responsive container: 24px padding on mobile, 80px/52px on desktop */}
+        <div className="h-full flex items-center justify-between gap-4 px-6 lg:pl-[80px] lg:pr-[52px]">
+
           {/* Logo */}
-          <Link
-            to="/"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "10px",
-              flexShrink: 0,
-              textDecoration: "none",
-            }}
-          >
+          <Link to="/" style={{ display: "flex", alignItems: "center", gap: "10px", flexShrink: 0, textDecoration: "none" }}>
             <DiamondMark />
             <CedarXWordmark />
           </Link>
 
-          {/* Desktop nav */}
-          <nav style={{ display: "flex", alignItems: "center", gap: "32px" }} className="hidden md:flex">
+          {/* Desktop nav — hidden below lg */}
+          <nav className="hidden lg:flex items-center gap-8">
             {navLinks.map(({ to, label }) => (
               <NavLink key={to} to={to}>{label}</NavLink>
             ))}
           </nav>
 
-          {/* Desktop right: chain switcher + wallet */}
-          <div style={{ display: "flex", alignItems: "center", gap: "12px", flexShrink: 0 }} className="hidden md:flex">
+          {/* Desktop right — hidden below lg */}
+          <div className="hidden lg:flex items-center gap-3 shrink-0">
             <ChainSwitcher />
             <WalletButton />
           </div>
 
-          {/* Mobile: hamburger */}
+          {/* Mobile hamburger — visible below lg */}
           <button
-            className="md:hidden p-1"
-            style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(28,23,16,0.50)" }}
+            className="lg:hidden p-1 shrink-0"
+            style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(28,23,16,0.55)" }}
             onClick={() => setMobileOpen((o) => !o)}
             aria-label={mobileOpen ? "Close menu" : "Open menu"}
             aria-expanded={mobileOpen}
           >
-            {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+            {mobileOpen ? <X size={22} /> : <Menu size={22} />}
           </button>
         </div>
       </header>
 
-      {/* Mobile menu */}
+      {/* Mobile / tablet menu — visible below lg */}
       {mobileOpen && (
-        <div className="fixed inset-0 z-40 md:hidden">
+        <div className="lg:hidden fixed inset-0 z-40">
+          {/* Backdrop */}
           <div
-            style={{ position: "absolute", inset: 0, background: "rgba(249,246,240,0.65)", backdropFilter: "blur(4px)", WebkitBackdropFilter: "blur(4px)" }}
+            style={{ position: "absolute", inset: 0, background: "rgba(249,246,240,0.70)", backdropFilter: "blur(4px)", WebkitBackdropFilter: "blur(4px)" }}
             onClick={() => setMobileOpen(false)}
           />
+          {/* Drawer */}
           <div
             style={{
-              position: "absolute",
-              top: "66px",
-              left: 0,
-              right: 0,
-              background: "rgba(249,246,240,0.96)",
-              backdropFilter: "blur(20px)",
-              WebkitBackdropFilter: "blur(20px)",
-              borderBottom: "1px solid rgba(196,133,42,0.10)",
+              position: "absolute", top: "66px", left: 0, right: 0,
+              background: "rgba(249,246,240,0.97)",
+              backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
+              borderBottom: "1px solid rgba(196,133,42,0.12)",
             }}
           >
-            <nav style={{ padding: "20px 24px", display: "flex", flexDirection: "column", gap: "4px" }}>
+            <nav style={{ padding: "8px 24px 4px" }}>
               {navLinks.map(({ to, label }) => (
-                <div key={to} style={{ padding: "10px 0", borderBottom: "1px solid rgba(196,133,42,0.08)" }}>
-                  <NavLink to={to} onClick={() => setMobileOpen(false)}>
-                    {label}
-                  </NavLink>
+                <div key={to} style={{ borderBottom: "1px solid rgba(196,133,42,0.08)", padding: "14px 0" }}>
+                  <NavLink to={to} onClick={() => setMobileOpen(false)} mobile>{label}</NavLink>
                 </div>
               ))}
             </nav>
-            <div style={{ padding: "8px 24px 24px", display: "flex", flexDirection: "column", gap: "12px" }}>
+            <div style={{ padding: "16px 24px 24px", display: "flex", flexDirection: "column", gap: "12px" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                 <span style={{ fontSize: "10px", letterSpacing: "0.18em", textTransform: "uppercase", color: "rgba(28,23,16,0.35)" }}>Network</span>
                 <ChainSwitcher />
               </div>
-              <WalletButton />
+              <WalletButton fullWidth />
             </div>
           </div>
         </div>

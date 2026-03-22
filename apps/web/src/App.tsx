@@ -1,6 +1,7 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { useEffect } from "react";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { WagmiProvider } from "wagmi";
-import { RainbowKitProvider, darkTheme } from "@rainbow-me/rainbowkit";
+import { RainbowKitProvider, lightTheme } from "@rainbow-me/rainbowkit";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "@rainbow-me/rainbowkit/styles.css";
 
@@ -21,15 +22,23 @@ const queryClient = new QueryClient({
   },
 });
 
-// RainbowKit dark theme — CSS custom property overrides in globals.css
-// do the heavy lifting; this just sets the baseline.
-const rkTheme = darkTheme({
+// RainbowKit light theme — CSS custom property overrides in globals.css do the heavy lifting
+const rkTheme = lightTheme({
   accentColor: "#C4852A",
-  accentColorForeground: "#0D0D0C",
+  accentColorForeground: "#FFFFFF",
   borderRadius: "none",
   fontStack: "system",
   overlayBlur: "small",
 });
+
+// Scrolls to top on every route change
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  return null;
+}
 
 export function App() {
   return (
@@ -37,6 +46,7 @@ export function App() {
       <QueryClientProvider client={queryClient}>
         <RainbowKitProvider theme={rkTheme}>
           <BrowserRouter>
+            <ScrollToTop />
             <Layout>
               <Routes>
                 <Route path="/"             element={<HomePage />} />

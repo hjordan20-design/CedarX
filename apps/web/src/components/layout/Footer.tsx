@@ -29,7 +29,7 @@ export function Footer() {
               </span>
             </div>
 
-            <p style={{ fontSize: "13px", fontWeight: 300, lineHeight: 1.7, color: "rgba(28,23,16,0.55)", maxWidth: "240px" }}>
+            <p style={{ fontSize: "15px", fontWeight: 300, lineHeight: 1.7, color: "rgba(28,23,16,0.55)", maxWidth: "240px" }}>
               The real-world asset marketplace. Peer-to-peer trading of tokenized real estate, luxury goods, and collectibles.
             </p>
 
@@ -41,7 +41,7 @@ export function Footer() {
               href="https://x.com/cedarxio"
               target="_blank"
               rel="noopener noreferrer"
-              style={{ display: "inline-flex", alignItems: "center", gap: "8px", fontSize: "13px", color: "rgba(28,23,16,0.55)", textDecoration: "none", transition: "color 0.3s ease" }}
+              style={{ display: "inline-flex", alignItems: "center", gap: "8px", fontSize: "15px", color: "rgba(28,23,16,0.55)", textDecoration: "none", transition: "color 0.3s ease" }}
               onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "rgba(28,23,16,0.80)"; }}
               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "rgba(28,23,16,0.55)"; }}
             >
@@ -54,7 +54,7 @@ export function Footer() {
 
           {/* Navigation */}
           <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-            <h3 style={{ fontFamily: "DM Sans, system-ui, sans-serif", fontSize: "9px", letterSpacing: "0.18em", textTransform: "uppercase", color: "rgba(28,23,16,0.28)" }}>
+            <h3 style={{ fontFamily: "DM Sans, system-ui, sans-serif", fontSize: "11px", letterSpacing: "0.18em", textTransform: "uppercase", color: "rgba(28,23,16,0.28)" }}>
               Navigate
             </h3>
             <nav style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
@@ -79,7 +79,7 @@ export function Footer() {
 
           {/* Protocols */}
           <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-            <h3 style={{ fontFamily: "DM Sans, system-ui, sans-serif", fontSize: "9px", letterSpacing: "0.18em", textTransform: "uppercase", color: "rgba(28,23,16,0.28)" }}>
+            <h3 style={{ fontFamily: "DM Sans, system-ui, sans-serif", fontSize: "11px", letterSpacing: "0.18em", textTransform: "uppercase", color: "rgba(28,23,16,0.28)" }}>
               Indexed protocols
             </h3>
             <nav style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
@@ -114,10 +114,10 @@ export function Footer() {
           }}
           className="sm:flex-row sm:items-center sm:justify-between"
         >
-          <p style={{ fontSize: "11px", color: "rgba(28,23,16,0.28)" }}>
+          <p style={{ fontSize: "12px", color: "rgba(28,23,16,0.28)" }}>
             © {new Date().getFullYear()} CedarX. All rights reserved.
           </p>
-          <p style={{ fontSize: "11px", color: "rgba(28,23,16,0.28)", maxWidth: "360px" }} className="sm:text-right">
+          <p style={{ fontSize: "12px", color: "rgba(28,23,16,0.28)", maxWidth: "360px" }} className="sm:text-right">
             Transactions are peer-to-peer and irreversible. CedarX takes no custody of funds or tokens.
           </p>
         </div>

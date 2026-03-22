@@ -4,9 +4,10 @@ import { Footer } from "./Footer";
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Fixed left vertical rule — architectural detail */}
+      {/* Fixed left vertical rule — architectural detail, desktop only */}
       <div
         aria-hidden="true"
+        className="hidden lg:block"
         style={{
           position: "fixed",
           left: "52px",
