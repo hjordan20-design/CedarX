@@ -37,7 +37,7 @@ export function normalizeFabricaAsset(
         protocol: "fabrica",
         contract_address: FABRICA_TOKEN_V2.toLowerCase(),
         token_id: tokenId,
-        token_standard: "ERC-721",
+        token_standard: "ERC-1155",
         chain: "ethereum",
         name: metadata.name ?? `Fabrica Land #${tokenId}`,
         description: metadata.description ?? null,

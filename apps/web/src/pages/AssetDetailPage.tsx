@@ -293,21 +293,21 @@ function AssetActions({ asset }: { asset: Asset }) {
         )}
       </div>
 
-      {/* Buttons */}
-      <div className="flex flex-col gap-2 pt-4">
+      {/* Primary CTA */}
+      <div className="pt-4">
         {!isConnected && hasListing && (
           <button
             onClick={openConnectModal}
-            className="btn-primary justify-center py-3 text-sm"
+            className="btn-primary w-full justify-center py-3.5 text-sm font-semibold"
           >
-            Connect wallet to buy
+            Buy with USDC
           </button>
         )}
 
         {isConnected && hasListing && !ownsAsset && (
           <button
             onClick={() => setShowBuy(true)}
-            className="btn-primary justify-center py-3 text-sm"
+            className="btn-primary w-full justify-center py-3.5 text-sm font-semibold"
           >
             Buy for {formatUSDC(asset.currentListingPrice)}
           </button>
@@ -316,21 +316,19 @@ function AssetActions({ asset }: { asset: Asset }) {
         {isConnected && ownsAsset && (
           <button
             onClick={() => setShowList(true)}
-            className="btn-primary justify-center py-3 text-sm"
+            className="btn-primary w-full justify-center py-3.5 text-sm font-semibold"
           >
             List for sale
           </button>
         )}
 
-        {asset.externalUrl && (
-          <a
-            href={asset.externalUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn-ghost justify-center py-3 text-sm"
+        {!hasListing && !ownsAsset && (
+          <button
+            disabled
+            className="btn-primary w-full justify-center py-3.5 text-sm font-semibold opacity-40 cursor-not-allowed"
           >
-            View on protocol <ExternalLink size={13} />
-          </a>
+            Not currently listed
+          </button>
         )}
       </div>
 
@@ -355,6 +353,18 @@ function AssetActions({ asset }: { asset: Asset }) {
           <Globe size={10} /> {asset.chain} · {asset.tokenStandard}
         </p>
       </div>
+
+      {/* Verify link — subtle, for trust only */}
+      {asset.externalUrl && (
+        <a
+          href={asset.externalUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1 text-cedar-muted/50 hover:text-cedar-muted text-[11px] transition-colors pt-1"
+        >
+          Verify on protocol <ExternalLink size={10} />
+        </a>
+      )}
 
       {/* Modals */}
       {showBuy && hasListing && (
@@ -435,27 +445,27 @@ export function AssetDetailPage() {
     asset.details.lng != null;
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
       {/* Breadcrumb */}
-      <nav className="flex items-center gap-2 text-cedar-muted text-xs mb-8">
-        <Link to="/" className="hover:text-cedar-text transition-colors">
+      <nav className="flex items-center gap-2 text-cedar-muted text-xs mb-8 min-w-0">
+        <Link to="/" className="hover:text-cedar-text transition-colors shrink-0">
           Home
         </Link>
-        <span>/</span>
-        <Link to="/explore" className="hover:text-cedar-text transition-colors">
+        <span className="shrink-0">/</span>
+        <Link to="/explore" className="hover:text-cedar-text transition-colors shrink-0">
           Explore
         </Link>
-        <span>/</span>
-        <span className="text-cedar-text truncate max-w-[200px]">{asset.name}</span>
+        <span className="shrink-0">/</span>
+        <span className="text-cedar-text truncate">{asset.name}</span>
       </nav>
 
       {/* Two-column layout */}
       <div className="grid lg:grid-cols-[420px_1fr] gap-8 items-start">
         {/* ── Left column: image + map ── */}
-        <div className="lg:sticky lg:top-24 space-y-0">
+        <div className="lg:sticky lg:top-24 space-y-0 min-w-0">
           {/* Hero image */}
           <div
-            className={`relative overflow-hidden w-full aspect-[4/3] border border-cedar-border ${
+            className={`relative overflow-hidden w-full max-w-full aspect-[4/3] border border-cedar-border ${
               CATEGORY_BG[asset.category] ?? "bg-cedar-surface-alt"
             }`}
           >
@@ -484,7 +494,7 @@ export function AssetDetailPage() {
         </div>
 
         {/* ── Right column: all info ── */}
-        <div className="space-y-6">
+        <div className="space-y-6 min-w-0">
           {/* Badges */}
           <div className="flex items-center gap-2 flex-wrap">
             <ProtocolBadge protocol={asset.protocol} />
@@ -492,7 +502,7 @@ export function AssetDetailPage() {
           </div>
 
           {/* Name */}
-          <h1 className="display text-3xl sm:text-4xl text-cedar-text leading-tight">
+          <h1 className="display text-2xl sm:text-3xl lg:text-4xl text-cedar-text leading-tight break-words">
             {asset.name}
           </h1>
 
