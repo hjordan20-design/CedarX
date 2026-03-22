@@ -92,11 +92,10 @@ const pollers = [
 // If seeding fails (e.g. Alchemy key not yet set) pollers start anyway — they
 // will simply error on the first tick and retry on the next interval.
 seedCursors()
-    .then(() => {
-        for (const poller of pollers) poller.start();
-    })
     .catch((err) => {
         console.error("[seed] cursor seed failed — starting pollers anyway:", err instanceof Error ? err.message : err);
+    })
+    .finally(() => {
         for (const poller of pollers) poller.start();
     });
 

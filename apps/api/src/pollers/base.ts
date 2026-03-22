@@ -113,6 +113,7 @@ export abstract class BasePoller {
                 await this.poll(cursor, toBlock);
                 await setCursor(this.pollerId, toBlock);
                 cursor = toBlock + 1;
+                await new Promise(r => setTimeout(r, 500));
             }
         } catch (err) {
             this.logError("tick failed", err);
