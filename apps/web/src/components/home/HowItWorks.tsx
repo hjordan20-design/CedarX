@@ -29,16 +29,18 @@ function Step({ number, icon, title, body, index }: typeof STEPS[number] & { ind
   return (
     <div
       ref={ref as React.Ref<HTMLDivElement>}
-      className={`space-y-5 scroll-fade${inView ? " in-view" : ""}`}
-      style={{ transitionDelay: inView ? `${index * 100}ms` : "0ms" }}
+      className={`scroll-fade${inView ? " in-view" : ""}`}
+      style={{ transitionDelay: inView ? `${index * 100}ms` : "0ms", display: "flex", flexDirection: "column", gap: "20px" }}
     >
-      <div className="flex items-center gap-4">
-        <span className="font-mono text-cedar-amber text-sm opacity-60">{number}</span>
-        <div className="w-px h-4 bg-cedar-border" />
-        <span className="text-cedar-amber">{icon}</span>
+      <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+        <span style={{ fontFamily: "JetBrains Mono, monospace", fontSize: "13px", color: "#C4852A", opacity: 0.7 }}>{number}</span>
+        <div style={{ width: "1px", height: "16px", background: "rgba(196,133,42,0.20)" }} />
+        <span style={{ color: "rgba(196,133,42,0.70)" }}>{icon}</span>
       </div>
-      <h3 className="font-sans text-base font-medium text-cedar-text">{title}</h3>
-      <p className="text-cedar-muted text-sm leading-relaxed">{body}</p>
+      <h3 style={{ fontFamily: "Cormorant Garamond, Georgia, serif", fontWeight: 300, fontSize: "20px", letterSpacing: "-0.01em", color: "#1C1710" }}>
+        {title}
+      </h3>
+      <p style={{ fontSize: "14px", fontWeight: 300, color: "rgba(28,23,16,0.55)", lineHeight: 1.75 }}>{body}</p>
     </div>
   );
 }
@@ -47,16 +49,26 @@ export function HowItWorks() {
   const { ref: headingRef, inView: headingInView } = useInView();
 
   return (
-    <section className="border-t border-cedar-border">
-      <div className="max-w-7xl mx-auto px-6 py-24">
+    <section style={{ borderTop: "1px solid rgba(196,133,42,0.08)" }}>
+      <div className="max-w-7xl mx-auto px-6" style={{ paddingTop: "100px", paddingBottom: "80px" }}>
         <div
           ref={headingRef as React.Ref<HTMLDivElement>}
-          className={`mb-16 scroll-fade${headingInView ? " in-view" : ""}`}
+          className={`scroll-fade${headingInView ? " in-view" : ""}`}
+          style={{ marginBottom: "60px" }}
         >
-          <h2 className="display text-display-md text-cedar-text mb-3">
+          <h2
+            style={{
+              fontFamily: "Cormorant Garamond, Georgia, serif",
+              fontWeight: 300,
+              fontSize: "clamp(2rem, 4vw, 3.5rem)",
+              letterSpacing: "-0.02em",
+              color: "#1C1710",
+              marginBottom: "12px",
+            }}
+          >
             How it works
           </h2>
-          <p className="text-cedar-muted text-sm tracking-widest uppercase">
+          <p style={{ fontFamily: "DM Sans, system-ui, sans-serif", fontSize: "9px", letterSpacing: "0.18em", textTransform: "uppercase", color: "rgba(28,23,16,0.35)" }}>
             Three steps. No custody. No intermediaries.
           </p>
         </div>
@@ -67,10 +79,21 @@ export function HowItWorks() {
           ))}
         </div>
 
-        <div className="mt-16 pt-12 border-t border-cedar-border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
-          <p className="text-cedar-muted text-sm max-w-md">
+        <div
+          style={{
+            marginTop: "64px",
+            paddingTop: "40px",
+            borderTop: "1px solid rgba(196,133,42,0.08)",
+            display: "flex",
+            flexDirection: "column",
+            gap: "24px",
+            alignItems: "flex-start",
+          }}
+          className="sm:flex-row sm:items-center sm:justify-between"
+        >
+          <p style={{ fontSize: "14px", fontWeight: 300, color: "rgba(28,23,16,0.55)", maxWidth: "420px", lineHeight: 1.7 }}>
             Every swap is executed by a{" "}
-            <span className="text-cedar-text">non-custodial smart contract</span>{" "}
+            <span style={{ color: "#1C1710", fontWeight: 400 }}>non-custodial smart contract</span>{" "}
             on Ethereum or Polygon. CedarX never holds your tokens or funds.
           </p>
           <Link to="/about" className="btn-ghost shrink-0">

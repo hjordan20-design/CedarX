@@ -4,34 +4,46 @@
 
 @layer base {
   :root {
-    color-scheme: dark;
+    color-scheme: light;
   }
 
   html {
-    background-color: #0D0D0C;
-    /* Softer body text — rgba(255,255,255,0.75) on #0D0D0C, warm off-white */
-    color: rgba(255, 255, 255, 0.75);
+    background-color: #F9F6F0;
+    color: rgba(28, 23, 16, 0.75);
     font-family: "DM Sans", system-ui, sans-serif;
+    font-weight: 300;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
   body {
-    background-color: #0D0D0C;
-    /* Warm grain texture — cream-tinted noise at max 2% opacity */
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.95 0 0 0 0 0.90 0 0 0 0 0.80 0.02 0 0 0 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-    background-size: 200px 200px;
+    background:
+      radial-gradient(ellipse 900px 700px at 82% -10%, rgba(196,133,42,0.10) 0%, transparent 65%),
+      radial-gradient(ellipse 600px 500px at -5% 90%, rgba(180,152,110,0.08) 0%, transparent 60%),
+      linear-gradient(158deg, #F9F6F0 0%, #F3EDE2 35%, #EDE4D5 70%, #E8DCC8 100%);
     min-height: 100vh;
+    color: rgba(28, 23, 16, 0.75);
+  }
+
+  /* Grain texture overlay */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 9999;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C%2Fsvg%3E");
+    background-repeat: repeat;
   }
 
   /* Scrollbar — minimal, warm */
   ::-webkit-scrollbar { width: 6px; }
-  ::-webkit-scrollbar-track { background: #0D0D0C; }
-  ::-webkit-scrollbar-thumb { background: #2C2C2B; border-radius: 3px; }
-  ::-webkit-scrollbar-thumb:hover { background: #3A3A38; }
+  ::-webkit-scrollbar-track { background: #F9F6F0; }
+  ::-webkit-scrollbar-thumb { background: rgba(196,133,42,0.25); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(196,133,42,0.40); }
 
   /* Selection */
-  ::selection { background: rgba(196, 133, 42, 0.25); color: rgba(255,255,255,0.9); }
+  ::selection { background: rgba(196, 133, 42, 0.18); color: #1C1710; }
 }
 
 @layer components {
@@ -39,91 +51,65 @@
 
   .display {
     font-family: "Cormorant Garamond", Georgia, serif;
+    font-weight: 300;
     letter-spacing: -0.02em;
     line-height: 1.05;
   }
 
   /* ── Buttons ─────────────────────────────────────────────────────────────── */
 
-  /* Outline amber — luxury signal: confidence over urgency */
   .btn-primary {
-    @apply inline-flex items-center gap-2 font-sans font-medium
-           px-6 py-3 text-sm tracking-wide
+    @apply inline-flex items-center gap-2 font-sans
+           px-6 py-3 text-sm
            transition-all duration-300
            focus-visible:outline focus-visible:outline-2 focus-visible:outline-cedar-amber focus-visible:outline-offset-2;
+    font-weight: 400;
+    letter-spacing: 0.08em;
     color: #C4852A;
     background: transparent;
-    border: 1px solid #C4852A;
+    border: 1px solid rgba(196,133,42,0.55);
   }
   .btn-primary:hover {
     background: #C4852A;
-    color: #0D0D0C;
+    color: #FFFFFF;
   }
 
   .btn-ghost {
-    @apply inline-flex items-center gap-2 font-sans font-medium
-           px-6 py-3 text-sm tracking-wide
+    @apply inline-flex items-center gap-2 font-sans
+           px-6 py-3 text-sm
            transition-all duration-300;
-    color: rgba(255,255,255,0.75);
-    border: 1px solid rgba(255,255,255,0.08);
+    font-weight: 400;
+    color: rgba(28,23,16,0.55);
+    border: 1px solid rgba(196,133,42,0.18);
   }
   .btn-ghost:hover {
-    border-color: rgba(255,255,255,0.18);
-    color: rgba(255,255,255,0.95);
+    border-color: rgba(196,133,42,0.40);
+    color: rgba(28,23,16,0.80);
   }
 
   /* ── Cards ───────────────────────────────────────────────────────────────── */
 
   .card {
-    background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(255,255,255,0.06);
-    border-radius: 12px;
+    background: rgba(255,255,255,0.55);
+    border: 1px solid rgba(196,133,42,0.10);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
   }
 
   /* ── Divider ─────────────────────────────────────────────────────────────── */
 
   .divider {
-    border-top: 1px solid rgba(255,255,255,0.06);
+    border-top: 1px solid rgba(196,133,42,0.10);
   }
 }
 
-/* ── Search input focus — amber border ─────────────────────────────────────── */
+/* ── Search input — light mode ─────────────────────────────────────────────── */
 
 .search-input:focus {
-  border-color: rgba(196, 133, 42, 0.35) !important;
   outline: none;
-}
-
-/* ── Hero SVG draw-in animation ──────────────────────────────────────────────
-   Used via inline style: strokeDasharray=N, strokeDashoffset=N,
-   animation: hero-draw <dur> ease forwards <delay>
-   fill-mode:forwards keeps dashoffset at 0 after draw completes.         */
-
-@keyframes hero-draw {
-  to { stroke-dashoffset: 0; }
-}
-
-/* Pulsing amber dot at SVG intersection points */
-@keyframes hero-dot-pulse {
-  0%, 100% { opacity: 0.40; }
-  50%       { opacity: 0.90; }
-}
-
-/* Expanding ring — fades out and scales up, like a sonar ping */
-@keyframes hero-ring-pulse {
-  0%, 100% { opacity: 0.20; transform: scale(1);   }
-  50%       { opacity: 0.04; transform: scale(1.75); }
-}
-
-.hero-dot-pulse {
-  animation: hero-dot-pulse 2.4s ease-in-out infinite;
-}
-
-.hero-ring-pulse {
-  /* transform-box and transform-origin needed for scale from SVG element centre */
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: hero-ring-pulse 2.4s ease-in-out infinite;
+  border-color: rgba(196,133,42,0.35) !important;
+  border-bottom-color: #C4852A !important;
+  border-bottom-width: 2px !important;
 }
 
 /* ── Mobile horizontal card scroll row ──────────────────────────────────── */
@@ -149,35 +135,34 @@
   transform: translateY(0);
 }
 
-/* ── RainbowKit overrides — match CedarX dark palette ───────────────────── */
+/* ── RainbowKit overrides — warm light palette ───────────────────────────── */
 
 [data-rk] {
   --rk-colors-accentColor: #C4852A !important;
-  --rk-colors-accentColorForeground: #0D0D0C !important;
-  --rk-colors-actionButtonBorder: rgba(255,255,255,0.08) !important;
-  --rk-colors-actionButtonBorderMobile: rgba(255,255,255,0.08) !important;
-  --rk-colors-actionButtonSecondaryBackground: #1C1C1A !important;
-  --rk-colors-closeButton: rgba(255,255,255,0.4) !important;
-  --rk-colors-closeButtonBackground: #1C1C1A !important;
-  --rk-colors-connectButtonBackground: #1C1C1A !important;
-  --rk-colors-connectButtonBackgroundError: #7A3535 !important;
-  --rk-colors-connectButtonInnerBackground: #141413 !important;
-  --rk-colors-connectButtonText: rgba(255,255,255,0.75) !important;
-  --rk-colors-connectButtonTextError: rgba(255,255,255,0.75) !important;
-  /* Amber connection indicator — no green anywhere */
+  --rk-colors-accentColorForeground: #FFFFFF !important;
+  --rk-colors-actionButtonBorder: rgba(196,133,42,0.20) !important;
+  --rk-colors-actionButtonBorderMobile: rgba(196,133,42,0.20) !important;
+  --rk-colors-actionButtonSecondaryBackground: #F3EDE2 !important;
+  --rk-colors-closeButton: rgba(28,23,16,0.40) !important;
+  --rk-colors-closeButtonBackground: #F3EDE2 !important;
+  --rk-colors-connectButtonBackground: #FFFFFF !important;
+  --rk-colors-connectButtonBackgroundError: #FBE9E9 !important;
+  --rk-colors-connectButtonInnerBackground: #F9F6F0 !important;
+  --rk-colors-connectButtonText: rgba(28,23,16,0.75) !important;
+  --rk-colors-connectButtonTextError: #7A3535 !important;
   --rk-colors-connectionIndicator: #C4852A !important;
   --rk-colors-error: #7A3535 !important;
-  --rk-colors-generalBorder: rgba(255,255,255,0.08) !important;
-  --rk-colors-generalBorderDim: #1C1C1A !important;
-  --rk-colors-menuItemBackground: #1C1C1A !important;
-  --rk-colors-modalBackground: #141413 !important;
-  --rk-colors-modalBorder: rgba(255,255,255,0.08) !important;
-  --rk-colors-modalText: rgba(255,255,255,0.75) !important;
-  --rk-colors-modalTextDim: rgba(255,255,255,0.4) !important;
-  --rk-colors-modalTextSecondary: rgba(255,255,255,0.4) !important;
-  --rk-colors-profileAction: #1C1C1A !important;
-  --rk-colors-profileActionHover: #2C2C2B !important;
-  --rk-colors-profileForeground: #141413 !important;
+  --rk-colors-generalBorder: rgba(196,133,42,0.15) !important;
+  --rk-colors-generalBorderDim: #F3EDE2 !important;
+  --rk-colors-menuItemBackground: #F3EDE2 !important;
+  --rk-colors-modalBackground: #F9F6F0 !important;
+  --rk-colors-modalBorder: rgba(196,133,42,0.15) !important;
+  --rk-colors-modalText: rgba(28,23,16,0.85) !important;
+  --rk-colors-modalTextDim: rgba(28,23,16,0.42) !important;
+  --rk-colors-modalTextSecondary: rgba(28,23,16,0.42) !important;
+  --rk-colors-profileAction: #F3EDE2 !important;
+  --rk-colors-profileActionHover: #EDE4D5 !important;
+  --rk-colors-profileForeground: #F9F6F0 !important;
   --rk-radii-actionButton: 0 !important;
   --rk-radii-connectButton: 0 !important;
   --rk-radii-menuButton: 0 !important;

@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ArrowRight, Plus } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import type { Category } from "@/lib/types";
 import { useInView } from "@/hooks/useInView";
 
@@ -44,78 +44,69 @@ function CategoryCard({ category, label, description, protocols, index }: Catego
     <Link
       to={`/explore?category=${category}`}
       ref={ref as React.Ref<HTMLAnchorElement>}
-      className={`group relative flex flex-col gap-6 p-8 overflow-hidden
-        scroll-fade${inView ? " in-view" : ""}`}
+      className={`group relative flex flex-col gap-6 p-8 overflow-hidden scroll-fade${inView ? " in-view" : ""}`}
       style={{
         transitionDelay: inView ? `${index * 70}ms` : "0ms",
-        background: "rgba(255,255,255,0.03)",
-        border: "1px solid rgba(255,255,255,0.06)",
-        borderRadius: "12px",
-        transition: "border-color 0.4s ease, box-shadow 0.4s ease, transform 0.4s ease",
+        background: "rgba(255,255,255,0.55)",
+        border: "1px solid rgba(196,133,42,0.10)",
+        borderLeft: "3px solid #C4852A",
+        borderRadius: 0,
+        backdropFilter: "blur(12px)",
+        WebkitBackdropFilter: "blur(12px)",
+        transition: "border-color 0.3s cubic-bezier(.16,1,.3,1), box-shadow 0.3s cubic-bezier(.16,1,.3,1), transform 0.3s cubic-bezier(.16,1,.3,1)",
+        textDecoration: "none",
       }}
       onMouseEnter={e => {
-        (e.currentTarget as HTMLElement).style.borderColor = "rgba(196,133,42,0.20)";
-        (e.currentTarget as HTMLElement).style.boxShadow = "0 -2px 20px rgba(196,133,42,0.12), 0 8px 24px rgba(0,0,0,0.3)";
-        (e.currentTarget as HTMLElement).style.transform = "translateY(-3px)";
+        (e.currentTarget as HTMLElement).style.borderColor = "rgba(196,133,42,0.30)";
+        (e.currentTarget as HTMLElement).style.boxShadow = "0 8px 40px rgba(196,133,42,0.08)";
+        (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)";
+        (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.80)";
       }}
       onMouseLeave={e => {
-        (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.06)";
-        (e.currentTarget as HTMLElement).style.boxShadow = "";
+        (e.currentTarget as HTMLElement).style.borderColor = "rgba(196,133,42,0.10)";
+        (e.currentTarget as HTMLElement).style.boxShadow = "none";
         (e.currentTarget as HTMLElement).style.transform = "";
+        (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.55)";
       }}
     >
-      <div className="absolute top-0 left-0 right-0 h-px bg-cedar-amber scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
-
-      <div className="flex-1 relative z-10">
-        <h3 className="font-sans text-lg font-medium text-cedar-text mb-2 group-hover:text-cedar-amber transition-colors duration-300">
+      <div style={{ flex: 1 }}>
+        <h3
+          style={{
+            fontFamily: "Cormorant Garamond, Georgia, serif",
+            fontWeight: 300,
+            fontSize: "22px",
+            letterSpacing: "-0.01em",
+            color: "#1C1710",
+            marginBottom: "10px",
+            transition: "color 0.3s ease",
+          }}
+          className="group-hover:!text-cedar-amber"
+        >
           {label}
         </h3>
-        <p className="text-cedar-muted/60 text-sm leading-relaxed mb-4">{description}</p>
-        <p className="text-cedar-muted/40 text-[11px] tracking-widest uppercase">{protocols}</p>
-      </div>
-
-      <div className="flex items-center gap-1.5 text-cedar-amber text-xs tracking-widest uppercase opacity-0 group-hover:opacity-100 translate-x-[-4px] group-hover:translate-x-0 transition-all duration-300 relative z-10">
-        Browse {label.toLowerCase()}
-        <ArrowRight size={12} />
-      </div>
-    </Link>
-  );
-}
-
-function ComingSoonCard({ index }: { index: number }) {
-  const { ref, inView } = useInView();
-  return (
-    <Link
-      to="/explore"
-      ref={ref as React.Ref<HTMLAnchorElement>}
-      className={`group relative flex flex-col items-center justify-center gap-4 p-8 overflow-hidden
-        scroll-fade${inView ? " in-view" : ""}`}
-      style={{
-        transitionDelay: inView ? `${index * 70}ms` : "0ms",
-        border: "1px dashed rgba(255,255,255,0.08)",
-        borderRadius: "12px",
-        transition: "border-color 0.4s ease, transform 0.4s ease",
-      }}
-      onMouseEnter={e => {
-        (e.currentTarget as HTMLElement).style.borderColor = "rgba(196,133,42,0.20)";
-        (e.currentTarget as HTMLElement).style.transform = "translateY(-3px)";
-      }}
-      onMouseLeave={e => {
-        (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.08)";
-        (e.currentTarget as HTMLElement).style.transform = "";
-      }}
-    >
-      <div
-        className="w-10 h-10 flex items-center justify-center transition-colors duration-300"
-        style={{ border: "1px solid rgba(255,255,255,0.08)" }}
-      >
-        <Plus size={18} className="text-cedar-muted/40 group-hover:text-cedar-amber transition-colors duration-300" />
-      </div>
-      <div className="text-center">
-        <p className="font-sans text-sm font-medium text-cedar-muted/60 group-hover:text-cedar-text transition-colors duration-300">
-          More categories
+        <p style={{ fontSize: "14px", fontWeight: 300, color: "rgba(28,23,16,0.55)", lineHeight: 1.7, marginBottom: "16px" }}>
+          {description}
         </p>
-        <p className="text-cedar-muted/30 text-xs tracking-widest uppercase mt-1">Coming soon</p>
+        <p style={{ fontFamily: "JetBrains Mono, monospace", fontSize: "9px", letterSpacing: "0.18em", textTransform: "uppercase", color: "rgba(196,133,42,0.60)" }}>
+          {protocols}
+        </p>
+      </div>
+
+      <div
+        className="opacity-0 group-hover:opacity-100"
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "6px",
+          fontSize: "10px",
+          letterSpacing: "0.12em",
+          textTransform: "uppercase",
+          color: "#C4852A",
+          transition: "opacity 0.3s ease",
+        }}
+      >
+        Browse {label.toLowerCase()}
+        <ArrowRight size={11} />
       </div>
     </Link>
   );
@@ -125,42 +116,36 @@ export function CategoryCards() {
   const { ref: headingRef, inView: headingInView } = useInView();
 
   return (
-    <section className="relative" style={{ background: "#0A0A09" }}>
-      {/* Amber top-edge glow line */}
-      <div
-        aria-hidden="true"
-        className="absolute top-0 left-0 right-0 pointer-events-none"
-        style={{
-          height: "1px",
-          background: "linear-gradient(to right, transparent 0%, rgba(196,133,42,0.30) 35%, rgba(196,133,42,0.30) 65%, transparent 100%)",
-        }}
-      />
-      {/* Faint amber top bloom behind the heading */}
-      <div
-        aria-hidden="true"
-        className="absolute top-0 left-0 right-0 pointer-events-none"
-        style={{
-          height: "320px",
-          background: "radial-gradient(ellipse 60% 100% at 50% 0%, rgba(196,133,42,0.05) 0%, transparent 70%)",
-        }}
-      />
-
-      <div className="relative max-w-7xl mx-auto px-6 py-24">
+    <section
+      style={{ background: "rgba(255,255,255,0.25)", borderTop: "1px solid rgba(196,133,42,0.08)", borderBottom: "1px solid rgba(196,133,42,0.08)" }}
+    >
+      <div className="max-w-7xl mx-auto px-6" style={{ paddingTop: "100px", paddingBottom: "80px" }}>
         <div
           ref={headingRef as React.Ref<HTMLDivElement>}
-          className={`mb-16 scroll-fade${headingInView ? " in-view" : ""}`}
+          className={`scroll-fade${headingInView ? " in-view" : ""}`}
+          style={{ marginBottom: "48px" }}
         >
-          <h2 className="display text-display-md text-cedar-text mb-4">What trades on CedarX</h2>
-          <p className="text-cedar-muted/50 text-sm tracking-widest uppercase">
+          <h2
+            style={{
+              fontFamily: "Cormorant Garamond, Georgia, serif",
+              fontWeight: 300,
+              fontSize: "clamp(2rem, 4vw, 3.5rem)",
+              letterSpacing: "-0.02em",
+              color: "#1C1710",
+              marginBottom: "12px",
+            }}
+          >
+            What trades on CedarX
+          </h2>
+          <p style={{ fontFamily: "DM Sans, system-ui, sans-serif", fontSize: "9px", letterSpacing: "0.18em", textTransform: "uppercase", color: "rgba(28,23,16,0.35)" }}>
             Any verified real-world asset NFT. One marketplace.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {CATEGORIES.map((cat, i) => (
             <CategoryCard key={cat.category} {...cat} index={i} />
           ))}
-          <ComingSoonCard index={CATEGORIES.length} />
         </div>
       </div>
     </section>
