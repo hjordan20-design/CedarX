@@ -2,7 +2,7 @@
 
 **Website:** https://fabrica.land
 **Asset Class:** Real Estate (Land / Residential / Commercial)
-**Token Standard:** ERC-721
+**Token Standard:** ERC-1155
 **Chain(s):** Ethereum Mainnet (chain ID 1)
 
 ---
@@ -24,7 +24,7 @@ enforceability under US property law.
 
 | Contract | Address | Chain |
 |----------|---------|-------|
-| Fabrica Token V2 / FAB (ERC-721) | `0x1464e8659b9ab3811e0dcd601c401799f1e63f11` | Ethereum (1) |
+| Fabrica Land / FAB (ERC-1155) | `0x5cbeb7a0df7ed85d82a472fd56d81ed550f3ea95` | Ethereum (1) |
 
 > **Whitelist note:** Only the above contract is indexed by CedarX. Any ERC-721
 > not from this address will be rejected by the quality gate even if it mimics

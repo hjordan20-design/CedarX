@@ -42,11 +42,11 @@ export const CEDARX_SWAP_ADDRESS = optional_env("CEDARX_SWAP_CONTRACT_ADDRESS", 
 // Polygon swap contract (separate deployment; optional)
 export const CEDARX_SWAP_POLYGON_ADDRESS = optional_env("CEDARX_SWAP_POLYGON_ADDRESS", "") as `0x${string}`;
 
-// Fabrica Token V2 / FAB (ERC-721, Ethereum mainnet)
-// Verified: https://etherscan.io/token/0x1464e8659b9ab3811e0dcd601c401799f1e63f11
+// Fabrica Land (FAB) — ERC-1155, Ethereum mainnet
+// Verified: https://etherscan.io/address/0x5cbeb7a0df7ed85d82a472fd56d81ed550f3ea95
 export const FABRICA_TOKEN_V2 = optional_env(
     "FABRICA_CONTRACT_ADDRESS",
-    "0x1464e8659b9ab3811e0dcd601c401799f1e63f11"
+    "0x5cbeb7a0df7ed85d82a472fd56d81ed550f3ea95"
 ) as `0x${string}`;
 
 // 4K Protocol (ERC-1155 luxury goods, Ethereum mainnet)

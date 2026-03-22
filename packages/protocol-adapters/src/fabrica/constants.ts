@@ -10,12 +10,12 @@ import type { ContractRef } from "@cedarx/shared-types";
  * See docs/research/fabrica.md for full protocol details.
  */
 export const FABRICA_CONTRACTS = {
-  /** Main ERC-721 contract for Fabrica property tokens — FAB */
+  /** Fabrica Land (FAB) — ERC-1155, Ethereum mainnet */
   FABRICA_TOKEN_V2: {
-    address: "0x1464e8659b9ab3811e0dcd601c401799f1e63f11" as `0x${string}`,
+    address: "0x5cbeb7a0df7ed85d82a472fd56d81ed550f3ea95" as `0x${string}`,
     chainId: 1,
-    deployedBlock: 19_000_000,
-    name: "Fabrica Token V2",
+    deployedBlock: 19_500_000,
+    name: "Fabrica Land",
   },
 } as const satisfies Record<string, ContractRef>;
 
