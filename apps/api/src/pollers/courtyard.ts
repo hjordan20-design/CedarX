@@ -11,7 +11,7 @@
  * Verified at: https://polygonscan.com/token/0x251be3a17af4892035c37ebf5890f4a4d889dcad
  */
 
-import { parseAbiItem, parseAbi } from "viem";
+import { parseAbiItem, parseAbi, zeroAddress } from "viem";
 import { BasePoller } from "./base";
 import { COURTYARD_CONTRACT } from "../config";
 import { upsertAsset } from "../db/queries";
@@ -33,7 +33,7 @@ export class CourtyardPoller extends BasePoller {
     readonly pollerId = "courtyard";
     // Courtyard launched on Polygon around block 35M (approx. mid-2022)
     readonly startBlock = 35_000_000;
-    protected readonly scanDelayMs = 1000; // Polygon is high-volume; back off more between scans
+    protected override readonly scanDelayMs = 1000; // Polygon is high-volume; back off more between scans
 
     constructor() {
         super("polygon"); // Polygon PoS
@@ -56,7 +56,9 @@ export class CourtyardPoller extends BasePoller {
 
         const tokenIds = new Set<bigint>();
         for (const log of logs) {
-            if (log.args.tokenId !== undefined) tokenIds.add(log.args.tokenId);
+            if (log.args.tokenId !== undefined && log.args.to !== zeroAddress) {
+                tokenIds.add(log.args.tokenId);
+            }
         }
 
         this.log(`found ${tokenIds.size} token(s) in ${logs.length} Transfer event(s)`);
@@ -73,20 +75,27 @@ export class CourtyardPoller extends BasePoller {
     }
 
     private async _processToken(tokenId: bigint): Promise<void> {
-        const [tokenUri, owner] = await Promise.all([
-            this.client.readContract({
-                address: COURTYARD_CONTRACT,
-                abi: ERC721_READ_ABI,
-                functionName: "tokenURI",
-                args: [tokenId],
-            }),
-            this.client.readContract({
-                address: COURTYARD_CONTRACT,
-                abi: ERC721_READ_ABI,
-                functionName: "ownerOf",
-                args: [tokenId],
-            }),
-        ]);
+        let tokenUri: string;
+        let owner: string;
+        try {
+            [tokenUri, owner] = await Promise.all([
+                this.client.readContract({
+                    address: COURTYARD_CONTRACT,
+                    abi: ERC721_READ_ABI,
+                    functionName: "tokenURI",
+                    args: [tokenId],
+                }),
+                this.client.readContract({
+                    address: COURTYARD_CONTRACT,
+                    abi: ERC721_READ_ABI,
+                    functionName: "ownerOf",
+                    args: [tokenId],
+                }),
+            ]);
+        } catch {
+            this.log(`skipping burned token #${tokenId}`);
+            return;
+        }
 
         if (!tokenUri) {
             this.log(`token #${tokenId} has no URI — skipping`);
