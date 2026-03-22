@@ -8,7 +8,7 @@
  *   3. For each token ID: read uri(), resolve any {id} template, fetch IPFS metadata.
  *   4. Normalize into CedarXAsset and upsert into the database.
  *
- * Fabrica Land (FAB): 0x5cbeb7a0df7ed85d82a472fd56d81ed550f3ea95 (ERC-1155, Ethereum mainnet)
+ * Fabrica Land (FAB): 0x5cbeb7A0df7Ed85D82a472FD56d81ed550f3Ea95 (ERC-1155, Ethereum mainnet)
  * Metadata: IPFS JSON with name, description, image, and trait attributes
  *           (Parcel ID, County, State, Address, Acreage, etc.)
  */
@@ -38,8 +38,8 @@ const IPFS_FETCH_DELAY_MS = 300;
 
 export class FabricaPoller extends BasePoller {
     readonly pollerId = "fabrica";
-    // Fabrica Land (FAB) ERC-1155 — verify exact block on Etherscan and adjust cursor
-    readonly startBlock = 19_500_000;
+    // Fabrica Land (FAB) ERC-1155 — first transfers around block 17_000_000
+    readonly startBlock = 17_000_000;
 
     constructor() {
         super("mainnet"); // always Ethereum mainnet

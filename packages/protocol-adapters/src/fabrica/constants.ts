@@ -12,9 +12,9 @@ import type { ContractRef } from "@cedarx/shared-types";
 export const FABRICA_CONTRACTS = {
   /** Fabrica Land (FAB) — ERC-1155, Ethereum mainnet */
   FABRICA_TOKEN_V2: {
-    address: "0x5cbeb7a0df7ed85d82a472fd56d81ed550f3ea95" as `0x${string}`,
+    address: "0x5cbeb7A0df7Ed85D82a472FD56d81ed550f3Ea95" as `0x${string}`,
     chainId: 1,
-    deployedBlock: 19_500_000,
+    deployedBlock: 17_000_000,
     name: "Fabrica Land",
   },
 } as const satisfies Record<string, ContractRef>;
