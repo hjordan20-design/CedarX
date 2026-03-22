@@ -9,9 +9,10 @@ interface AssetGridProps {
   isLoading: boolean;
   isError: boolean;
   isFetching?: boolean;
+  total?: number;
 }
 
-export function AssetGrid({ assets, isLoading, isError, isFetching }: AssetGridProps) {
+export function AssetGrid({ assets, isLoading, isError, isFetching, total }: AssetGridProps) {
   if (isError) {
     return (
       <div className="py-24 flex flex-col items-center gap-4 text-center">
@@ -39,7 +40,18 @@ export function AssetGrid({ assets, isLoading, isError, isFetching }: AssetGridP
   }
 
   if (!assets || assets.length === 0) {
-    return (
+    const isIndexing = total === 0 || total === undefined;
+    return isIndexing ? (
+      <div className="py-24 flex flex-col items-center gap-4 text-center">
+        <div className="w-8 h-px bg-cedar-amber mb-2" />
+        <p className="text-cedar-text font-sans text-base">
+          Assets loading soon.
+        </p>
+        <p className="text-cedar-muted font-sans text-sm max-w-sm leading-relaxed">
+          CedarX is currently indexing protocols. Check back shortly — listings will appear here once the indexer syncs.
+        </p>
+      </div>
+    ) : (
       <div className="py-20 flex flex-col items-center gap-3 text-center">
         <p className="text-cedar-muted font-sans text-sm">No assets match your filters.</p>
         <p className="text-cedar-muted/60 font-sans text-xs">Try adjusting your search or clearing filters.</p>

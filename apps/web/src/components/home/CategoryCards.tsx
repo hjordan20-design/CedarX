@@ -84,10 +84,10 @@ function CategoryCard({ category, label, description, protocols, index }: Catego
         >
           {label}
         </h3>
-        <p style={{ fontSize: "14px", fontWeight: 300, color: "rgba(28,23,16,0.55)", lineHeight: 1.7, marginBottom: "16px" }}>
+        <p style={{ fontSize: "15px", fontWeight: 300, color: "rgba(28,23,16,0.55)", lineHeight: 1.7, marginBottom: "16px" }}>
           {description}
         </p>
-        <p style={{ fontFamily: "JetBrains Mono, monospace", fontSize: "9px", letterSpacing: "0.18em", textTransform: "uppercase", color: "rgba(196,133,42,0.60)" }}>
+        <p style={{ fontFamily: "JetBrains Mono, monospace", fontSize: "10px", letterSpacing: "0.18em", textTransform: "uppercase", color: "rgba(196,133,42,0.60)" }}>
           {protocols}
         </p>
       </div>
@@ -137,7 +137,7 @@ export function CategoryCards() {
           >
             What trades on CedarX
           </h2>
-          <p style={{ fontFamily: "DM Sans, system-ui, sans-serif", fontSize: "9px", letterSpacing: "0.18em", textTransform: "uppercase", color: "rgba(28,23,16,0.35)" }}>
+          <p style={{ fontFamily: "DM Sans, system-ui, sans-serif", fontSize: "11px", letterSpacing: "0.18em", textTransform: "uppercase", color: "rgba(28,23,16,0.35)" }}>
             Any verified real-world asset NFT. One marketplace.
           </p>
         </div>

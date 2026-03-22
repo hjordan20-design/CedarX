@@ -66,6 +66,7 @@ export function ExplorePage() {
         isLoading={isLoading}
         isError={isError}
         isFetching={isFetching && !isLoading}
+        total={data?.pagination.total}
       />
 
       {/* Pagination */}
