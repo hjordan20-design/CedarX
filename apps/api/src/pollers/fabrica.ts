@@ -7,7 +7,7 @@
  *   3. For each token ID: read tokenURI, fetch IPFS metadata, read current owner.
  *   4. Normalize into CedarXAsset and upsert into the database.
  *
- * Fabrica Token V2: 0x8d96b4ab6c741a4c8679ae323a100d74f085ba8f (ERC-721, Ethereum mainnet)
+ * Fabrica Token V2 (FAB): 0x1464e8659b9ab3811e0dcd601c401799f1e63f11 (ERC-721, Ethereum mainnet)
  * Metadata: IPFS JSON with name, description, image, and trait attributes
  *           (Parcel ID, County, State, Address, Acreage, etc.)
  */
@@ -34,7 +34,7 @@ const IPFS_FETCH_DELAY_MS = 300;
 
 export class FabricaPoller extends BasePoller {
     readonly pollerId = "fabrica";
-    readonly startBlock = 16_000_000; // Fabrica Token V2 deployment block
+    readonly startBlock = 19_000_000; // Fabrica Token V2 (FAB) deployment block
 
     constructor() {
         super("mainnet"); // always read from Ethereum mainnet

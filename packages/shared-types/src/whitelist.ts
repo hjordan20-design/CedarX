@@ -27,13 +27,14 @@ export interface WhitelistedContract {
  */
 export const PROTOCOL_WHITELIST: WhitelistedContract[] = [
   // ─── Fabrica ──────────────────────────────────────────────────────────────
-  // ERC-721 land/property NFTs on Ethereum mainnet
+  // ERC-721 land/property NFTs on Ethereum mainnet.
+  // FAB token — verified: https://etherscan.io/token/0x1464e8659b9ab3811e0dcd601c401799f1e63f11
   {
-    address: "0x8d96b4ab6c741a4c8679ae323a100d74f085ba8f",
+    address: "0x1464e8659b9ab3811e0dcd601c401799f1e63f11",
     chainId: 1,
     protocolId: "fabrica",
     label: "Fabrica Token V2",
-    deployedBlock: 16_000_000,
+    deployedBlock: 19_000_000,
   },
 
   // ─── 4K Protocol ──────────────────────────────────────────────────────────
