@@ -19,11 +19,16 @@ export const SUPABASE_SERVICE_KEY = require_env("SUPABASE_SERVICE_KEY");
 
 export const ALCHEMY_API_KEY = require_env("ALCHEMY_API_KEY");
 
+// Alchemy free-tier apps are network-specific. Polygon requires its own app key.
+// ALCHEMY_POLYGON_API_KEY falls back to ALCHEMY_API_KEY if not set, but a
+// Polygon-specific key is required on the free tier to avoid "MATIC_MAIN" errors.
+const ALCHEMY_POLYGON_KEY = process.env["ALCHEMY_POLYGON_API_KEY"] || ALCHEMY_API_KEY;
+
 export const ETH_MAINNET_RPC = `https://eth-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY}`;
 export const ETH_SEPOLIA_RPC = `https://eth-sepolia.g.alchemy.com/v2/${ALCHEMY_API_KEY}`;
 export const POLYGON_RPC     = optional_env(
     "POLYGON_RPC_URL",
-    `https://polygon-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY}`
+    `https://polygon-mainnet.g.alchemy.com/v2/${ALCHEMY_POLYGON_KEY}`
 );
 
 // Which chain the CedarX swap contract is on: "mainnet" or "sepolia"
