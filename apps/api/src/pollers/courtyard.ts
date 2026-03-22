@@ -33,6 +33,7 @@ export class CourtyardPoller extends BasePoller {
     readonly pollerId = "courtyard";
     // Courtyard launched on Polygon around block 35M (approx. mid-2022)
     readonly startBlock = 35_000_000;
+    protected readonly scanDelayMs = 1000; // Polygon is high-volume; back off more between scans
 
     constructor() {
         super("polygon"); // Polygon PoS
@@ -63,6 +64,7 @@ export class CourtyardPoller extends BasePoller {
         for (const tokenId of tokenIds) {
             try {
                 await this._processToken(tokenId);
+                await new Promise(r => setTimeout(r, 200));
                 await sleep(FETCH_DELAY_MS);
             } catch (err) {
                 this.logError(`failed to process token #${tokenId}`, err);

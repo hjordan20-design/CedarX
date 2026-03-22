@@ -42,6 +42,7 @@ export abstract class BasePoller {
     abstract readonly startBlock: number;
 
     protected readonly client: PublicClient;
+    protected readonly scanDelayMs: number = 500;
     private _timer: ReturnType<typeof setInterval> | null = null;
     private _running = false;
 
@@ -113,7 +114,7 @@ export abstract class BasePoller {
                 await this.poll(cursor, toBlock);
                 await setCursor(this.pollerId, toBlock);
                 cursor = toBlock + 1;
-                await new Promise(r => setTimeout(r, 500));
+                await new Promise(r => setTimeout(r, this.scanDelayMs));
             }
         } catch (err) {
             this.logError("tick failed", err);
