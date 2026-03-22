@@ -19,12 +19,12 @@ export function Footer() {
           <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
               {/* Diamond mark */}
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <polygon points="12,2 22,12 12,22 2,12" stroke="#C4852A" strokeWidth="1.2" fill="none" />
-                <polygon points="12,6 18,12 12,18 6,12" stroke="#C4852A" strokeWidth="0.7" strokeOpacity="0.45" fill="none" />
-                <circle cx="12" cy="12" r="1.5" fill="#C4852A" opacity="0.6" />
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <polygon points="12,2 22,12 12,22 2,12" stroke="#C4852A" strokeWidth="1.4" fill="none" />
+                <polygon points="12,6 18,12 12,18 6,12" stroke="#C4852A" strokeWidth="1.0" strokeOpacity="0.65" fill="none" />
+                <circle cx="12" cy="12" r="1.8" fill="#C4852A" opacity="0.7" />
               </svg>
-              <span style={{ fontFamily: "DM Sans, system-ui, sans-serif", fontSize: "14px", fontWeight: 500, letterSpacing: "0.04em", color: "#1C1710" }}>
+              <span style={{ fontFamily: "DM Sans, system-ui, sans-serif", fontSize: "17px", fontWeight: 500, letterSpacing: "0.04em", color: "#1C1710" }}>
                 Cedar<span style={{ color: "#C4852A" }}>X</span>
               </span>
             </div>
@@ -67,7 +67,7 @@ export function Footer() {
                 <Link
                   key={to}
                   to={to}
-                  style={{ fontSize: "14px", fontWeight: 300, color: "rgba(28,23,16,0.55)", textDecoration: "none", transition: "color 0.3s ease" }}
+                  style={{ fontSize: "15px", fontWeight: 300, color: "rgba(28,23,16,0.55)", textDecoration: "none", transition: "color 0.3s ease" }}
                   onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "rgba(28,23,16,0.80)"; }}
                   onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "rgba(28,23,16,0.55)"; }}
                 >
@@ -93,7 +93,7 @@ export function Footer() {
                   href={href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  style={{ fontSize: "14px", fontWeight: 300, color: "rgba(28,23,16,0.55)", textDecoration: "none", transition: "color 0.3s ease" }}
+                  style={{ fontSize: "15px", fontWeight: 300, color: "rgba(28,23,16,0.55)", textDecoration: "none", transition: "color 0.3s ease" }}
                   onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#C4852A"; }}
                   onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "rgba(28,23,16,0.55)"; }}
                 >

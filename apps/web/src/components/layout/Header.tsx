@@ -7,17 +7,17 @@ import { useAccount, useChainId, useSwitchChain } from "wagmi";
 // ─── Diamond mark ─────────────────────────────────────────────────────────────
 function DiamondMark({ className }: { className?: string }) {
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">
-      <polygon points="12,2 22,12 12,22 2,12" stroke="#C4852A" strokeWidth="1.2" fill="none" />
-      <polygon points="12,6 18,12 12,18 6,12" stroke="#C4852A" strokeWidth="0.7" strokeOpacity="0.45" fill="none" />
-      <circle cx="12" cy="12" r="1.5" fill="#C4852A" opacity="0.6" />
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">
+      <polygon points="12,2 22,12 12,22 2,12" stroke="#C4852A" strokeWidth="1.4" fill="none" />
+      <polygon points="12,6 18,12 12,18 6,12" stroke="#C4852A" strokeWidth="1.0" strokeOpacity="0.65" fill="none" />
+      <circle cx="12" cy="12" r="1.8" fill="#C4852A" opacity="0.7" />
     </svg>
   );
 }
 
 function CedarXWordmark() {
   return (
-    <span style={{ fontFamily: "DM Sans, system-ui, sans-serif", fontSize: "15px", fontWeight: 500, letterSpacing: "0.04em" }}>
+    <span style={{ fontFamily: "DM Sans, system-ui, sans-serif", fontSize: "20px", fontWeight: 500, letterSpacing: "0.04em" }}>
       <span style={{ color: "#1C1710" }}>Cedar</span>
       <span style={{ color: "#C4852A" }}>X</span>
     </span>
@@ -43,8 +43,8 @@ function NavLink({
       to={to}
       onClick={onClick}
       style={{
-        fontSize: mobile ? "16px" : "12px",
-        letterSpacing: mobile ? "0.02em" : "0.06em",
+        fontSize: mobile ? "18px" : "15px",
+        letterSpacing: mobile ? "0.02em" : "0.04em",
         fontFamily: "DM Sans, system-ui, sans-serif",
         fontWeight: mobile ? 300 : 400,
         transition: "color 0.3s cubic-bezier(.16,1,.3,1)",
@@ -146,9 +146,9 @@ function WalletButton({ fullWidth }: { fullWidth?: boolean }) {
             onClick={connected ? openAccountModal : openConnectModal}
             type="button"
             style={{
-              padding: "8px 16px",
-              fontSize: "11px",
-              letterSpacing: "0.12em",
+              padding: "9px 18px",
+              fontSize: "13px",
+              letterSpacing: "0.10em",
               fontFamily: "DM Sans, system-ui, sans-serif",
               fontWeight: 400,
               textTransform: "uppercase" as const,

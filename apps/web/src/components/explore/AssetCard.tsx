@@ -11,22 +11,22 @@ function AssetSubtitle({ asset }: { asset: Asset }) {
     if (details.county) parts.push(details.county);
     if (details.state) parts.push(details.state);
     if (details.acreage) parts.push(formatAcreage(details.acreage));
-    if (parts.length) return <p className="text-cedar-muted text-xs font-sans truncate">{parts.join(" · ")}</p>;
+    if (parts.length) return <p className="text-cedar-muted text-[13px] font-sans truncate">{parts.join(" · ")}</p>;
   }
   if (category === "luxury-goods") {
     const parts: string[] = [];
     if (details.brand) parts.push(details.brand);
     if (details.model) parts.push(details.model);
-    if (parts.length) return <p className="text-cedar-muted text-xs font-sans truncate">{parts.join(" · ")}</p>;
+    if (parts.length) return <p className="text-cedar-muted text-[13px] font-sans truncate">{parts.join(" · ")}</p>;
   }
   if (category === "art") {
     const parts: string[] = [];
     if (details.artist) parts.push(details.artist);
     if (details.medium) parts.push(details.medium);
-    if (parts.length) return <p className="text-cedar-muted text-xs font-sans truncate">{parts.join(" · ")}</p>;
+    if (parts.length) return <p className="text-cedar-muted text-[13px] font-sans truncate">{parts.join(" · ")}</p>;
   }
   if (category === "collectibles" && details.brand) {
-    return <p className="text-cedar-muted text-xs font-sans truncate">{details.brand}</p>;
+    return <p className="text-cedar-muted text-[13px] font-sans truncate">{details.brand}</p>;
   }
   return null;
 }
@@ -36,7 +36,7 @@ function PriceLine({ asset }: { asset: Asset }) {
     return (
       <div className="flex items-baseline gap-1.5">
         <span className="text-cedar-text font-mono text-sm">{formatUSDC(asset.currentListingPrice)}</span>
-        <span className="text-cedar-muted text-[10px] font-sans">listed</span>
+        <span className="text-cedar-muted text-xs font-sans">listed</span>
       </div>
     );
   }
@@ -44,7 +44,7 @@ function PriceLine({ asset }: { asset: Asset }) {
     return (
       <div className="flex items-baseline gap-1.5">
         <span className="text-cedar-muted font-mono text-sm">{formatUSDC(asset.lastSalePrice)}</span>
-        <span className="text-cedar-muted text-[10px] font-sans">last sale</span>
+        <span className="text-cedar-muted text-xs font-sans">last sale</span>
       </div>
     );
   }
@@ -100,7 +100,7 @@ export function AssetCard({ asset }: { asset: Asset }) {
           <CategoryTag category={asset.category} />
         </div>
         <div className="flex-1 min-w-0">
-          <h3 className="text-cedar-text text-sm font-sans font-medium leading-snug line-clamp-2">{asset.name}</h3>
+          <h3 className="text-cedar-text text-base font-sans font-medium leading-snug line-clamp-2">{asset.name}</h3>
           <div className="mt-0.5"><AssetSubtitle asset={asset} /></div>
         </div>
         <div className="border-t border-cedar-border pt-3">

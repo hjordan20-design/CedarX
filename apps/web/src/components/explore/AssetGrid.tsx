@@ -53,8 +53,8 @@ export function AssetGrid({ assets, isLoading, isError, isFetching, total }: Ass
       </div>
     ) : (
       <div className="py-20 flex flex-col items-center gap-3 text-center">
-        <p className="text-cedar-muted font-sans text-sm">No assets match your filters.</p>
-        <p className="text-cedar-muted/60 font-sans text-xs">Try adjusting your search or clearing filters.</p>
+        <p className="text-cedar-muted font-sans text-base">No assets match your filters.</p>
+        <p className="text-cedar-muted/60 font-sans text-sm">Try adjusting your search or clearing filters.</p>
       </div>
     );
   }
