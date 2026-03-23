@@ -46,7 +46,12 @@ export async function getAssets(filters: AssetFilters = {}): Promise<PaginatedRe
 
     let query = db.from("assets").select("*", { count: "exact" });
 
-    if (filters.category) query = query.eq("category", filters.category);
+    if (filters.category) {
+        const cat = filters.category.toLowerCase();
+        // "real-estate" encompasses Fabrica's "land" category as well
+        const values = cat === "real-estate" ? ["real-estate", "land"] : [cat];
+        query = query.in("category", values);
+    }
     if (filters.protocol) query = query.eq("protocol", filters.protocol);
     if (filters.minPrice != null) query = query.gte("current_listing_price", filters.minPrice);
     if (filters.maxPrice != null) query = query.lte("current_listing_price", filters.maxPrice);
@@ -125,8 +130,9 @@ export async function getListings(
         .eq("status", "active");
 
     if (filters.category) {
-        // Filter by the category of the joined asset
-        query = query.eq("assets.category", filters.category);
+        const cat = filters.category.toLowerCase();
+        const values = cat === "real-estate" ? ["real-estate", "land"] : [cat];
+        query = query.in("assets.category", values);
     }
 
     switch (filters.sort) {
