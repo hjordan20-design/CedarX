@@ -56,8 +56,12 @@ export async function getAssets(filters: AssetFilters = {}): Promise<PaginatedRe
     }
     if (filters.protocol) query = query.eq("protocol", filters.protocol);
     if (filters.listedOnly) {
-        // Asset is "listed" if it has an active Seaport order OR a non-null CedarX swap price
-        query = query.or("has_active_listing.eq.true,current_listing_price.not.is.null");
+        // has_active_listing is the canonical source of truth: it's set true by
+        // syncAssetSeaportListing whenever an active Seaport order exists, and
+        // false when the last order expires/fills.  Filtering directly on the
+        // boolean column is simpler and avoids missing assets whose price hasn't
+        // been synced to current_listing_price yet.
+        query = query.eq("has_active_listing", true);
     }
     if (filters.minPrice != null) query = query.gte("current_listing_price", filters.minPrice);
     if (filters.maxPrice != null) query = query.lte("current_listing_price", filters.maxPrice);

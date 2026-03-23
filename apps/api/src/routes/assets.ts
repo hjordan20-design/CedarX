@@ -7,15 +7,17 @@ export const assetsRouter = Router();
 // ─── GET /api/assets ─────────────────────────────────────────────────────────
 
 const ListQuerySchema = z.object({
-    category:    z.enum(["real-estate", "luxury-goods", "art", "collectibles"]).optional(),
-    protocol:    z.enum(["fabrica", "4k", "courtyard", "arianee"]).optional(),
-    minPrice:    z.coerce.number().nonnegative().optional(),
-    maxPrice:    z.coerce.number().nonnegative().optional(),
-    sort:        z.enum(["price_asc", "price_desc", "newest", "volume"]).optional(),
-    search:      z.string().max(100).optional(),
-    listedOnly:  z.coerce.boolean().optional(),
-    page:        z.coerce.number().int().positive().default(1),
-    limit:       z.coerce.number().int().positive().max(100).default(20),
+    category:         z.enum(["real-estate", "luxury-goods", "art", "collectibles"]).optional(),
+    protocol:         z.enum(["fabrica", "4k", "courtyard", "arianee"]).optional(),
+    minPrice:         z.coerce.number().nonnegative().optional(),
+    maxPrice:         z.coerce.number().nonnegative().optional(),
+    sort:             z.enum(["price_asc", "price_desc", "newest", "volume"]).optional(),
+    search:           z.string().max(100).optional(),
+    listedOnly:       z.coerce.boolean().optional(),
+    // Also accept ?has_active_listing=true (exact column filter)
+    has_active_listing: z.coerce.boolean().optional(),
+    page:             z.coerce.number().int().positive().default(1),
+    limit:            z.coerce.number().int().positive().max(100).default(20),
 });
 
 assetsRouter.get("/", async (req: Request, res: Response) => {
@@ -24,7 +26,11 @@ assetsRouter.get("/", async (req: Request, res: Response) => {
         return res.status(400).json({ error: "Invalid query parameters", details: parsed.error.flatten() });
     }
 
-    const filters: AssetFilters = parsed.data;
+    const filters: AssetFilters = {
+        ...parsed.data,
+        // Normalise ?has_active_listing=true → listedOnly so one code path handles both
+        listedOnly: parsed.data.listedOnly || parsed.data.has_active_listing,
+    };
     const result = await getAssets(filters);
 
     // For assets that have an active listing but no price synced yet, fall back to
@@ -74,11 +80,17 @@ assetsRouter.get("/:id/history", async (req: Request, res: Response) => {
 type SeaportPriceMap = Map<string, { price: string; symbol: string; decimals: number }>;
 
 function formatAsset(row: any, seaportPrices?: SeaportPriceMap) {
-    // Use DB-synced price when available; fall back to live Seaport order price.
-    let currentListingPrice: number | undefined = row.current_listing_price ?? undefined;
+    // Supabase can return PostgreSQL `numeric` columns as strings; always coerce
+    // to number explicitly so the field is never silently dropped or mistyped.
+    let currentListingPrice: number | undefined;
+    if (row.current_listing_price != null) {
+        const n = Number(row.current_listing_price);
+        if (!isNaN(n)) currentListingPrice = n;
+    }
     let currentListingPaymentTokenSymbol: string | undefined =
         row.current_listing_payment_token_symbol ?? undefined;
 
+    // Seaport-order fallback: covers assets whose sync job hasn't run yet.
     if (currentListingPrice == null && seaportPrices) {
         const sp = seaportPrices.get(row.id);
         if (sp) {
