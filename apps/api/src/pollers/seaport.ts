@@ -419,8 +419,11 @@ export class SeaportPoller {
             this.log(`GET ${url.toString()}`);
 
             const res = await fetch(url.toString(), {
-                headers: { "x-api-key": OPENSEA_API_KEY, accept: "application/json" },
+                headers: { "X-API-KEY": OPENSEA_API_KEY, "accept": "application/json" },
             });
+
+            const rawText = await res.text();
+            this.log(`response ${res.status} — ${rawText.slice(0, 200)}`);
 
             if (res.status === 429) {
                 this.log("rate limit hit — backing off 5s");
@@ -428,11 +431,11 @@ export class SeaportPoller {
                 break;
             }
             if (!res.ok) {
-                this.logError(`OpenSea listings API ${res.status} for ${contractAddress}`, await res.text());
+                this.logError(`OpenSea listings API ${res.status} for ${contractAddress}`, rawText);
                 break;
             }
 
-            const body = (await res.json()) as OpenSeaListingsResponse;
+            const body = JSON.parse(rawText) as OpenSeaListingsResponse;
             allOrders.push(...(body.orders ?? []));
             cursor = body.next ?? null;
 
@@ -452,7 +455,7 @@ export class SeaportPoller {
         try {
             const url = `${OPENSEA_API_BASE_URL}/api/v2/chain/${contract.openSeaChain}/contract/${contract.contractAddress}/nfts/${tokenId}`;
             const res = await fetch(url, {
-                headers: { "x-api-key": OPENSEA_API_KEY, accept: "application/json" },
+                headers: { "X-API-KEY": OPENSEA_API_KEY, "accept": "application/json" },
             });
 
             if (res.status === 429) {
