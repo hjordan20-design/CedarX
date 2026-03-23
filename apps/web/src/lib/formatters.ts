@@ -35,7 +35,8 @@ export function formatUSDC(amount: number | string | undefined): string {
 }
 
 /** Strip basic markdown syntax, returning plain text.
- *  Handles [link](url), **bold**, *italic*, __underline__, _italic_, # headings. */
+ *  Handles [link](url), **bold**, *italic*, __underline__, _italic_,
+ *  # headings, and --- horizontal rules (incl. Courtyard "--- # heading" pattern). */
 export function stripMarkdown(text: string | undefined | null): string {
   if (!text) return "";
   return text
@@ -44,7 +45,9 @@ export function stripMarkdown(text: string | undefined | null): string {
     .replace(/\*([^*]+)\*/g, "$1")              // *italic* → text
     .replace(/__([^_]+)__/g, "$1")              // __text__ → text
     .replace(/_([^_]+)_/g, "$1")               // _italic_ → text
+    .replace(/^-{3,}\s*/gm, "")                 // --- horizontal rules → empty
     .replace(/^#+\s*/gm, "")                    // # headings → text
+    .replace(/\n{3,}/g, "\n\n")                 // collapse excessive blank lines
     .trim();
 }
 
