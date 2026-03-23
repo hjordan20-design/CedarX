@@ -416,6 +416,8 @@ export class SeaportPoller {
             url.searchParams.set("limit", "50");
             if (cursor) url.searchParams.set("cursor", cursor);
 
+            this.log(`GET ${url.toString()}`);
+
             const res = await fetch(url.toString(), {
                 headers: { "x-api-key": OPENSEA_API_KEY, accept: "application/json" },
             });
