@@ -13,7 +13,7 @@
  */
 
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   AlertCircle,
   CheckCircle,
@@ -23,7 +23,7 @@ import {
   ShieldCheck,
   Wallet,
 } from "lucide-react";
-import { useAccount, useChainId } from "wagmi";
+import { useAccount } from "wagmi";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 
 import { useWalletNFTs, type WalletNFT } from "@/hooks/useWalletNFTs";
@@ -49,6 +49,19 @@ const DURATION_OPTIONS = [
 ];
 
 const FEE_WALLET = (import.meta.env.VITE_CEDARX_FEE_WALLET || "") as `0x${string}`;
+
+// Map Alchemy protocol labels → CedarX protocol slugs
+const PROTOCOL_SLUG: Record<string, string> = {
+  "Fabrica":     "fabrica",
+  "4K Protocol": "4k",
+  "Courtyard":   "courtyard",
+};
+
+// Map chain name → chainId
+const CHAIN_ID: Record<string, number> = {
+  "ethereum": 1,
+  "polygon":  137,
+};
 
 // ─── NFT grid ─────────────────────────────────────────────────────────────────
 
@@ -107,7 +120,7 @@ function ListingForm({
   nft: WalletNFT;
   onBack: () => void;
 }) {
-  const chainId = useChainId();
+  const navigate = useNavigate();
   const [priceInput, setPriceInput]   = useState("");
   const [tokenIdx, setTokenIdx]       = useState(0);
   const [durationIdx, setDurationIdx] = useState(1); // 30 days default
@@ -124,10 +137,14 @@ function ListingForm({
     ? (parseFloat(priceInput) * 0.015).toLocaleString("en-US", { maximumFractionDigits: 6 })
     : null;
 
+  const protocolSlug = PROTOCOL_SLUG[nft.protocol] ?? nft.protocol.toLowerCase();
+  const nftChainId   = CHAIN_ID[nft.chain] ?? 1;
+  const assetId      = `${protocolSlug}:${nftChainId}:${nft.contractAddress}:${nft.tokenId}`;
+
   async function handleSubmit() {
     if (!priceValid || !FEE_WALLET) return;
     await execute({
-      assetId:              `${nft.chain}::${nft.contractAddress}::${nft.tokenId}`,
+      assetId,
       contractAddress:      nft.contractAddress as `0x${string}`,
       tokenId:              nft.tokenId,
       tokenStandard:        nft.tokenStandard,
@@ -149,17 +166,12 @@ function ListingForm({
           Your asset is now live on CedarX and on OpenSea.
           Buyers on any Seaport-compatible marketplace can fill your order.
         </p>
-        {orderHash && (
-          <p className="text-cedar-muted/60 text-xs font-mono break-all">
-            Order: {orderHash}
-          </p>
-        )}
         <div className="flex items-center gap-3 justify-center pt-2">
-          <Link to="/explore" className="btn-ghost inline-flex text-sm py-2.5 px-5">
-            Explore
-          </Link>
-          <button onClick={() => { reset(); onBack(); }} className="btn-primary text-sm py-2.5 px-5">
+          <button onClick={() => { reset(); onBack(); }} className="btn-ghost text-sm py-2.5 px-5">
             List another
+          </button>
+          <button onClick={() => navigate(`/assets/${assetId}`)} className="btn-primary text-sm py-2.5 px-5">
+            View listing
           </button>
         </div>
       </div>
