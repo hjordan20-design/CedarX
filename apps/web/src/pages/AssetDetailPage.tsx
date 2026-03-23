@@ -21,7 +21,7 @@ import { CategoryTag } from "@/components/common/CategoryTag";
 import { VerifiedBadge } from "@/components/common/VerifiedBadge";
 import { BuyModal } from "@/components/asset/BuyModal";
 import { ListModal } from "@/components/asset/ListModal";
-import { formatUSDC, formatDate, truncateAddress, formatAcreage } from "@/lib/formatters";
+import { formatTokenPrice, formatUSDC, formatDate, truncateAddress, formatAcreage, stripMarkdown } from "@/lib/formatters";
 import type { Asset } from "@/lib/types";
 import { VERIFIED_CONTRACTS } from "@/lib/types";
 
@@ -278,15 +278,15 @@ function AssetActions({ asset }: { asset: Asset }) {
   const hasListing  = hasSeaport || hasCedarX;
   const listingId   = 0n; // CedarX listing ID placeholder
 
-  // Format price for display
+  // Format price for display.
+  // Seaport orders store raw token amounts; divide by 10^decimals before display.
   const displayPrice = hasSeaport
-    ? (() => {
-        const amt = Number(seaportOrder!.price) /
-                    Math.pow(10, seaportOrder!.paymentTokenDecimals);
-        return `${amt.toLocaleString("en-US", { maximumFractionDigits: 6 })} ${seaportOrder!.paymentTokenSymbol}`;
-      })()
+    ? formatTokenPrice(
+        Number(seaportOrder!.price) / Math.pow(10, seaportOrder!.paymentTokenDecimals),
+        seaportOrder!.paymentTokenSymbol
+      )
     : hasCedarX
-    ? `${formatUSDC(asset.currentListingPrice)} USDC`
+    ? formatTokenPrice(asset.currentListingPrice, asset.currentListingPaymentTokenSymbol ?? "USDC")
     : null;
 
   return (
@@ -307,7 +307,7 @@ function AssetActions({ asset }: { asset: Asset }) {
         )}
         {asset.lastSalePrice != null && (
           <p className="text-cedar-muted text-xs">
-            Last sale: {formatUSDC(asset.lastSalePrice)} USDC
+            Last sale: {formatUSDC(asset.lastSalePrice)}
           </p>
         )}
         {!hasListing && asset.lastSalePrice == null && (
@@ -376,15 +376,15 @@ function AssetActions({ asset }: { asset: Asset }) {
         </p>
       </div>
 
-      {/* Verify link — hidden for courtyard (URL format unconfirmed) */}
-      {asset.externalUrl && asset.protocol !== "courtyard" && (
+      {/* View on OpenSea — works for all protocols */}
+      {asset.tokenId && (
         <a
-          href={asset.externalUrl}
+          href={`https://opensea.io/assets/${asset.chain === "polygon" ? "matic" : asset.chain}/${asset.contractAddress}/${asset.tokenId}`}
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-1 text-cedar-muted/50 hover:text-cedar-muted text-[11px] transition-colors pt-1"
         >
-          Verify on protocol <ExternalLink size={10} />
+          View on OpenSea <ExternalLink size={10} />
         </a>
       )}
 
@@ -541,7 +541,7 @@ export function AssetDetailPage() {
               <h3 className="text-cedar-muted text-[10px] tracking-widest uppercase mb-3">
                 Description
               </h3>
-              <p className="text-cedar-muted text-sm leading-relaxed">{asset.description}</p>
+              <p className="text-cedar-muted text-sm leading-relaxed">{stripMarkdown(asset.description)}</p>
             </div>
           )}
 

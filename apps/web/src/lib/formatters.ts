@@ -3,7 +3,7 @@
 /**
  * Format a token price for display.
  * Stablecoins (USDC, USDT, DAI) → "$17.00"
- * All others (ETH, WETH, …)     → "0.7 ETH"
+ * All others (ETH, WETH, …)     → "0.70 ETH"
  */
 export function formatTokenPrice(amount: number | string | undefined, symbol?: string): string {
   if (amount === undefined || amount === null) return "—";
@@ -14,11 +14,11 @@ export function formatTokenPrice(amount: number | string | undefined, symbol?: s
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "USD",
-      minimumFractionDigits: 0,
+      minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     }).format(n);
   }
-  return `${n.toLocaleString("en-US", { maximumFractionDigits: 6 })} ${symbol}`;
+  return `${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 6 })} ${symbol}`;
 }
 
 /** Format a USDC amount for display. e.g. 12500.5 → "$12,500.50" */
@@ -29,9 +29,23 @@ export function formatUSDC(amount: number | string | undefined): string {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
-    minimumFractionDigits: 0,
+    minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(n);
+}
+
+/** Strip basic markdown syntax, returning plain text.
+ *  Handles [link](url), **bold**, *italic*, __underline__, _italic_, # headings. */
+export function stripMarkdown(text: string | undefined | null): string {
+  if (!text) return "";
+  return text
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")   // [text](url) → text
+    .replace(/\*\*([^*]+)\*\*/g, "$1")          // **bold** → text
+    .replace(/\*([^*]+)\*/g, "$1")              // *italic* → text
+    .replace(/__([^_]+)__/g, "$1")              // __text__ → text
+    .replace(/_([^_]+)_/g, "$1")               // _italic_ → text
+    .replace(/^#+\s*/gm, "")                    // # headings → text
+    .trim();
 }
 
 /** Format volume compactly. e.g. 1_250_000 → "$1.25M" */
