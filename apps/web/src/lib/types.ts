@@ -44,6 +44,7 @@ export interface Asset {
   details: AssetDetails;
   lastSalePrice?: number;
   currentListingPrice?: number;
+  currentListingPaymentTokenSymbol?: string;
   hasActiveListing: boolean;
   totalVolume: number;
   externalUrl?: string;

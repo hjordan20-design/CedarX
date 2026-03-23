@@ -49,6 +49,7 @@ export interface AssetRow {
     details: AssetDetails;
     last_sale_price: number | null;
     current_listing_price: number | null;
+    current_listing_payment_token_symbol: string | null;
     total_volume: number;
     has_active_listing: boolean;
     external_url: string | null;
