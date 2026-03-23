@@ -7,8 +7,8 @@ export const assetsRouter = Router();
 // ─── GET /api/assets ─────────────────────────────────────────────────────────
 
 const ListQuerySchema = z.object({
-    category: z.enum(["land", "fixed-income", "rental-property"]).optional(),
-    protocol: z.enum(["fabrica", "ondo", "realt"]).optional(),
+    category: z.enum(["real-estate", "luxury-goods", "art", "collectibles"]).optional(),
+    protocol: z.enum(["fabrica", "4k", "courtyard"]).optional(),
     minPrice: z.coerce.number().nonnegative().optional(),
     maxPrice: z.coerce.number().nonnegative().optional(),
     sort: z.enum(["price_asc", "price_desc", "newest", "volume"]).optional(),
