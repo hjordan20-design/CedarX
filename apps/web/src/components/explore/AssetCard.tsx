@@ -1,7 +1,9 @@
 import { Link } from "react-router-dom";
 import type { Asset } from "@/lib/types";
+import { VERIFIED_CONTRACTS } from "@/lib/types";
 import { ProtocolBadge } from "@/components/common/ProtocolBadge";
 import { CategoryTag } from "@/components/common/CategoryTag";
+import { VerifiedBadge } from "@/components/common/VerifiedBadge";
 import { formatUSDC, formatAcreage } from "@/lib/formatters";
 
 function AssetSubtitle({ asset }: { asset: Asset }) {
@@ -98,6 +100,9 @@ export function AssetCard({ asset }: { asset: Asset }) {
         <div className="flex items-center gap-2 flex-wrap">
           <ProtocolBadge protocol={asset.protocol} />
           <CategoryTag category={asset.category} />
+          {VERIFIED_CONTRACTS[asset.contractAddress.toLowerCase()] && (
+            <VerifiedBadge />
+          )}
         </div>
         <div className="flex-1 min-w-0">
           <h3 className="text-cedar-text text-base font-sans font-medium leading-snug line-clamp-2">{asset.name}</h3>

@@ -15,12 +15,15 @@ import { useConnectModal } from "@rainbow-me/rainbowkit";
 
 import { useAsset } from "@/hooks/useAsset";
 import { useAssetHistory, type HistoryItem } from "@/hooks/useAssetHistory";
+import { useSeaportOrder } from "@/hooks/useSeaportOrder";
 import { ProtocolBadge } from "@/components/common/ProtocolBadge";
 import { CategoryTag } from "@/components/common/CategoryTag";
+import { VerifiedBadge } from "@/components/common/VerifiedBadge";
 import { BuyModal } from "@/components/asset/BuyModal";
 import { ListModal } from "@/components/asset/ListModal";
 import { formatUSDC, formatDate, truncateAddress, formatAcreage } from "@/lib/formatters";
 import type { Asset } from "@/lib/types";
+import { VERIFIED_CONTRACTS } from "@/lib/types";
 
 // ─── Category-tinted fallback backgrounds ────────────────────────────────────
 
@@ -224,10 +227,13 @@ const ERC1155_BALANCE_ABI = [
 ] as const;
 
 function AssetActions({ asset }: { asset: Asset }) {
-  const [showBuy, setShowBuy] = useState(false);
+  const [showBuy, setShowBuy]   = useState(false);
   const [showList, setShowList] = useState(false);
   const { address, isConnected } = useAccount();
-  const { openConnectModal } = useConnectModal();
+  const { openConnectModal }     = useConnectModal();
+
+  // Seaport order (takes priority over CedarX swap listing for the buy flow)
+  const { data: seaportOrder } = useSeaportOrder(asset.id);
 
   const tokenIdBig = asset.tokenId ? BigInt(asset.tokenId) : undefined;
 
@@ -266,26 +272,42 @@ function AssetActions({ asset }: { asset: Asset }) {
         ownerAddress.toLowerCase() === address?.toLowerCase()
       : typeof balance1155 === "bigint" && balance1155 > 0n;
 
-  const hasListing = asset.currentListingPrice != null;
-  // listingId is not surfaced from the API yet — buy flow shows the step UI
-  // but can't complete without a real listingId. We use 0n as placeholder.
-  const listingId = 0n;
+  // Seaport order takes priority; fall back to CedarX swap listing
+  const hasSeaport  = !!seaportOrder;
+  const hasCedarX   = asset.currentListingPrice != null;
+  const hasListing  = hasSeaport || hasCedarX;
+  const listingId   = 0n; // CedarX listing ID placeholder
+
+  // Format price for display
+  const displayPrice = hasSeaport
+    ? (() => {
+        const amt = Number(seaportOrder!.price) /
+                    Math.pow(10, seaportOrder!.paymentTokenDecimals);
+        return `${amt.toLocaleString("en-US", { maximumFractionDigits: 6 })} ${seaportOrder!.paymentTokenSymbol}`;
+      })()
+    : hasCedarX
+    ? `${formatUSDC(asset.currentListingPrice)} USDC`
+    : null;
 
   return (
     <>
       {/* Price block */}
       <div className="py-4 border-t border-b border-cedar-border space-y-1">
-        {hasListing && (
-          <div className="flex items-baseline gap-2">
+        {displayPrice && (
+          <div className="flex items-baseline gap-2 flex-wrap">
             <span className="font-mono text-2xl text-cedar-text font-medium">
-              {formatUSDC(asset.currentListingPrice)}
+              {displayPrice}
             </span>
-            <span className="text-cedar-muted text-xs">USDC</span>
+            {hasSeaport && (
+              <span className="text-cedar-muted/60 text-[10px] tracking-widest uppercase border border-cedar-border px-1.5 py-0.5">
+                via Seaport
+              </span>
+            )}
           </div>
         )}
         {asset.lastSalePrice != null && (
           <p className="text-cedar-muted text-xs">
-            Last sale: {formatUSDC(asset.lastSalePrice)}
+            Last sale: {formatUSDC(asset.lastSalePrice)} USDC
           </p>
         )}
         {!hasListing && asset.lastSalePrice == null && (
@@ -300,7 +322,7 @@ function AssetActions({ asset }: { asset: Asset }) {
             onClick={openConnectModal}
             className="btn-primary w-full justify-center py-3.5 text-sm font-semibold"
           >
-            Buy with USDC
+            Buy · Connect wallet
           </button>
         )}
 
@@ -309,7 +331,7 @@ function AssetActions({ asset }: { asset: Asset }) {
             onClick={() => setShowBuy(true)}
             className="btn-primary w-full justify-center py-3.5 text-sm font-semibold"
           >
-            Buy for {formatUSDC(asset.currentListingPrice)}
+            Buy for {displayPrice}
           </button>
         )}
 
@@ -370,8 +392,9 @@ function AssetActions({ asset }: { asset: Asset }) {
       {showBuy && hasListing && (
         <BuyModal
           assetName={asset.name}
-          listingId={listingId}
-          priceUsdc={asset.currentListingPrice!}
+          seaportOrder={seaportOrder}
+          listingId={hasCedarX && !hasSeaport ? listingId : undefined}
+          priceUsdc={hasCedarX && !hasSeaport ? asset.currentListingPrice! : undefined}
           onClose={() => setShowBuy(false)}
         />
       )}
@@ -499,6 +522,9 @@ export function AssetDetailPage() {
           <div className="flex items-center gap-2 flex-wrap">
             <ProtocolBadge protocol={asset.protocol} />
             <CategoryTag category={asset.category} />
+            {VERIFIED_CONTRACTS[asset.contractAddress.toLowerCase()] && (
+              <VerifiedBadge />
+            )}
           </div>
 
           {/* Name */}

@@ -7,14 +7,15 @@ export const assetsRouter = Router();
 // ─── GET /api/assets ─────────────────────────────────────────────────────────
 
 const ListQuerySchema = z.object({
-    category: z.enum(["real-estate", "luxury-goods", "art", "collectibles"]).optional(),
-    protocol: z.enum(["fabrica", "4k", "courtyard"]).optional(),
-    minPrice: z.coerce.number().nonnegative().optional(),
-    maxPrice: z.coerce.number().nonnegative().optional(),
-    sort: z.enum(["price_asc", "price_desc", "newest", "volume"]).optional(),
-    search: z.string().max(100).optional(),
-    page: z.coerce.number().int().positive().default(1),
-    limit: z.coerce.number().int().positive().max(100).default(20),
+    category:    z.enum(["real-estate", "luxury-goods", "art", "collectibles"]).optional(),
+    protocol:    z.enum(["fabrica", "4k", "courtyard"]).optional(),
+    minPrice:    z.coerce.number().nonnegative().optional(),
+    maxPrice:    z.coerce.number().nonnegative().optional(),
+    sort:        z.enum(["price_asc", "price_desc", "newest", "volume"]).optional(),
+    search:      z.string().max(100).optional(),
+    listedOnly:  z.coerce.boolean().optional(),
+    page:        z.coerce.number().int().positive().default(1),
+    limit:       z.coerce.number().int().positive().max(100).default(20),
 });
 
 assetsRouter.get("/", async (req: Request, res: Response) => {
@@ -75,6 +76,7 @@ function formatAsset(row: any) {
         details: row.details ?? {},
         lastSalePrice: row.last_sale_price ?? undefined,
         currentListingPrice: row.current_listing_price ?? undefined,
+        hasActiveListing: row.has_active_listing ?? false,
         totalVolume: row.total_volume ?? 0,
         externalUrl: row.external_url ?? undefined,
         lastUpdated: row.last_updated,

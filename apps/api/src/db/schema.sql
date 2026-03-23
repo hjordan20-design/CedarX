@@ -175,6 +175,83 @@ ON CONFLICT (poller_id) DO NOTHING;
 --     ON CONFLICT (poller_id) DO NOTHING;
 
 -- ---------------------------------------------------------------------------
+-- seaport_orders
+-- ---------------------------------------------------------------------------
+-- Active Seaport protocol orders for indexed assets.
+-- Populated by the SeaportPoller (OpenSea API) and by the seller listing flow.
+-- One row per order_hash; status transitions: active → filled | cancelled | expired.
+
+CREATE TABLE IF NOT EXISTS seaport_orders (
+    order_hash               TEXT        PRIMARY KEY,
+
+    -- Cross-referenced asset (may be NULL if asset is not yet indexed)
+    asset_id                 TEXT        REFERENCES assets(id) ON DELETE SET NULL,
+
+    chain                    TEXT        NOT NULL,      -- 'ethereum' | 'polygon'
+    seller_address           TEXT        NOT NULL,      -- checksummed
+
+    -- Price in the payment token's native units (raw integer string, no decimals)
+    price                    NUMERIC     NOT NULL,
+
+    -- Payment token info
+    payment_token            TEXT        NOT NULL,      -- contract address; 0x000…0 for ETH
+    payment_token_symbol     TEXT        NOT NULL DEFAULT 'ETH',
+    payment_token_decimals   INT         NOT NULL DEFAULT 18,
+
+    -- USD equivalent (approximated; NULL if unknown)
+    price_usd                NUMERIC,
+
+    expiration               TIMESTAMPTZ,
+    order_parameters         JSONB       NOT NULL,      -- full Seaport {parameters, signature}
+
+    -- Where the order originated
+    source                   TEXT        NOT NULL DEFAULT 'opensea',   -- 'opensea' | 'cedarx'
+
+    status                   TEXT        NOT NULL DEFAULT 'active'
+                                          CHECK (status IN ('active', 'filled', 'cancelled', 'expired')),
+
+    created_at               TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at               TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_seaport_asset  ON seaport_orders (asset_id);
+CREATE INDEX IF NOT EXISTS idx_seaport_status ON seaport_orders (status);
+CREATE INDEX IF NOT EXISTS idx_seaport_chain  ON seaport_orders (chain, seller_address);
+
+-- Seed the cursor row for the Seaport poller
+INSERT INTO indexer_cursors (poller_id, last_block) VALUES ('seaport', 0)
+    ON CONFLICT (poller_id) DO NOTHING;
+
+-- ---------------------------------------------------------------------------
+-- assets: add has_active_listing (Seaport-aware listing flag)
+-- ---------------------------------------------------------------------------
+-- TRUE  when at least one active Seaport order exists for this asset.
+-- FALSE otherwise.  The CedarX swap listing state is reflected separately
+-- via current_listing_price IS NOT NULL.
+-- The combined "is listable" check on the API is:
+--   has_active_listing = true  OR  current_listing_price IS NOT NULL
+
+ALTER TABLE assets ADD COLUMN IF NOT EXISTS has_active_listing BOOLEAN NOT NULL DEFAULT FALSE;
+
+CREATE INDEX IF NOT EXISTS idx_assets_has_listing ON assets (has_active_listing)
+    WHERE has_active_listing = TRUE;
+
+-- ---------------------------------------------------------------------------
+-- RLS for seaport_orders
+-- ---------------------------------------------------------------------------
+ALTER TABLE seaport_orders ENABLE ROW LEVEL SECURITY;
+
+DO $$ BEGIN
+    CREATE POLICY "anon read seaport_orders" ON seaport_orders FOR SELECT USING (true);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+-- auto-update updated_at
+DROP TRIGGER IF EXISTS seaport_orders_updated_at ON seaport_orders;
+CREATE TRIGGER seaport_orders_updated_at
+    BEFORE UPDATE ON seaport_orders
+    FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+-- ---------------------------------------------------------------------------
 -- Helper: auto-update updated_at on listings
 -- ---------------------------------------------------------------------------
 

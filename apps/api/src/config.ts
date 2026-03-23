@@ -63,6 +63,21 @@ export const COURTYARD_CONTRACT = optional_env(
     "0x251be3a17af4892035c37ebf5890f4a4d889dcad"
 ) as `0x${string}`;
 
+// ─── OpenSea / Seaport ────────────────────────────────────────────────────────
+
+// Free tier: https://docs.opensea.io/reference/api-keys
+// Rate limited to ~2 req/s. Leave empty to disable Seaport order polling.
+export const OPENSEA_API_KEY      = optional_env("OPENSEA_API_KEY", "");
+export const OPENSEA_API_BASE_URL = optional_env("OPENSEA_API_BASE_URL", "https://api.opensea.io");
+
+// Wallet that receives the 1.5% CedarX fee on Seaport listings created via CedarX.
+// Must be set for seller listing flow; unused for inbound order indexing.
+export const CEDARX_FEE_WALLET = optional_env("CEDARX_FEE_WALLET", "") as `0x${string}`;
+export const CEDARX_FEE_BPS    = 150; // 1.5%
+
+// How often the Seaport order poller runs (independent of block polling)
+export const SEAPORT_POLL_INTERVAL_MS = Number(optional_env("SEAPORT_POLL_INTERVAL_MS", "300000")); // 5 min
+
 // ─── Indexer behaviour ────────────────────────────────────────────────────────
 
 export const POLL_INTERVAL_MS = Number(optional_env("POLL_INTERVAL_MS", "180000")); // 3 min
