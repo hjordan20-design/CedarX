@@ -412,7 +412,10 @@ export class SeaportPoller {
             // If all consideration items are NATIVE (itemType === 0) it's an ETH listing.
             const priceBlock = listing.price?.current;
             const paymentTokenSymbol   = priceBlock?.currency ?? "ETH";
-            const paymentTokenDecimals = priceBlock?.decimals ?? 18;
+            const rawDecimals          = priceBlock?.decimals;
+            const paymentTokenDecimals = (rawDecimals != null && rawDecimals > 0)
+                ? rawDecimals
+                : (paymentTokenSymbol === "USDC" || paymentTokenSymbol === "USDT" || paymentTokenSymbol === "DAI") ? 6 : 18;
             const rawPrice             = priceBlock?.value ?? "0";
 
             const erc20Consideration = params.consideration.find((c) => c.itemType === 1);

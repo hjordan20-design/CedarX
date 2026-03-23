@@ -488,9 +488,14 @@ export async function syncAssetSeaportListing(
     };
 
     if (cheapestOrder) {
-        const decimals = cheapestOrder.payment_token_decimals ?? 18;
+        const sym = cheapestOrder.payment_token_symbol ?? "ETH";
+        const storedDec = cheapestOrder.payment_token_decimals;
+        const decimals = (storedDec != null && storedDec > 0)
+            ? storedDec
+            : (sym === "USDC" || sym === "USDT" || sym === "DAI") ? 6 : 18;
+        console.log("[syncAssetSeaportListing]", { assetId, rawPrice: cheapestOrder.price, sym, storedDec, decimals });
         update.current_listing_price = Number(cheapestOrder.price) / Math.pow(10, decimals);
-        update.current_listing_payment_token_symbol = cheapestOrder.payment_token_symbol;
+        update.current_listing_payment_token_symbol = sym;
     } else {
         update.current_listing_price = null;
         update.current_listing_payment_token_symbol = null;
