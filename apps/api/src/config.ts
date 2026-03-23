@@ -63,6 +63,15 @@ export const COURTYARD_CONTRACT = optional_env(
     "0x251be3a17af4892035c37ebf5890f4a4d889dcad"
 ) as `0x${string}`;
 
+// Arianee Protocol (ERC-721 luxury DPPs, Polygon) — shared contract used by
+// Breitling, Panerai, Moncler and other Arianee member brands.
+// OpenSea collection: https://opensea.io/collection/arianee  (slug: arianee)
+// Verified contract: https://polygonscan.com/token/0xc14cc4d89116ec88ebb63fdf497aace6ff3745da
+export const ARIANEE_CONTRACT = optional_env(
+    "ARIANEE_CONTRACT_ADDRESS",
+    "0xc14cc4d89116ec88ebb63fdf497aace6ff3745da"
+) as `0x${string}`;
+
 // ─── OpenSea / Seaport ────────────────────────────────────────────────────────
 
 // Free tier: https://docs.opensea.io/reference/api-keys

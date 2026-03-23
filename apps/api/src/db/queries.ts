@@ -478,21 +478,17 @@ export async function syncAssetSeaportListing(
     cheapestOrder: SeaportOrderRow | null
 ): Promise<void> {
     const db = getDb();
-    const USDC_MAINNET = "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48";
-    const USDC_POLYGON = "0x3c499c542cef5e3811e1192ce70d8cc03d5c3359";
-
-    const isUsdc = cheapestOrder &&
-        (cheapestOrder.payment_token.toLowerCase() === USDC_MAINNET ||
-         cheapestOrder.payment_token.toLowerCase() === USDC_POLYGON);
 
     const update: Record<string, unknown> = {
         has_active_listing: cheapestOrder !== null,
         last_updated: new Date().toISOString(),
     };
 
-    if (cheapestOrder && isUsdc) {
-        // Price is in USDC raw units (6 decimals) — divide to get display amount
-        update.current_listing_price = Number(cheapestOrder.price) / 1_000_000;
+    if (cheapestOrder) {
+        const decimals = cheapestOrder.payment_token_decimals ?? 18;
+        update.current_listing_price = Number(cheapestOrder.price) / Math.pow(10, decimals);
+    } else {
+        update.current_listing_price = null;
     }
 
     const { error } = await db
@@ -500,6 +496,21 @@ export async function syncAssetSeaportListing(
         .update(update)
         .eq("id", assetId);
     if (error) throw error;
+}
+
+/**
+ * Return all asset IDs currently flagged as having an active listing.
+ * Used by the Seaport poller to sweep and clear stale flags on assets
+ * whose orders have already been expired in a previous tick.
+ */
+export async function getAssetsWithActiveListing(): Promise<string[]> {
+    const db = getDb();
+    const { data, error } = await db
+        .from("assets")
+        .select("id")
+        .eq("has_active_listing", true);
+    if (error) throw error;
+    return (data ?? []).map((r: { id: string }) => r.id);
 }
 
 // ─── Indexer cursors ──────────────────────────────────────────────────────────

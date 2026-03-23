@@ -32,6 +32,7 @@ import {
     FABRICA_TOKEN_V2,
     FOURTK_CONTRACT,
     COURTYARD_CONTRACT,
+    ARIANEE_CONTRACT,
 } from "../config";
 import {
     getAsset,
@@ -41,6 +42,7 @@ import {
     expireSeaportOrders,
     syncAssetSeaportListing,
     getActiveSeaportOrder,
+    getAssetsWithActiveListing,
 } from "../db/queries";
 import type { AssetDetails, AssetInsert, SeaportOrderInsert } from "../db/types";
 import { resolveImageUrl } from "../lib/ipfs";
@@ -51,7 +53,7 @@ const DELAY_MS = 600; // ms between OpenSea API requests (~1.7 req/s)
 
 // ─── Contract registry ────────────────────────────────────────────────────────
 
-type Protocol = "fabrica" | "4k" | "courtyard";
+type Protocol = "fabrica" | "4k" | "courtyard" | "arianee";
 
 interface ContractConfig {
     chain: string;
@@ -98,6 +100,21 @@ function buildContracts(): ContractConfig[] {
             openSeaSlug: "courtyard-nft",
             contractAddress: COURTYARD_CONTRACT.toLowerCase(),
             protocol: "courtyard",
+            tokenStandard: "ERC-721",
+            chainId: 137,
+        });
+    }
+
+    if (ARIANEE_CONTRACT) {
+        // Shared Arianee Protocol contract used by Breitling, Panerai, Moncler
+        // and other member brands. Single contract, single OpenSea collection.
+        // Verified: opensea.io/collection/arianee (slug confirmed)
+        contracts.push({
+            chain: "polygon",
+            openSeaChain: "matic",
+            openSeaSlug: "arianee",
+            contractAddress: ARIANEE_CONTRACT.toLowerCase(),
+            protocol: "arianee",
             tokenStandard: "ERC-721",
             chainId: 137,
         });
@@ -236,6 +253,17 @@ function normalizeOpenSeaNFT(nft: OpenSeaNFT, config: ContractConfig): AssetInse
             externalUrl = `https://www.4k.com/nft/${tokenId}`;
             break;
 
+        case "arianee":
+            category = "luxury-goods";
+            details = {
+                brand:     (attr("brand") ?? attr("Brand")) as string | undefined,
+                model:     (attr("model") ?? attr("Model")) as string | undefined,
+                serial:    (attr("serial") ?? attr("Serial Number")) as string | undefined,
+                condition: attr("condition") as string | undefined,
+            };
+            externalUrl = `https://arianee.net/polygon/${config.contractAddress}/${tokenId}`;
+            break;
+
         case "courtyard":
         default: {
             const categoryAttr = ((attr("type") ?? attr("category") ?? "") as string).toLowerCase();
@@ -327,17 +355,24 @@ export class SeaportPoller {
             // Expire stored active orders that OpenSea no longer returns
             await this.expireStaleOrders(freshlySeen, affectedAssets);
 
-            // Sync has_active_listing + current_listing_price for all touched assets
+            // Full sweep: sync every asset touched this tick PLUS every asset
+            // still flagged has_active_listing=true in the DB (catches stragglers
+            // whose orders were expired in a prior tick without clearing the flag).
+            const stillFlagged = await getAssetsWithActiveListing();
+            for (const id of stillFlagged) affectedAssets.add(id);
+
+            let syncCount = 0;
             for (const assetId of affectedAssets) {
                 try {
                     const cheapest = await getActiveSeaportOrder(assetId);
                     await syncAssetSeaportListing(assetId, cheapest);
+                    syncCount++;
                 } catch (err) {
                     this.logError(`sync failed for ${assetId}`, err);
                 }
             }
 
-            this.log(`tick complete — ${freshlySeen.size} active listing(s), ${affectedAssets.size} asset(s) synced`);
+            this.log(`tick complete — ${freshlySeen.size} active listing(s), ${syncCount} asset(s) synced`);
         } catch (err) {
             this.logError("tick failed", err);
         }

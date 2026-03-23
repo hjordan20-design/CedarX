@@ -37,7 +37,7 @@ export interface Database {
 
 export interface AssetRow {
     id: string;
-    protocol: "fabrica" | "4k" | "courtyard";
+    protocol: "fabrica" | "4k" | "courtyard" | "arianee";
     contract_address: string;
     token_id: string | null;
     token_standard: "ERC-721" | "ERC-1155" | "ERC-20";
