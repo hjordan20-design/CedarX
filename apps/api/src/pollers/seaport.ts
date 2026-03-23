@@ -106,9 +106,18 @@ function buildContracts(): ContractConfig[] {
     }
 
     if (ARIANEE_CONTRACT) {
-        // Shared Arianee Protocol contract used by Breitling, Panerai, Moncler
-        // and other member brands. Single contract, single OpenSea collection.
-        // Verified: opensea.io/collection/arianee (slug confirmed)
+        // Shared Arianee Protocol contract used by all Arianee member brands
+        // including Breitling, Panerai, Moncler, IWC, Lacoste, Yves Saint Laurent,
+        // and Audemars Piguet. All DPPs are minted on a single ERC-721 contract.
+        //
+        // Verified via OpenSea:
+        //   Primary slug: opensea.io/collection/arianee
+        //   Alternate slug: opensea.io/collection/arianee-smart-asset
+        //   Contract on Polygon: 0xc14cc4d89116ec88ebb63fdf497aace6ff3745da
+        //   Confirmed: Moncler items visible at opensea.io/assets/matic/{contract}/{tokenId}
+        //
+        // Note: "arianee-smart-asset" is an alternate OpenSea collection slug for
+        // the same contract. We poll "arianee" (primary slug) to avoid duplicates.
         contracts.push({
             chain: "polygon",
             openSeaChain: "matic",
