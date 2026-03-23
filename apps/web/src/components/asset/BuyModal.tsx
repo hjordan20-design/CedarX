@@ -1,7 +1,7 @@
 import { X, ArrowRight, CheckCircle, AlertCircle, Loader2, ExternalLink } from "lucide-react";
 import { useBuyAsset, type BuyStep } from "@/hooks/useBuyAsset";
 import { useFulfillSeaportOrder, type FulfillStep } from "@/hooks/useFulfillSeaportOrder";
-import { formatUSDC } from "@/lib/formatters";
+import { formatUSDC, formatTokenPrice } from "@/lib/formatters";
 import type { SeaportOrder } from "@/lib/types";
 import { formatUnits } from "viem";
 
@@ -71,8 +71,9 @@ function StepList({ labels, current, pendingSteps }: {
 // ─── Price display helper ─────────────────────────────────────────────────────
 
 function formatSeaportPrice(order: SeaportOrder): string {
-  const amount = Number(order.price) / Math.pow(10, order.paymentTokenDecimals);
-  return `${amount.toLocaleString("en-US", { maximumFractionDigits: 6 })} ${order.paymentTokenSymbol}`;
+  const decimals = order.paymentTokenDecimals || 6;
+  const amount = Number(order.price) / Math.pow(10, decimals);
+  return formatTokenPrice(amount, order.paymentTokenSymbol);
 }
 
 // ─── CedarX BuyModal (original flow) ─────────────────────────────────────────
