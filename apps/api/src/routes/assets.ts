@@ -8,7 +8,7 @@ export const assetsRouter = Router();
 
 const ListQuerySchema = z.object({
     category:    z.enum(["real-estate", "luxury-goods", "art", "collectibles"]).optional(),
-    protocol:    z.enum(["fabrica", "4k", "courtyard"]).optional(),
+    protocol:    z.enum(["fabrica", "4k", "courtyard", "arianee"]).optional(),
     minPrice:    z.coerce.number().nonnegative().optional(),
     maxPrice:    z.coerce.number().nonnegative().optional(),
     sort:        z.enum(["price_asc", "price_desc", "newest", "volume"]).optional(),

@@ -470,8 +470,11 @@ export async function expireSeaportOrders(orderHashes: string[]): Promise<void> 
 }
 
 /**
- * Update an asset's has_active_listing flag.
- * Also updates current_listing_price when the cheapest Seaport order uses USDC.
+ * Update an asset's has_active_listing flag and current_listing_price.
+ *
+ * current_listing_price is set to the human-readable token amount:
+ *   price_raw / 10^payment_token_decimals  (e.g. 7600000 USDC raw → 7.60)
+ * It is set to null when no active order exists.
  */
 export async function syncAssetSeaportListing(
     assetId: string,

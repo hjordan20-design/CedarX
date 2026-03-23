@@ -276,7 +276,9 @@ function normalizeOpenSeaNFT(nft: OpenSeaNFT, config: ContractConfig): AssetInse
                 grade:      attr("grade")      as string | undefined,
                 provenance: attr("year") ? `${attr("year")}` : undefined,
             };
-            externalUrl = `https://courtyard.io/token/${config.contractAddress}/${tokenId}`;
+            // courtyard.io/token/{contract}/{id} returns 404 — remove until
+            // the correct URL format is confirmed.
+            externalUrl = "";
             break;
         }
     }

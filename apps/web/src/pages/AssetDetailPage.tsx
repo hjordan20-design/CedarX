@@ -376,8 +376,8 @@ function AssetActions({ asset }: { asset: Asset }) {
         </p>
       </div>
 
-      {/* Verify link — subtle, for trust only */}
-      {asset.externalUrl && (
+      {/* Verify link — hidden for courtyard (URL format unconfirmed) */}
+      {asset.externalUrl && asset.protocol !== "courtyard" && (
         <a
           href={asset.externalUrl}
           target="_blank"

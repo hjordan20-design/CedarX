@@ -1,11 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
   <!-- Background -->
   <rect width="32" height="32" fill="#0D0D0C"/>
-  <!-- Cedar tree mark in amber -->
-  <g fill="#C4852A" transform="translate(5, 1) scale(0.92)">
-    <!-- Upper bough -->
-    <path d="M12 1 L19 11 H14.5 L20 19 H13.5 L15 24.5 H9 L10.5 19 H4 L9.5 11 H5 Z"/>
-    <!-- Trunk -->
-    <rect x="10.5" y="24" width="3" height="3.5" rx="0.5" opacity="0.7"/>
+  <!-- Diamond mark in amber (matches DiamondMark component in Header.tsx) -->
+  <!-- viewBox 0 0 24 24, centred in 32x32 with 4px padding each side -->
+  <g transform="translate(4, 4)">
+    <polygon points="12,2 22,12 12,22 2,12" stroke="#C4852A" stroke-width="1.4" fill="none"/>
+    <polygon points="12,6 18,12 12,18 6,12" stroke="#C4852A" stroke-width="1.0" stroke-opacity="0.65" fill="none"/>
+    <circle cx="12" cy="12" r="1.8" fill="#C4852A" opacity="0.7"/>
   </g>
 </svg>

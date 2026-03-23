@@ -132,10 +132,12 @@ function formatOrder(row: ReturnType<typeof Object.assign>) {
         assetId:               row.asset_id,
         chain:                 row.chain,
         sellerAddress:         row.seller_address,
-        price:                 row.price,
+        // Always a string so the frontend can safely pass to Number() without
+        // risk of JS float64 precision loss on large NUMERIC values (e.g. wei).
+        price:                 String(row.price),
         paymentToken:          row.payment_token,
         paymentTokenSymbol:    row.payment_token_symbol,
-        paymentTokenDecimals:  row.payment_token_decimals,
+        paymentTokenDecimals:  Number(row.payment_token_decimals),
         priceUsd:              row.price_usd,
         expiration:            row.expiration,
         orderParameters:       row.order_parameters,
