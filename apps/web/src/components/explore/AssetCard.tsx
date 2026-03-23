@@ -4,7 +4,7 @@ import { VERIFIED_CONTRACTS } from "@/lib/types";
 import { ProtocolBadge } from "@/components/common/ProtocolBadge";
 import { CategoryTag } from "@/components/common/CategoryTag";
 import { VerifiedBadge } from "@/components/common/VerifiedBadge";
-import { formatUSDC, formatAcreage } from "@/lib/formatters";
+import { formatTokenPrice, formatUSDC, formatAcreage } from "@/lib/formatters";
 
 function AssetSubtitle({ asset }: { asset: Asset }) {
   const { details, category } = asset;
@@ -37,7 +37,7 @@ function PriceLine({ asset }: { asset: Asset }) {
   if (asset.currentListingPrice != null) {
     return (
       <div className="flex items-baseline gap-1.5">
-        <span className="text-cedar-text font-mono text-sm">{formatUSDC(asset.currentListingPrice)}</span>
+        <span className="text-cedar-text font-mono text-sm">{formatTokenPrice(asset.currentListingPrice, asset.currentListingPaymentTokenSymbol)}</span>
         <span className="text-cedar-muted text-xs font-sans">listed</span>
       </div>
     );

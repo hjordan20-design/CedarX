@@ -1,5 +1,26 @@
 // ─── Currency ─────────────────────────────────────────────────────────────────
 
+/**
+ * Format a token price for display.
+ * Stablecoins (USDC, USDT, DAI) → "$17.00"
+ * All others (ETH, WETH, …)     → "0.7 ETH"
+ */
+export function formatTokenPrice(amount: number | string | undefined, symbol?: string): string {
+  if (amount === undefined || amount === null) return "—";
+  const n = Number(amount);
+  if (isNaN(n)) return "—";
+  const isStable = !symbol || symbol === "USDC" || symbol === "USDT" || symbol === "DAI";
+  if (isStable) {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    }).format(n);
+  }
+  return `${n.toLocaleString("en-US", { maximumFractionDigits: 6 })} ${symbol}`;
+}
+
 /** Format a USDC amount for display. e.g. 12500.5 → "$12,500.50" */
 export function formatUSDC(amount: number | string | undefined): string {
   if (amount === undefined || amount === null) return "—";

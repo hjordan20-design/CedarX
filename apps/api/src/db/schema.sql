@@ -232,6 +232,7 @@ INSERT INTO indexer_cursors (poller_id, last_block) VALUES ('seaport', 0)
 --   has_active_listing = true  OR  current_listing_price IS NOT NULL
 
 ALTER TABLE assets ADD COLUMN IF NOT EXISTS has_active_listing BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE assets ADD COLUMN IF NOT EXISTS current_listing_payment_token_symbol TEXT;
 
 CREATE INDEX IF NOT EXISTS idx_assets_has_listing ON assets (has_active_listing)
     WHERE has_active_listing = TRUE;

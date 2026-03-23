@@ -490,8 +490,10 @@ export async function syncAssetSeaportListing(
     if (cheapestOrder) {
         const decimals = cheapestOrder.payment_token_decimals ?? 18;
         update.current_listing_price = Number(cheapestOrder.price) / Math.pow(10, decimals);
+        update.current_listing_payment_token_symbol = cheapestOrder.payment_token_symbol;
     } else {
         update.current_listing_price = null;
+        update.current_listing_payment_token_symbol = null;
     }
 
     const { error } = await db

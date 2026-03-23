@@ -76,6 +76,7 @@ function formatAsset(row: any) {
         details: row.details ?? {},
         lastSalePrice: row.last_sale_price ?? undefined,
         currentListingPrice: row.current_listing_price ?? undefined,
+        currentListingPaymentTokenSymbol: row.current_listing_payment_token_symbol ?? undefined,
         hasActiveListing: row.has_active_listing ?? false,
         totalVolume: row.total_volume ?? 0,
         externalUrl: row.external_url ?? undefined,
