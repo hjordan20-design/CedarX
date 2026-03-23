@@ -1,6 +1,6 @@
 import { Router, type Request, type Response } from "express";
 import { z } from "zod";
-import { getAsset, getAssets, getAssetHistory, type AssetFilters } from "../db/queries";
+import { getAsset, getAssets, getAssetHistory, getSeaportPriceMap, type AssetFilters } from "../db/queries";
 
 export const assetsRouter = Router();
 
@@ -27,8 +27,15 @@ assetsRouter.get("/", async (req: Request, res: Response) => {
     const filters: AssetFilters = parsed.data;
     const result = await getAssets(filters);
 
+    // For assets that have an active listing but no price synced yet, fall back to
+    // the cheapest active Seaport order price fetched in one batch query.
+    const needsPrice = result.data
+        .filter(r => r.has_active_listing && r.current_listing_price == null)
+        .map(r => r.id);
+    const seaportPrices = await getSeaportPriceMap(needsPrice);
+
     return res.json({
-        data: result.data.map(formatAsset),
+        data: result.data.map(row => formatAsset(row, seaportPrices)),
         pagination: {
             total: result.total,
             page: result.page,
@@ -43,7 +50,10 @@ assetsRouter.get("/", async (req: Request, res: Response) => {
 assetsRouter.get("/:id", async (req: Request, res: Response) => {
     const asset = await getAsset(req.params.id);
     if (!asset) return res.status(404).json({ error: "Asset not found" });
-    return res.json(formatAsset(asset));
+    const seaportPrices = (asset.has_active_listing && asset.current_listing_price == null)
+        ? await getSeaportPriceMap([asset.id])
+        : undefined;
+    return res.json(formatAsset(asset, seaportPrices));
 });
 
 // ─── GET /api/assets/:id/history ─────────────────────────────────────────────
@@ -61,7 +71,22 @@ assetsRouter.get("/:id/history", async (req: Request, res: Response) => {
 
 // Maps DB column_names → camelCase for the API response,
 // matching the CedarXAsset interface the spec defines.
-function formatAsset(row: any) {
+type SeaportPriceMap = Map<string, { price: string; symbol: string; decimals: number }>;
+
+function formatAsset(row: any, seaportPrices?: SeaportPriceMap) {
+    // Use DB-synced price when available; fall back to live Seaport order price.
+    let currentListingPrice: number | undefined = row.current_listing_price ?? undefined;
+    let currentListingPaymentTokenSymbol: string | undefined =
+        row.current_listing_payment_token_symbol ?? undefined;
+
+    if (currentListingPrice == null && seaportPrices) {
+        const sp = seaportPrices.get(row.id);
+        if (sp) {
+            currentListingPrice = Number(sp.price) / Math.pow(10, sp.decimals);
+            currentListingPaymentTokenSymbol = sp.symbol;
+        }
+    }
+
     return {
         id: row.id,
         protocol: row.protocol,
@@ -75,8 +100,8 @@ function formatAsset(row: any) {
         imageUrl: row.image_url ?? undefined,
         details: row.details ?? {},
         lastSalePrice: row.last_sale_price ?? undefined,
-        currentListingPrice: row.current_listing_price ?? undefined,
-        currentListingPaymentTokenSymbol: row.current_listing_payment_token_symbol ?? undefined,
+        currentListingPrice,
+        currentListingPaymentTokenSymbol,
         hasActiveListing: row.has_active_listing ?? false,
         totalVolume: row.total_volume ?? 0,
         externalUrl: row.external_url ?? undefined,

@@ -373,6 +373,38 @@ export async function insertTrade(trade: TradeInsert): Promise<void> {
  * Return the single active Seaport order for an asset, if one exists.
  * Orders are ordered by price ascending so the cheapest is returned.
  */
+/**
+ * Batch-fetch the cheapest active Seaport order for each of the given asset IDs.
+ * Returns a Map from assetId → { price, symbol, decimals } for fast lookup.
+ * Used by the assets list endpoint to fill in currentListingPrice when the
+ * periodic sync hasn't run yet for a newly-created order.
+ */
+export async function getSeaportPriceMap(
+    assetIds: string[]
+): Promise<Map<string, { price: string; symbol: string; decimals: number }>> {
+    if (assetIds.length === 0) return new Map();
+    const db = getDb();
+    const { data } = await db
+        .from("seaport_orders")
+        .select("asset_id, price, payment_token_symbol, payment_token_decimals")
+        .in("asset_id", assetIds)
+        .eq("status", "active")
+        .order("price", { ascending: true }); // cheapest first
+
+    const map = new Map<string, { price: string; symbol: string; decimals: number }>();
+    for (const row of data ?? []) {
+        // keep only the cheapest per asset (first occurrence due to ordering)
+        if (row.asset_id && !map.has(row.asset_id)) {
+            map.set(row.asset_id, {
+                price:   String(row.price),
+                symbol:  row.payment_token_symbol ?? "ETH",
+                decimals: Number(row.payment_token_decimals ?? 18),
+            });
+        }
+    }
+    return map;
+}
+
 export async function getActiveSeaportOrder(assetId: string): Promise<SeaportOrderRow | null> {
     const db = getDb();
     const { data, error } = await db

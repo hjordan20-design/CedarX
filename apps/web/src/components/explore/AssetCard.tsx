@@ -50,6 +50,9 @@ function PriceLine({ asset }: { asset: Asset }) {
       </div>
     );
   }
+  if (asset.hasActiveListing) {
+    return <span className="text-cedar-muted text-sm font-sans">Listed</span>;
+  }
   return <span className="text-cedar-muted text-sm font-mono">—</span>;
 }
 
