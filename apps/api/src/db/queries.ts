@@ -416,6 +416,21 @@ export async function getAllIndexedAssets(): Promise<
     return (data ?? []) as Array<{ id: string; contract_address: string; token_id: string | null; chain: string }>;
 }
 
+/**
+ * Return all currently-active Seaport order hashes and their asset IDs.
+ * Used by the Seaport poller to detect and expire stale orders after each tick.
+ */
+export async function getAllActiveSeaportOrders(): Promise<
+    Array<{ order_hash: string; asset_id: string | null }>
+> {
+    const db = getDb();
+    const { data, error } = await (db.from("seaport_orders") as any)
+        .select("order_hash, asset_id")
+        .eq("status", "active");
+    if (error) throw error;
+    return (data ?? []) as Array<{ order_hash: string; asset_id: string | null }>;
+}
+
 // ─── Seaport orders: writes ───────────────────────────────────────────────────
 
 export async function upsertSeaportOrder(order: SeaportOrderInsert): Promise<void> {

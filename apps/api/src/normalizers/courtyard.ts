@@ -58,6 +58,7 @@ export function normalizeCourtyardAsset(
             grade:     attr("grade")      as string | undefined,
             provenance: attr("year")      ? `${attr("year")}` : undefined,
         },
+        has_active_listing: false,
         last_sale_price: null,
         current_listing_price: null,
         total_volume: 0,

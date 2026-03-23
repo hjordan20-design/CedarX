@@ -51,6 +51,7 @@ export function normalize4KAsset(
             condition: attr("condition")      as string | undefined,
             serial:    attr("serial number")  as string | undefined,
         },
+        has_active_listing: false,
         last_sale_price: null,
         current_listing_price: null,
         total_volume: 0,
