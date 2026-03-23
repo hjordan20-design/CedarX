@@ -54,7 +54,9 @@ function PillGroup<T extends string>({
 }
 
 export function FilterBar({ filters, onChange, total }: FilterBarProps) {
-  const hasActiveFilters = filters.category || filters.search || filters.sort !== "newest" || filters.listedOnly;
+  // listedOnly:true is the default — don't count it as an active filter.
+  // Count listedOnly only when it's explicitly turned OFF (different from default).
+  const hasActiveFilters = !!(filters.category || filters.search || filters.sort !== "newest" || filters.listedOnly === false);
 
   function set(partial: Partial<AssetFilters>) {
     onChange({ ...filters, ...partial, page: 1 });
@@ -99,7 +101,7 @@ export function FilterBar({ filters, onChange, total }: FilterBarProps) {
           )}
           {hasActiveFilters && (
             <button
-              onClick={() => onChange({ sort: "newest", page: 1 })}
+              onClick={() => onChange({ sort: "newest", page: 1, listedOnly: true })}
               className="inline-flex items-center gap-1 text-cedar-muted text-xs hover:text-cedar-text transition-colors"
             >
               <X className="w-3 h-3" />

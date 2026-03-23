@@ -1,26 +1,53 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useAssets } from "@/hooks/useAssets";
 import { FilterBar } from "@/components/explore/FilterBar";
 import { AssetGrid } from "@/components/explore/AssetGrid";
 import { Pagination } from "@/components/explore/Pagination";
-import type { AssetFilters } from "@/lib/types";
+import type { AssetFilters, Category } from "@/lib/types";
 
 const PAGE_SIZE = 24;
+const VALID_CATEGORIES = new Set<string>(["real-estate", "luxury-goods", "art", "collectibles"]);
 
-const DEFAULT_FILTERS: AssetFilters = {
-  sort: "newest",
-  page: 1,
-  limit: PAGE_SIZE,
-};
+function categoryFromParam(param: string | null): Category | undefined {
+  return param && VALID_CATEGORIES.has(param) ? (param as Category) : undefined;
+}
 
 export function ExplorePage() {
-  const [filters, setFilters] = useState<AssetFilters>(DEFAULT_FILTERS);
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const [filters, setFilters] = useState<AssetFilters>(() => ({
+    sort: "newest",
+    page: 1,
+    limit: PAGE_SIZE,
+    listedOnly: true,
+    category: categoryFromParam(searchParams.get("category")),
+  }));
 
   const { data, isLoading, isError, isFetching } = useAssets(filters);
 
+  // Sync URL → state when the user navigates back/forward.
+  useEffect(() => {
+    const cat = categoryFromParam(searchParams.get("category"));
+    setFilters((prev) => {
+      if (prev.category === cat) return prev;
+      return { ...prev, category: cat, page: 1 };
+    });
+  }, [searchParams]);
+
   const handleFilterChange = useCallback((next: AssetFilters) => {
-    setFilters({ ...next, limit: PAGE_SIZE });
-  }, []);
+    const updated: AssetFilters = { ...next, limit: PAGE_SIZE };
+    setFilters(updated);
+    // Persist category in URL so the back button restores the filter.
+    setSearchParams(
+      (params) => {
+        if (updated.category) params.set("category", updated.category);
+        else params.delete("category");
+        return params;
+      },
+      { replace: false },
+    );
+  }, [setSearchParams]);
 
   const handlePageChange = useCallback((page: number) => {
     setFilters((prev) => ({ ...prev, page }));
