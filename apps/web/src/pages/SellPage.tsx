@@ -105,7 +105,7 @@ function NFTCard({
           <VerifiedBadge label="Verified" />
         </div>
         <p className="text-cedar-text text-sm font-medium leading-snug line-clamp-2">{nft.name}</p>
-        <p className="text-cedar-muted/60 text-[11px] font-mono">#{nft.tokenId}</p>
+        <p className="text-cedar-muted/60 text-[11px] font-mono truncate">#{nft.tokenId}</p>
       </div>
     </button>
   );

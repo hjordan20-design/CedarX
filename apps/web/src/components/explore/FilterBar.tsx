@@ -62,31 +62,36 @@ export function FilterBar({ filters, onChange, total }: FilterBarProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-3">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cedar-muted pointer-events-none" />
-          <input
-            type="text"
-            placeholder="Search by name, location…"
-            value={filters.search ?? ""}
-            onChange={(e) => set({ search: e.target.value || undefined })}
-            className="w-full bg-cedar-surface border border-cedar-border pl-9 pr-4 py-2 text-sm font-sans text-cedar-text placeholder:text-cedar-muted/50
-                       focus:outline-none focus:border-cedar-muted transition-colors duration-150"
-          />
+      {/* Top row: on mobile stacks to two sub-rows; on sm+ sits in one line */}
+      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+        {/* Search + sort (always stay together) */}
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cedar-muted pointer-events-none" />
+            <input
+              type="text"
+              placeholder="Search by name, location…"
+              value={filters.search ?? ""}
+              onChange={(e) => set({ search: e.target.value || undefined })}
+              className="w-full bg-cedar-surface border border-cedar-border pl-9 pr-4 py-2 text-sm font-sans text-cedar-text placeholder:text-cedar-muted/50
+                         focus:outline-none focus:border-cedar-muted transition-colors duration-150"
+            />
+          </div>
+
+          <select
+            value={filters.sort ?? "newest"}
+            onChange={(e) => set({ sort: e.target.value as AssetFilters["sort"] })}
+            className="shrink-0 bg-cedar-surface border border-cedar-border px-3 py-2 text-xs font-sans text-cedar-muted
+                       focus:outline-none focus:border-cedar-muted cursor-pointer transition-colors duration-150"
+          >
+            {SORT_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>{o.label}</option>
+            ))}
+          </select>
         </div>
 
-        <select
-          value={filters.sort ?? "newest"}
-          onChange={(e) => set({ sort: e.target.value as AssetFilters["sort"] })}
-          className="bg-cedar-surface border border-cedar-border px-3 py-2 text-xs font-sans text-cedar-muted
-                     focus:outline-none focus:border-cedar-muted cursor-pointer transition-colors duration-150"
-        >
-          {SORT_OPTIONS.map((o) => (
-            <option key={o.value} value={o.value}>{o.label}</option>
-          ))}
-        </select>
-
-        <div className="flex items-center gap-3 ml-auto">
+        {/* Results count + clear — below search on mobile, right-aligned on sm+ */}
+        <div className="flex items-center gap-3 sm:ml-auto">
           {total !== undefined && (
             <span className="text-cedar-muted text-xs font-mono tabular-nums whitespace-nowrap">
               {total.toLocaleString("en-US")} results

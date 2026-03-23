@@ -11,8 +11,7 @@ export function Footer() {
       }}
     >
       <div
-        style={{ padding: "80px 52px 60px 80px" }}
-        className="px-6 pt-16 pb-10 lg:!px-[80px] lg:!pt-[80px] lg:!pb-[60px] lg:!pr-[52px]"
+        className="px-6 pt-16 pb-10 lg:pl-[80px] lg:pr-[52px] lg:pt-[80px] lg:pb-[60px]"
       >
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-16">
           {/* Brand */}

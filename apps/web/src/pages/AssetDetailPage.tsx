@@ -375,8 +375,9 @@ function AssetActions({ asset }: { asset: Asset }) {
           <ExternalLink size={9} />
         </a>
         {asset.tokenId && (
-          <p className="flex items-center gap-2 text-cedar-muted/60 text-[11px] font-mono">
-            <Tag size={10} /> Token #{asset.tokenId}
+          <p className="flex items-center gap-2 text-cedar-muted/60 text-[11px] font-mono min-w-0">
+            <Tag size={10} className="shrink-0" />
+            <span className="truncate">Token #{asset.tokenId}</span>
           </p>
         )}
         <p className="flex items-center gap-2 text-cedar-muted/60 text-[11px]">
@@ -390,7 +391,7 @@ function AssetActions({ asset }: { asset: Asset }) {
           href={`https://opensea.io/assets/${asset.chain === "polygon" ? "matic" : asset.chain}/${asset.contractAddress}/${asset.tokenId}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 text-cedar-muted/50 hover:text-cedar-muted text-[11px] transition-colors pt-1"
+          className="inline-flex items-center gap-1 text-cedar-muted/50 hover:text-cedar-muted text-[11px] transition-colors py-2"
         >
           View on OpenSea <ExternalLink size={10} />
         </a>
@@ -476,7 +477,7 @@ export function AssetDetailPage() {
     asset.details.lng != null;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-8" style={{ paddingTop: "calc(66px + 2rem)" }}>
       {/* Breadcrumb */}
       <nav className="flex items-center gap-2 text-cedar-muted text-xs mb-8 min-w-0">
         <Link to="/" className="hover:text-cedar-text transition-colors shrink-0">
