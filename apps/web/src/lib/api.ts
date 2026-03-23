@@ -9,7 +9,7 @@ import type {
   SeaportOrder,
 } from "./types";
 
-async function get<T>(path: string, params?: Record<string, string | number | undefined>): Promise<T> {
+async function get<T>(path: string, params?: Record<string, string | number | boolean | undefined>): Promise<T> {
   const url = new URL(`${API_BASE_URL}${path}`);
   if (params) {
     for (const [key, val] of Object.entries(params)) {
@@ -24,7 +24,7 @@ async function get<T>(path: string, params?: Record<string, string | number | un
 // ─── Assets ──────────────────────────────────────────────────────────────────
 
 export function fetchAssets(filters: AssetFilters = {}): Promise<Paginated<Asset>> {
-  return get("/api/assets", filters as Record<string, string | number>);
+  return get("/api/assets", filters as Record<string, string | number | boolean>);
 }
 
 export function fetchAsset(id: string): Promise<Asset> {

@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useAssets } from "@/hooks/useAssets";
 import { FilterBar } from "@/components/explore/FilterBar";
@@ -16,43 +16,56 @@ function categoryFromParam(param: string | null): Category | undefined {
 export function ExplorePage() {
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const [filters, setFilters] = useState<AssetFilters>(() => ({
-    sort: "newest",
-    page: 1,
+  // URL is the single source of truth for all filter state.
+  // Deriving filters here means back/forward navigation automatically restores them.
+  // listedOnly defaults to true; only stored in URL when explicitly toggled off.
+  const filters: AssetFilters = {
+    sort: (searchParams.get("sort") as AssetFilters["sort"]) ?? "newest",
+    page: Number(searchParams.get("page")) || 1,
     limit: PAGE_SIZE,
-    listedOnly: true,
+    listedOnly: searchParams.get("listedOnly") !== "false",
     category: categoryFromParam(searchParams.get("category")),
-  }));
+    search: searchParams.get("search") ?? undefined,
+  };
 
   const { data, isLoading, isError, isFetching } = useAssets(filters);
 
-  // Sync URL → state when the user navigates back/forward.
-  useEffect(() => {
-    const cat = categoryFromParam(searchParams.get("category"));
-    setFilters((prev) => {
-      if (prev.category === cat) return prev;
-      return { ...prev, category: cat, page: 1 };
-    });
-  }, [searchParams]);
-
   const handleFilterChange = useCallback((next: AssetFilters) => {
-    const updated: AssetFilters = { ...next, limit: PAGE_SIZE };
-    setFilters(updated);
-    // Persist category in URL so the back button restores the filter.
+    const prevCategory = categoryFromParam(searchParams.get("category"));
+    // Only push a new history entry when the category changes — that's what
+    // the back button should undo. Sort/search/page changes replace in-place.
+    const categoryChanged = next.category !== prevCategory;
+
     setSearchParams(
       (params) => {
-        if (updated.category) params.set("category", updated.category);
+        if (next.category) params.set("category", next.category);
         else params.delete("category");
+
+        if (next.sort && next.sort !== "newest") params.set("sort", next.sort);
+        else params.delete("sort");
+
+        if (next.search) params.set("search", next.search);
+        else params.delete("search");
+
+        // Only store listedOnly in URL when explicitly turned off (default is true)
+        if (next.listedOnly === false) params.set("listedOnly", "false");
+        else params.delete("listedOnly");
+
+        // Reset to page 1 whenever filters change
+        params.delete("page");
         return params;
       },
-      { replace: false },
+      { replace: !categoryChanged },
     );
-  }, [setSearchParams]);
+  }, [searchParams, setSearchParams]);
 
   const handlePageChange = useCallback((page: number) => {
-    setFilters((prev) => ({ ...prev, page }));
+    setSearchParams(
+      (params) => { params.set("page", String(page)); return params; },
+      { replace: true },
+    );
     window.scrollTo({ top: 0, behavior: "smooth" });
-  }, []);
+  }, [setSearchParams]);
 
   return (
     <div className="max-w-[1440px] mx-auto px-6 pb-24" style={{ paddingTop: "calc(66px + 48px)" }}>
