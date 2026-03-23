@@ -71,7 +71,7 @@ function buildContracts(): ContractConfig[] {
         contracts.push({
             chain: "ethereum",
             openSeaChain: "ethereum",
-            openSeaSlug: "fabrica-land-v2",
+            openSeaSlug: "fabrica-land",
             contractAddress: FABRICA_TOKEN_V2.toLowerCase(),
             protocol: "fabrica",
             tokenStandard: "ERC-1155",
