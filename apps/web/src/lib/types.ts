@@ -1,6 +1,6 @@
 // ─── Asset ────────────────────────────────────────────────────────────────────
 
-export type Protocol = "fabrica" | "propy" | "roofstock";
+export type Protocol = "fabrica" | "propy" | "roofstock" | "courtyard";
 export type Category = "real-estate" | "luxury-goods" | "art" | "collectibles";
 export type TokenStandard = "ERC-721" | "ERC-1155";
 

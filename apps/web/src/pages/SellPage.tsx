@@ -406,10 +406,7 @@ export function SellPage() {
                 <NFTCard
                   key={`${nft.contractAddress}-${nft.tokenId}`}
                   nft={nft}
-                  selected={
-                    selectedNFT?.contractAddress === nft.contractAddress &&
-                    selectedNFT?.tokenId === nft.tokenId
-                  }
+                  selected={false}
                   onClick={() => setSelectedNFT(nft)}
                 />
               ))}
