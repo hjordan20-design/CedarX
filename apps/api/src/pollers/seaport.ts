@@ -55,7 +55,8 @@ type Protocol = "fabrica" | "4k" | "courtyard";
 
 interface ContractConfig {
     chain: string;
-    openSeaChain: string; // OpenSea chain slug (matic for Polygon)
+    openSeaChain: string; // OpenSea chain slug ("matic" for Polygon)
+    openSeaSlug: string;  // OpenSea collection slug for /listings/collection/{slug}/all
     contractAddress: string;
     protocol: Protocol;
     tokenStandard: "ERC-721" | "ERC-1155";
@@ -70,6 +71,7 @@ function buildContracts(): ContractConfig[] {
         contracts.push({
             chain: "ethereum",
             openSeaChain: "ethereum",
+            openSeaSlug: "fabrica-land-v2",
             contractAddress: FABRICA_TOKEN_V2.toLowerCase(),
             protocol: "fabrica",
             tokenStandard: "ERC-1155",
@@ -81,6 +83,7 @@ function buildContracts(): ContractConfig[] {
         contracts.push({
             chain: "ethereum",
             openSeaChain: "ethereum",
+            openSeaSlug: "4kprotocol",
             contractAddress: FOURTK_CONTRACT.toLowerCase(),
             protocol: "4k",
             tokenStandard: "ERC-1155",
@@ -92,6 +95,7 @@ function buildContracts(): ContractConfig[] {
         contracts.push({
             chain: "polygon",
             openSeaChain: "matic",
+            openSeaSlug: "courtyard-nft",
             contractAddress: COURTYARD_CONTRACT.toLowerCase(),
             protocol: "courtyard",
             tokenStandard: "ERC-721",
@@ -103,6 +107,7 @@ function buildContracts(): ContractConfig[] {
 }
 
 // ─── OpenSea API response shapes ─────────────────────────────────────────────
+// Endpoint: GET /api/v2/listings/collection/{slug}/all
 
 interface OpenSeaOrderParameters {
     offerer: string;
@@ -124,32 +129,34 @@ interface OpenSeaOrderParameters {
     }>;
     orderType: number;
     startTime: string;
-    endTime: string;
+    endTime: string;   // Unix timestamp (seconds) as string
     zoneHash: string;
     salt: string;
     conduitKey: string;
     totalOriginalConsiderationItems: number;
+    counter: number;
 }
 
-interface OpenSeaOrder {
+interface OpenSeaListing {
     order_hash: string;
+    chain: string;
+    type: string;
+    price: {
+        current: {
+            currency: string;  // "ETH", "USDC", etc.
+            decimals: number;
+            value: string;     // raw amount in currency base units
+        };
+    };
     protocol_data: {
         parameters: OpenSeaOrderParameters;
         signature: string;
     };
-    current_price: string;
-    maker: { address: string };
-    closing_date: string | null;
-    payment_token_contract: {
-        address: string;
-        symbol: string;
-        decimals: number;
-        usd_price: string | null;
-    } | null;
+    protocol_address: string;
 }
 
-interface OpenSeaListingsResponse {
-    orders: OpenSeaOrder[];
+interface OpenSeaCollectionListingsResponse {
+    listings: OpenSeaListing[];
     next: string | null;
 }
 
@@ -343,14 +350,15 @@ export class SeaportPoller {
         freshlySeen: Set<string>,
         affectedAssets: Set<string>
     ): Promise<void> {
-        this.log(`fetching listings for ${contract.protocol} (${contract.contractAddress})`);
+        this.log(`fetching listings for ${contract.protocol} (slug: ${contract.openSeaSlug})`);
 
-        const orders = await this.fetchAllListings(contract.openSeaChain, contract.contractAddress);
-        this.log(`${contract.protocol}: ${orders.length} active listing(s)`);
+        const listings = await this.fetchAllListings(contract.openSeaSlug);
+        this.log(`${contract.protocol}: ${listings.length} active listing(s)`);
 
-        for (const order of orders) {
-            const offer = order.protocol_data?.parameters?.offer?.[0];
-            if (!offer) continue;
+        for (const listing of listings) {
+            const params = listing.protocol_data?.parameters;
+            const offer  = params?.offer?.[0];
+            if (!offer || !params) continue;
 
             const tokenId = offer.identifierOrCriteria;
             const assetId = buildAssetId(contract, tokenId);
@@ -362,59 +370,60 @@ export class SeaportPoller {
                 await sleep(DELAY_MS); // rate limit metadata fetch
             }
 
-            // Upsert the Seaport order
-            const pt = order.payment_token_contract;
-            const paymentTokenAddress  = pt?.address?.toLowerCase() ?? "0x0000000000000000000000000000000000000000";
-            const paymentTokenSymbol   = pt?.symbol ?? "ETH";
-            const paymentTokenDecimals = pt?.decimals ?? 18;
-            const priceUsd = pt?.usd_price
-                ? String(
-                    (Number(order.current_price) / Math.pow(10, paymentTokenDecimals)) *
-                    Number(pt.usd_price)
-                  )
-                : null;
+            // Derive payment token from the price block and consideration items.
+            // The first ERC-20 consideration item (itemType === 1) carries the token address.
+            // If all consideration items are NATIVE (itemType === 0) it's an ETH listing.
+            const priceBlock = listing.price?.current;
+            const paymentTokenSymbol   = priceBlock?.currency ?? "ETH";
+            const paymentTokenDecimals = priceBlock?.decimals ?? 18;
+            const rawPrice             = priceBlock?.value ?? "0";
+
+            const erc20Consideration = params.consideration.find((c) => c.itemType === 1);
+            const paymentTokenAddress = erc20Consideration
+                ? erc20Consideration.token.toLowerCase()
+                : "0x0000000000000000000000000000000000000000";
+
+            // endTime is a Unix timestamp (seconds); convert to ISO for storage
+            const endTimeMs = Number(params.endTime) * 1000;
+            const expiration = endTimeMs > 0 ? new Date(endTimeMs).toISOString() : null;
 
             const insert: SeaportOrderInsert = {
-                order_hash:             order.order_hash,
+                order_hash:             listing.order_hash,
                 asset_id:               assetId,
                 chain:                  contract.chain,
-                seller_address:         order.maker.address.toLowerCase(),
-                price:                  order.current_price,
+                seller_address:         params.offerer.toLowerCase(),
+                price:                  rawPrice,
                 payment_token:          paymentTokenAddress,
                 payment_token_symbol:   paymentTokenSymbol,
                 payment_token_decimals: paymentTokenDecimals,
-                price_usd:              priceUsd,
-                expiration:             order.closing_date ?? null,
+                price_usd:              null, // not provided by this endpoint
+                expiration,
                 order_parameters: {
-                    parameters: order.protocol_data.parameters,
-                    signature:  order.protocol_data.signature,
+                    parameters: params,
+                    signature:  listing.protocol_data.signature,
                 },
                 source: "opensea",
                 status: "active",
             };
 
             await upsertSeaportOrder(insert);
-            freshlySeen.add(order.order_hash);
+            freshlySeen.add(listing.order_hash);
             affectedAssets.add(assetId);
         }
     }
 
-    // ── Paginate through all listings for a contract ──────────────────────────
+    // ── Paginate through all active listings for a collection slug ───────────
 
-    private async fetchAllListings(
-        openSeaChain: string,
-        contractAddress: string
-    ): Promise<OpenSeaOrder[]> {
-        const allOrders: OpenSeaOrder[] = [];
+    private async fetchAllListings(slug: string): Promise<OpenSeaListing[]> {
+        const allListings: OpenSeaListing[] = [];
         let cursor: string | null = null;
 
         do {
             const url = new URL(
-                `${OPENSEA_API_BASE_URL}/api/v2/orders/${openSeaChain}/seaport/listings`
+                `${OPENSEA_API_BASE_URL}/api/v2/listings/collection/${slug}/all`
             );
-            url.searchParams.set("asset_contract_address", contractAddress);
-            url.searchParams.set("limit", "50");
-            if (cursor) url.searchParams.set("cursor", cursor);
+            url.searchParams.set("limit", "100");
+            if (cursor) url.searchParams.set("next", cursor);
 
             this.log(`GET ${url.toString()}`);
 
@@ -431,18 +440,18 @@ export class SeaportPoller {
                 break;
             }
             if (!res.ok) {
-                this.logError(`OpenSea listings API ${res.status} for ${contractAddress}`, rawText);
+                this.logError(`OpenSea listings API ${res.status} for slug=${slug}`, rawText);
                 break;
             }
 
-            const body = JSON.parse(rawText) as OpenSeaListingsResponse;
-            allOrders.push(...(body.orders ?? []));
+            const body = JSON.parse(rawText) as OpenSeaCollectionListingsResponse;
+            allListings.push(...(body.listings ?? []));
             cursor = body.next ?? null;
 
             if (cursor) await sleep(DELAY_MS);
         } while (cursor);
 
-        return allOrders;
+        return allListings;
     }
 
     // ── Fetch OpenSea metadata and auto-create an asset row ───────────────────
