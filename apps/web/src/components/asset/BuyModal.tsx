@@ -73,6 +73,13 @@ function StepList({ labels, current, pendingSteps }: {
 function formatSeaportPrice(order: SeaportOrder): string {
   const decimals = order.paymentTokenDecimals || 6;
   const amount = Number(order.price) / Math.pow(10, decimals);
+  console.log("[CedarX BuyModal price debug]", {
+    rawPrice: order.price,
+    paymentTokenDecimals: order.paymentTokenDecimals,
+    decimalsUsed: decimals,
+    computed: amount,
+    paymentTokenSymbol: order.paymentTokenSymbol,
+  });
   return formatTokenPrice(amount, order.paymentTokenSymbol);
 }
 

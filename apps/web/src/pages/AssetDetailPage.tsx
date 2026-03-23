@@ -280,6 +280,14 @@ function AssetActions({ asset }: { asset: Asset }) {
 
   // Format price for display.
   // Seaport orders store raw token amounts; divide by 10^decimals before display.
+  if (seaportOrder) {
+    console.log("[CedarX price debug]", {
+      rawPrice: seaportOrder.price,
+      paymentTokenDecimals: seaportOrder.paymentTokenDecimals,
+      paymentTokenSymbol: seaportOrder.paymentTokenSymbol,
+      computed: Number(seaportOrder.price) / Math.pow(10, seaportOrder.paymentTokenDecimals || 6),
+    });
+  }
   const displayPrice = hasSeaport
     ? formatTokenPrice(
         Number(seaportOrder!.price) / Math.pow(10, seaportOrder!.paymentTokenDecimals || 6),
