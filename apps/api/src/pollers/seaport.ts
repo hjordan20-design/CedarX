@@ -413,8 +413,6 @@ export class SeaportPoller {
                 `${OPENSEA_API_BASE_URL}/api/v2/orders/${openSeaChain}/seaport/listings`
             );
             url.searchParams.set("asset_contract_address", contractAddress);
-            url.searchParams.set("order_by", "eth_price");
-            url.searchParams.set("order_direction", "asc");
             url.searchParams.set("limit", "50");
             if (cursor) url.searchParams.set("cursor", cursor);
 
