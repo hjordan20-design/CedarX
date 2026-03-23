@@ -282,7 +282,7 @@ function AssetActions({ asset }: { asset: Asset }) {
   // Seaport orders store raw token amounts; divide by 10^decimals before display.
   const displayPrice = hasSeaport
     ? formatTokenPrice(
-        Number(seaportOrder!.price) / Math.pow(10, seaportOrder!.paymentTokenDecimals),
+        Number(seaportOrder!.price) / Math.pow(10, seaportOrder!.paymentTokenDecimals || 6),
         seaportOrder!.paymentTokenSymbol
       )
     : hasCedarX
