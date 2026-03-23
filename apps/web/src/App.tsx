@@ -12,6 +12,7 @@ import { ExplorePage } from "@/pages/ExplorePage";
 import { AboutPage } from "@/pages/AboutPage";
 import { AssetDetailPage } from "@/pages/AssetDetailPage";
 import { TosPage } from "@/pages/TosPage";
+import { SellPage } from "@/pages/SellPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -51,6 +52,7 @@ export function App() {
               <Routes>
                 <Route path="/"             element={<HomePage />} />
                 <Route path="/explore"      element={<ExplorePage />} />
+                <Route path="/sell"         element={<SellPage />} />
                 <Route path="/about"        element={<AboutPage />} />
                 <Route path="/assets/:id"   element={<AssetDetailPage />} />
                 <Route path="/tos"          element={<TosPage />} />

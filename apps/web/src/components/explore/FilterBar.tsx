@@ -54,7 +54,7 @@ function PillGroup<T extends string>({
 }
 
 export function FilterBar({ filters, onChange, total }: FilterBarProps) {
-  const hasActiveFilters = filters.category || filters.search || filters.sort !== "newest";
+  const hasActiveFilters = filters.category || filters.search || filters.sort !== "newest" || filters.listedOnly;
 
   function set(partial: Partial<AssetFilters>) {
     onChange({ ...filters, ...partial, page: 1 });
@@ -111,6 +111,28 @@ export function FilterBar({ filters, onChange, total }: FilterBarProps) {
           value={(filters.category ?? "") as Category | ""}
           onSelect={(v) => set({ category: v || undefined })}
         />
+      </div>
+
+      {/* Listed-only toggle */}
+      <div className="flex items-center gap-3">
+        <button
+          onClick={() => set({ listedOnly: !filters.listedOnly })}
+          className={`inline-flex items-center gap-2 text-xs font-sans tracking-wide border transition-colors duration-150 px-3 py-1 ${
+            filters.listedOnly
+              ? "bg-cedar-amber text-cedar-bg border-cedar-amber"
+              : "border-cedar-border text-cedar-muted hover:border-cedar-muted hover:text-cedar-text"
+          }`}
+        >
+          <span
+            className={`w-2 h-2 rounded-full ${filters.listedOnly ? "bg-cedar-bg" : "bg-cedar-muted/40"}`}
+          />
+          Listed only
+        </button>
+        {!filters.listedOnly && (
+          <span className="text-cedar-muted/50 text-[11px]">
+            Showing all indexed assets
+          </span>
+        )}
       </div>
     </div>
   );

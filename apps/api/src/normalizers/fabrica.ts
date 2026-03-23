@@ -51,6 +51,7 @@ export function normalizeFabricaAsset(
             county:   attr("county")   as string | undefined,
             state:    attr("state")    as string | undefined,
         },
+        has_active_listing: false,
         last_sale_price: null,
         current_listing_price: null,
         total_volume: 0,

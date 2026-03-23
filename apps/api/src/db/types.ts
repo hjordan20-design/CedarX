@@ -19,6 +19,11 @@ export interface Database {
                 Insert: TradeInsert;
                 Update: never;
             };
+            seaport_orders: {
+                Row: SeaportOrderRow;
+                Insert: SeaportOrderInsert;
+                Update: Partial<SeaportOrderInsert>;
+            };
             indexer_cursors: {
                 Row: CursorRow;
                 Insert: CursorInsert;
@@ -32,7 +37,7 @@ export interface Database {
 
 export interface AssetRow {
     id: string;
-    protocol: "fabrica" | "4k" | "courtyard";
+    protocol: "fabrica" | "4k" | "courtyard" | "arianee";
     contract_address: string;
     token_id: string | null;
     token_standard: "ERC-721" | "ERC-1155" | "ERC-20";
@@ -45,6 +50,7 @@ export interface AssetRow {
     last_sale_price: number | null;
     current_listing_price: number | null;
     total_volume: number;
+    has_active_listing: boolean;
     external_url: string | null;
     last_updated: string;
     created_at: string;
@@ -131,3 +137,61 @@ export interface CursorRow {
 }
 
 export type CursorInsert = Omit<CursorRow, "updated_at"> & { updated_at?: string };
+
+// ─── seaport_orders ──────────────────────────────────────────────────────────
+
+/** Full Seaport order stored for fulfillment: parameters + signature. */
+export interface SeaportOrderParameters {
+    offerer: string;
+    zone: string;
+    offer: Array<{
+        itemType: number;
+        token: string;
+        identifierOrCriteria: string;
+        startAmount: string;
+        endAmount: string;
+    }>;
+    consideration: Array<{
+        itemType: number;
+        token: string;
+        identifierOrCriteria: string;
+        startAmount: string;
+        endAmount: string;
+        recipient: string;
+    }>;
+    orderType: number;
+    startTime: string;
+    endTime: string;
+    zoneHash: string;
+    salt: string;
+    conduitKey: string;
+    totalOriginalConsiderationItems: number;
+}
+
+export interface SeaportOrderBlob {
+    parameters: SeaportOrderParameters;
+    signature: string;
+}
+
+export interface SeaportOrderRow {
+    order_hash: string;
+    asset_id: string | null;
+    chain: string;
+    seller_address: string;
+    price: string;                           // raw amount in payment token units
+    payment_token: string;                   // 0x000…0 for ETH
+    payment_token_symbol: string;
+    payment_token_decimals: number;
+    price_usd: string | null;
+    expiration: string | null;
+    order_parameters: SeaportOrderBlob;
+    source: "opensea" | "cedarx";
+    status: "active" | "filled" | "cancelled" | "expired";
+    created_at: string;
+    updated_at: string;
+}
+
+export type SeaportOrderInsert = Omit<SeaportOrderRow, "created_at" | "updated_at"> & {
+    created_at?: string;
+    updated_at?: string;
+};

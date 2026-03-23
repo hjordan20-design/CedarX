@@ -6,6 +6,7 @@ import type {
   MarketStats,
   Paginated,
   ProtocolInfo,
+  SeaportOrder,
 } from "./types";
 
 async function get<T>(path: string, params?: Record<string, string | number | undefined>): Promise<T> {
@@ -43,6 +44,39 @@ export function fetchListings(params?: {
   limit?: number;
 }): Promise<Paginated<Listing>> {
   return get("/api/listings", params as Record<string, string | number>);
+}
+
+// ─── Seaport ─────────────────────────────────────────────────────────────────
+
+export function fetchSeaportOrder(assetId: string): Promise<SeaportOrder> {
+  return get(`/api/seaport/orders/${encodeURIComponent(assetId)}`);
+}
+
+export interface CreateSeaportListingParams {
+  assetId: string;
+  chain: "ethereum" | "polygon";
+  sellerAddress: string;
+  price: string;
+  paymentToken: string;
+  paymentTokenSymbol: string;
+  paymentTokenDecimals: number;
+  expiration?: string;
+  orderParameters: {
+    parameters: Record<string, unknown>;
+    signature: string;
+  };
+}
+
+export async function postSeaportListing(
+  params: CreateSeaportListingParams
+): Promise<{ orderHash: string; openSeaError: string | null }> {
+  const res = await fetch(`${API_BASE_URL}/api/seaport/listings`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(params),
+  });
+  if (!res.ok) throw new Error(`API error ${res.status}: /api/seaport/listings`);
+  return res.json();
 }
 
 // ─── Stats ───────────────────────────────────────────────────────────────────

@@ -1,9 +1,12 @@
 import type { Protocol } from "@/lib/types";
 
 const PROTOCOL_LABELS: Record<Protocol, string> = {
-  fabrica:  "Fabrica",
-  propy:    "Propy",
+  fabrica:   "Fabrica",
+  propy:     "Propy",
   roofstock: "Roofstock",
+  courtyard: "Courtyard",
+  "4k":      "4K Protocol",
+  arianee:   "Arianee",
 };
 
 export function ProtocolBadge({ protocol }: { protocol?: Protocol }) {

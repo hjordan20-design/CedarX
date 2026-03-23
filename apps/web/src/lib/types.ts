@@ -1,6 +1,6 @@
 // ─── Asset ────────────────────────────────────────────────────────────────────
 
-export type Protocol = "fabrica" | "propy" | "roofstock";
+export type Protocol = "fabrica" | "propy" | "roofstock" | "courtyard" | "4k" | "arianee";
 export type Category = "real-estate" | "luxury-goods" | "art" | "collectibles";
 export type TokenStandard = "ERC-721" | "ERC-1155";
 
@@ -44,6 +44,7 @@ export interface Asset {
   details: AssetDetails;
   lastSalePrice?: number;
   currentListingPrice?: number;
+  hasActiveListing: boolean;
   totalVolume: number;
   externalUrl?: string;
   lastUpdated: string;
@@ -113,6 +114,62 @@ export interface AssetFilters {
   maxPrice?: number;
   sort?: "price_asc" | "price_desc" | "newest" | "volume";
   search?: string;
+  listedOnly?: boolean;
   page?: number;
   limit?: number;
 }
+
+// ─── Seaport ─────────────────────────────────────────────────────────────────
+
+export interface SeaportOfferItem {
+  itemType: number;
+  token: string;
+  identifierOrCriteria: string;
+  startAmount: string;
+  endAmount: string;
+}
+
+export interface SeaportConsiderationItem extends SeaportOfferItem {
+  recipient: string;
+}
+
+export interface SeaportOrderParameters {
+  offerer: string;
+  zone: string;
+  offer: SeaportOfferItem[];
+  consideration: SeaportConsiderationItem[];
+  orderType: number;
+  startTime: string;
+  endTime: string;
+  zoneHash: string;
+  salt: string;
+  conduitKey: string;
+  totalOriginalConsiderationItems: number;
+}
+
+export interface SeaportOrder {
+  orderHash: string;
+  assetId: string;
+  chain: string;
+  sellerAddress: string;
+  /** Raw price in payment token's smallest unit (e.g. wei for ETH) */
+  price: string;
+  paymentToken: string;       // 0x000…0 = native ETH
+  paymentTokenSymbol: string; // "ETH" | "WETH" | "USDC" | …
+  paymentTokenDecimals: number;
+  priceUsd: string | null;
+  expiration: string | null;
+  orderParameters: {
+    parameters: SeaportOrderParameters;
+    signature: string;
+  };
+  source: "opensea" | "cedarx";
+  status: "active" | "filled" | "cancelled" | "expired";
+}
+
+/** Whitelisted protocol contract addresses — used for "Verified" badge. */
+export const VERIFIED_CONTRACTS: Record<string, string> = {
+  "0x5cbeb7a0df7ed85d82a472fd56d81ed550f3ea95": "Fabrica",        // Ethereum
+  "0xebf19415d94be89a1d692f82af391685dc1bff79": "4K Protocol",    // Ethereum
+  "0x251be3a17af4892035c37ebf5890f4a4d889dcad": "Courtyard",      // Polygon
+};

@@ -13,6 +13,7 @@ import { FabricaPoller }    from "./pollers/fabrica";
 import { FourKPoller }      from "./pollers/4k";
 import { CourtyardPoller }  from "./pollers/courtyard";
 import { CedarXSwapPoller } from "./pollers/cedarxSwap";
+import { SeaportPoller }    from "./pollers/seaport";
 import { getDb } from "./db/client";
 
 // ── Start API server ──────────────────────────────────────────────────────────
@@ -82,10 +83,11 @@ async function seedCursors(): Promise<void> {
 // ── Start pollers ─────────────────────────────────────────────────────────────
 
 const pollers = [
-    new FabricaPoller(),    // ERC-721 real estate, Ethereum
+    new FabricaPoller(),    // ERC-1155 real estate, Ethereum
     new FourKPoller(),      // ERC-1155 luxury goods, Ethereum
     new CourtyardPoller(),  // ERC-721 collectibles, Polygon
     new CedarXSwapPoller(), // Swap contract events (follows CHAIN_ENV)
+    new SeaportPoller(),    // OpenSea Seaport listings (HTTP, not block-based)
 ];
 
 // Seed cursors first, then start pollers.

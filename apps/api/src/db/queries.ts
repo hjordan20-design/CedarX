@@ -6,7 +6,7 @@
  */
 
 import { getDb } from "./client";
-import type { AssetInsert, AssetRow, ListingInsert, TradeInsert } from "./types";
+import type { AssetInsert, AssetRow, ListingInsert, TradeInsert, SeaportOrderInsert, SeaportOrderRow } from "./types";
 
 // ─── Types returned by queries ────────────────────────────────────────────────
 
@@ -19,6 +19,8 @@ export interface AssetFilters {
     search?: string;
     page?: number;
     limit?: number;
+    /** When true, only return assets that have an active CedarX listing OR active Seaport order */
+    listedOnly?: boolean;
 }
 
 export interface ListingFilters {
@@ -53,6 +55,10 @@ export async function getAssets(filters: AssetFilters = {}): Promise<PaginatedRe
         query = query.in("category", values);
     }
     if (filters.protocol) query = query.eq("protocol", filters.protocol);
+    if (filters.listedOnly) {
+        // Asset is "listed" if it has an active Seaport order OR a non-null CedarX swap price
+        query = query.or("has_active_listing.eq.true,current_listing_price.not.is.null");
+    }
     if (filters.minPrice != null) query = query.gte("current_listing_price", filters.minPrice);
     if (filters.maxPrice != null) query = query.lte("current_listing_price", filters.maxPrice);
     if (filters.search) {
@@ -359,6 +365,155 @@ export async function insertTrade(trade: TradeInsert): Promise<void> {
         .insert(trade)
         .throwOnError();
     if (error) throw error;
+}
+
+// ─── Seaport orders: reads ────────────────────────────────────────────────────
+
+/**
+ * Return the single active Seaport order for an asset, if one exists.
+ * Orders are ordered by price ascending so the cheapest is returned.
+ */
+export async function getActiveSeaportOrder(assetId: string): Promise<SeaportOrderRow | null> {
+    const db = getDb();
+    const { data, error } = await db
+        .from("seaport_orders")
+        .select("*")
+        .eq("asset_id", assetId)
+        .eq("status", "active")
+        .order("price", { ascending: true })
+        .limit(1)
+        .maybeSingle();
+    if (error) throw error;
+    return data as SeaportOrderRow | null;
+}
+
+/**
+ * Return all active order hashes for a given asset (used to detect stale orders).
+ */
+export async function getActiveSeaportOrderHashes(assetId: string): Promise<string[]> {
+    const db = getDb();
+    const { data, error } = await db
+        .from("seaport_orders")
+        .select("order_hash")
+        .eq("asset_id", assetId)
+        .eq("status", "active");
+    if (error) throw error;
+    return (data ?? []).map((r: { order_hash: string }) => r.order_hash);
+}
+
+/**
+ * Return all asset_id values grouped by their contract and chain so the
+ * Seaport poller can batch OpenSea API calls per contract.
+ */
+export async function getAllIndexedAssets(): Promise<
+    Array<{ id: string; contract_address: string; token_id: string | null; chain: string }>
+> {
+    const db = getDb();
+    const { data, error } = await db
+        .from("assets")
+        .select("id, contract_address, token_id, chain");
+    if (error) throw error;
+    return (data ?? []) as Array<{ id: string; contract_address: string; token_id: string | null; chain: string }>;
+}
+
+/**
+ * Return all currently-active Seaport order hashes and their asset IDs.
+ * Used by the Seaport poller to detect and expire stale orders after each tick.
+ */
+export async function getAllActiveSeaportOrders(): Promise<
+    Array<{ order_hash: string; asset_id: string | null }>
+> {
+    const db = getDb();
+    const { data, error } = await (db.from("seaport_orders") as any)
+        .select("order_hash, asset_id")
+        .eq("status", "active");
+    if (error) throw error;
+    return (data ?? []) as Array<{ order_hash: string; asset_id: string | null }>;
+}
+
+// ─── Seaport orders: writes ───────────────────────────────────────────────────
+
+export async function upsertSeaportOrder(order: SeaportOrderInsert): Promise<void> {
+    const db = getDb();
+    const { error } = await (db.from("seaport_orders") as any).upsert(
+        { ...order, updated_at: new Date().toISOString() },
+        { onConflict: "order_hash" }
+    );
+    if (error) throw error;
+}
+
+export async function setSeaportOrderStatus(
+    orderHash: string,
+    status: "active" | "filled" | "cancelled" | "expired"
+): Promise<void> {
+    const db = getDb();
+    const { error } = await db
+        .from("seaport_orders")
+        .update({ status, updated_at: new Date().toISOString() })
+        .eq("order_hash", orderHash);
+    if (error) throw error;
+}
+
+/**
+ * Mark all active orders for the given hashes as expired (used when OpenSea
+ * stops returning them, which means they were filled/cancelled/expired).
+ */
+export async function expireSeaportOrders(orderHashes: string[]): Promise<void> {
+    if (!orderHashes.length) return;
+    const db = getDb();
+    const { error } = await db
+        .from("seaport_orders")
+        .update({ status: "expired", updated_at: new Date().toISOString() })
+        .in("order_hash", orderHashes)
+        .eq("status", "active");
+    if (error) throw error;
+}
+
+/**
+ * Update an asset's has_active_listing flag and current_listing_price.
+ *
+ * current_listing_price is set to the human-readable token amount:
+ *   price_raw / 10^payment_token_decimals  (e.g. 7600000 USDC raw → 7.60)
+ * It is set to null when no active order exists.
+ */
+export async function syncAssetSeaportListing(
+    assetId: string,
+    cheapestOrder: SeaportOrderRow | null
+): Promise<void> {
+    const db = getDb();
+
+    const update: Record<string, unknown> = {
+        has_active_listing: cheapestOrder !== null,
+        last_updated: new Date().toISOString(),
+    };
+
+    if (cheapestOrder) {
+        const decimals = cheapestOrder.payment_token_decimals ?? 18;
+        update.current_listing_price = Number(cheapestOrder.price) / Math.pow(10, decimals);
+    } else {
+        update.current_listing_price = null;
+    }
+
+    const { error } = await db
+        .from("assets")
+        .update(update)
+        .eq("id", assetId);
+    if (error) throw error;
+}
+
+/**
+ * Return all asset IDs currently flagged as having an active listing.
+ * Used by the Seaport poller to sweep and clear stale flags on assets
+ * whose orders have already been expired in a previous tick.
+ */
+export async function getAssetsWithActiveListing(): Promise<string[]> {
+    const db = getDb();
+    const { data, error } = await db
+        .from("assets")
+        .select("id")
+        .eq("has_active_listing", true);
+    if (error) throw error;
+    return (data ?? []).map((r: { id: string }) => r.id);
 }
 
 // ─── Indexer cursors ──────────────────────────────────────────────────────────
