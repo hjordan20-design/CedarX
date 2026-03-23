@@ -20,7 +20,7 @@ export function HomeAssetGrid({ filters }: HomeAssetGridProps) {
   const showPlaceholder = isError || isEmpty;
 
   return (
-    <section className="max-w-7xl mx-auto px-6" style={{ paddingTop: "32px", paddingBottom: "56px" }}>
+    <section className="max-w-7xl mx-auto px-6" style={{ paddingTop: "20px", paddingBottom: "48px" }}>
       {/* Section header */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>

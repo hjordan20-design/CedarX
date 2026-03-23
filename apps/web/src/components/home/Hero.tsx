@@ -24,7 +24,7 @@ export function Hero({ filters, onFilterChange }: HeroProps) {
   return (
     <section
       className="px-6 lg:px-[80px]"
-      style={{ paddingTop: "calc(66px + 48px)", paddingBottom: "40px" }}
+      style={{ paddingTop: "calc(66px + 16px)", paddingBottom: "12px" }}
     >
       <div style={{ maxWidth: "740px", margin: "0 auto", textAlign: "center" }}>
         {/* H1 */}
@@ -33,11 +33,11 @@ export function Hero({ filters, onFilterChange }: HeroProps) {
           style={{
             fontFamily: "Cormorant Garamond, Georgia, serif",
             fontWeight: 300,
-            fontSize: "clamp(48px, 7vw, 88px)",
+            fontSize: "clamp(32px, 4vw, 48px)",
             lineHeight: 1.0,
             letterSpacing: "-0.02em",
             color: "#1C1710",
-            marginBottom: "18px",
+            marginBottom: "8px",
             animationDelay: "0.1s",
           }}
         >
@@ -51,11 +51,11 @@ export function Hero({ filters, onFilterChange }: HeroProps) {
           style={{
             fontFamily: "DM Sans, system-ui, sans-serif",
             fontWeight: 300,
-            fontSize: "17px",
-            lineHeight: 1.72,
+            fontSize: "14px",
+            lineHeight: 1.5,
             color: "rgba(28,23,16,0.50)",
-            maxWidth: "520px",
-            margin: "0 auto 24px",
+            maxWidth: "480px",
+            margin: "0 auto 10px",
             animationDelay: "0.22s",
           }}
         >
@@ -69,14 +69,14 @@ export function Hero({ filters, onFilterChange }: HeroProps) {
           style={{
             position: "relative",
             maxWidth: "700px",
-            margin: "0 auto 14px",
+            margin: "0 auto 8px",
             animationDelay: "0.34s",
           }}
         >
           <Search
             style={{
               position: "absolute", left: "16px", top: "50%", transform: "translateY(-50%)",
-              width: "16px", height: "16px", pointerEvents: "none", color: "rgba(196,133,42,0.45)",
+              width: "15px", height: "15px", pointerEvents: "none", color: "rgba(196,133,42,0.45)",
             }}
           />
           <input
@@ -87,8 +87,8 @@ export function Hero({ filters, onFilterChange }: HeroProps) {
             className="search-input"
             style={{
               width: "100%",
-              paddingLeft: "46px", paddingRight: "16px",
-              paddingTop: "13px", paddingBottom: "13px",
+              paddingLeft: "44px", paddingRight: "16px",
+              paddingTop: "9px", paddingBottom: "9px",
               fontSize: "16px",
               fontFamily: "DM Sans, system-ui, sans-serif",
               fontWeight: 300,
@@ -107,7 +107,7 @@ export function Hero({ filters, onFilterChange }: HeroProps) {
         <div
           className="animate-fade-up"
           style={{
-            display: "flex", flexWrap: "wrap", gap: "8px",
+            display: "flex", flexWrap: "wrap", gap: "6px",
             justifyContent: "center",
             animationDelay: "0.46s",
           }}
@@ -119,8 +119,8 @@ export function Hero({ filters, onFilterChange }: HeroProps) {
                 key={pill.value}
                 onClick={() => set({ category: pill.value || undefined })}
                 style={{
-                  padding: "8px 18px",
-                  fontSize: "14px",
+                  padding: "6px 14px",
+                  fontSize: "13px",
                   fontFamily: "DM Sans, system-ui, sans-serif",
                   letterSpacing: "0.03em",
                   border: active ? "1px solid #C4852A" : "1px solid rgba(196,133,42,0.22)",

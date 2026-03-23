@@ -58,10 +58,12 @@ export async function getAssets(filters: AssetFilters = {}): Promise<PaginatedRe
     if (filters.listedOnly) {
         // has_active_listing is the canonical source of truth: it's set true by
         // syncAssetSeaportListing whenever an active Seaport order exists, and
-        // false when the last order expires/fills.  Filtering directly on the
-        // boolean column is simpler and avoids missing assets whose price hasn't
-        // been synced to current_listing_price yet.
-        query = query.eq("has_active_listing", true);
+        // false when the last order expires/fills.  We also require a non-null
+        // current_listing_price so every returned asset renders a dollar amount —
+        // no "—" cards and no "Listed" placeholders without prices.
+        query = query
+            .eq("has_active_listing", true)
+            .not("current_listing_price", "is", null);
     }
     if (filters.minPrice != null) query = query.gte("current_listing_price", filters.minPrice);
     if (filters.maxPrice != null) query = query.lte("current_listing_price", filters.maxPrice);
