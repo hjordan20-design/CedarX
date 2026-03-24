@@ -15,6 +15,7 @@ import {
     getActiveSeaportOrder,
     upsertSeaportOrder,
     syncAssetSeaportListing,
+    expireSeaportOrders,
 } from "../db/queries";
 import {
     OPENSEA_API_KEY,
@@ -169,6 +170,14 @@ seaportRouter.post("/fulfill", async (req: Request, res: Response) => {
 
     const openSeaChain = chain === "polygon" ? "matic" : "ethereum";
 
+    // Log the exact payload so order_hash mismatches can be diagnosed in production.
+    // The hash stored in seaport_orders.order_hash must match what OpenSea's
+    // fulfillment_data API expects (it comes from listing.order_hash verbatim).
+    console.log(
+        `[seaport/fulfill] → OpenSea fulfillment_data` +
+        ` | hash=${orderHash} chain=${openSeaChain} buyer=${buyerAddress}`
+    );
+
     const osRes = await fetch(
         `${OPENSEA_API_BASE_URL}/api/v2/listings/fulfillment_data`,
         {
@@ -191,7 +200,29 @@ seaportRouter.post("/fulfill", async (req: Request, res: Response) => {
 
     if (!osRes.ok) {
         const text = await osRes.text();
-        console.error(`[seaport/fulfill] OpenSea ${osRes.status}:`, text.slice(0, 400));
+        console.error(
+            `[seaport/fulfill] OpenSea ${osRes.status} for hash=${orderHash}:`,
+            text.slice(0, 400)
+        );
+
+        // 400 / 404 from OpenSea's fulfillment endpoint means the order no longer
+        // exists — it was cancelled, filled, or expired since our last poll.
+        // Expire it in the DB immediately so the next GET /orders/:assetId won't
+        // return it, and respond with 410 Gone + a human-readable message so the
+        // frontend can show it directly rather than spinning on "Processing…".
+        if (osRes.status === 400 || osRes.status === 404) {
+            try {
+                await expireSeaportOrders([orderHash]);
+                console.log(`[seaport/fulfill] expired stale order ${orderHash} in DB`);
+            } catch (dbErr) {
+                console.error("[seaport/fulfill] failed to expire stale order in DB:", dbErr);
+            }
+            return res.status(410).json({
+                error:   "This listing has expired or been cancelled.",
+                expired: true,
+            });
+        }
+
         return res.status(502).json({
             error:   `OpenSea fulfillment API returned ${osRes.status}`,
             details: text,
@@ -203,12 +234,16 @@ seaportRouter.post("/fulfill", async (req: Request, res: Response) => {
     const txValue      = body.fulfillment_data?.transaction?.value;
 
     if (!protocolData?.parameters || !protocolData?.signature) {
-        console.error("[seaport/fulfill] missing protocol_data in OpenSea response:", JSON.stringify(body).slice(0, 400));
+        console.error(
+            "[seaport/fulfill] missing protocol_data in OpenSea response:",
+            JSON.stringify(body).slice(0, 400)
+        );
         return res.status(502).json({
             error: "OpenSea did not return order parameters or signature in fulfillment_data",
         });
     }
 
+    console.log(`[seaport/fulfill] ✓ resolved signature for hash=${orderHash}`);
     return res.json({
         parameters: protocolData.parameters,
         signature:  protocolData.signature,

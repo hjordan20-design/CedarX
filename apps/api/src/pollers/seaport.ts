@@ -566,11 +566,28 @@ export class SeaportPoller {
         affectedAssets: Set<string>
     ): Promise<void> {
         const allActive = await getAllActiveSeaportOrders();
+
+        // Every active order NOT returned by OpenSea this tick is treated as
+        // expired (filled / cancelled / timed-out on-chain).  Log both sets so
+        // hash mismatches between what we stored and what OpenSea returns are
+        // immediately visible in server logs.
+        this.log(
+            `order validation: ${allActive.length} active in DB, ` +
+            `${freshlySeen.size} seen from OpenSea this tick`
+        );
+
         const stale = allActive.filter((o) => !freshlySeen.has(o.order_hash));
 
-        if (!stale.length) return;
+        if (!stale.length) {
+            this.log("order validation: all active orders confirmed live on OpenSea");
+            return;
+        }
 
-        this.log(`expiring ${stale.length} stale order(s)`);
+        this.log(
+            `expiring ${stale.length} stale order(s): ` +
+            stale.slice(0, 5).map((o) => o.order_hash).join(", ") +
+            (stale.length > 5 ? ` … +${stale.length - 5} more` : "")
+        );
         await expireSeaportOrders(stale.map((o) => o.order_hash));
 
         // Queue their assets for has_active_listing sync
