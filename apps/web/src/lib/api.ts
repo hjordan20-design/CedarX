@@ -81,8 +81,12 @@ export async function postSeaportListing(
 }
 
 export interface SeaportFulfillmentData {
-  parameters: SeaportOrderParameters;
-  signature:  string;
+  /** Seaport contract address to call (varies by version: 1.5 vs 1.6) */
+  to: string;
+  /** Seaport function to invoke, e.g. "fulfillBasicOrder_efficient_6GL6yc" */
+  functionName: string;
+  /** BasicOrderParameters struct decoded from OpenSea's fulfillment_data */
+  parameters: Record<string, unknown>;
   /** ETH value in wei as a decimal string; "0" for ERC-20 orders */
   value: string;
 }

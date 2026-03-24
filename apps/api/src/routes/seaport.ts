@@ -138,16 +138,17 @@ seaportRouter.post("/listings", async (req: Request, res: Response) => {
 const SEAPORT_PROTOCOL_ADDRESS = "0x00000000000000ADc04C56Bf30aC9d3c0aAF14dC";
 
 interface OpenSeaFulfillmentResponse {
+    protocol?: string; // e.g. "seaport1.6"
     fulfillment_data?: {
         transaction?: {
+            function?: string; // e.g. "fulfillBasicOrder_efficient_6GL6yc(...)"
+            chain?: number;
+            to?: string;       // Seaport contract address to call
             value?: number | string;
-        };
-        orders?: Array<{
-            protocol_data?: {
-                parameters?: Record<string, unknown>;
-                signature?: string | null;
+            input_data?: {
+                parameters?: Record<string, unknown>; // BasicOrderParameters (flat struct)
             };
-        }>;
+        };
     };
 }
 
@@ -256,25 +257,35 @@ seaportRouter.post("/fulfill", async (req: Request, res: Response) => {
     }
 
     const body = (await osRes.json()) as OpenSeaFulfillmentResponse;
-    const protocolData = body.fulfillment_data?.orders?.[0]?.protocol_data;
-    const txValue      = body.fulfillment_data?.transaction?.value;
+    const tx = body.fulfillment_data?.transaction;
 
-    if (!protocolData?.parameters || !protocolData?.signature) {
+    if (!tx?.to || !tx?.input_data?.parameters) {
         console.error(
-            "[seaport/fulfill] missing protocol_data in OpenSea response:",
-            JSON.stringify(body).slice(0, 400)
+            "[seaport/fulfill] missing transaction data in OpenSea response:",
+            JSON.stringify(body).slice(0, 600)
         );
         return res.status(502).json({
-            error: "OpenSea did not return order parameters or signature in fulfillment_data",
+            error: "OpenSea did not return transaction data in fulfillment_data",
         });
     }
 
-    console.log(`[seaport/fulfill] ✓ resolved signature for hash=${orderHash}`);
+    // Parse "fulfillBasicOrder_efficient_6GL6yc(BasicOrderParameters)" → function name only
+    const rawFunctionSig = tx.function ?? "";
+    const functionName = rawFunctionSig.includes("(")
+        ? rawFunctionSig.slice(0, rawFunctionSig.indexOf("("))
+        : "fulfillBasicOrder";
+
+    console.log(
+        `[seaport/fulfill] ✓ hash=${orderHash}` +
+        ` fn=${functionName} to=${tx.to} value=${tx.value ?? 0}`
+    );
+
     return res.json({
-        parameters: protocolData.parameters,
-        signature:  protocolData.signature,
+        to:           tx.to,
+        functionName,
+        parameters:   tx.input_data.parameters,
         // ETH value in wei as a decimal string; "0" for ERC-20 orders
-        value: String(txValue ?? "0"),
+        value:        String(tx.value ?? "0"),
     });
 });
 

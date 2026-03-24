@@ -33,7 +33,91 @@ import {
   usePublicClient,
 } from "wagmi";
 import { parseUnits } from "viem";
-import { SEAPORT_ADDRESS, SEAPORT_ABI, NATIVE_TOKEN } from "@/config/contracts";
+import { SEAPORT_ADDRESS, NATIVE_TOKEN } from "@/config/contracts";
+
+// ABI for Seaport's fulfillBasicOrder and the gas-optimised variant used by
+// Seaport 1.6.  Both take the same flat BasicOrderParameters struct.
+// The signature field is embedded inside the struct (not a separate arg).
+const SEAPORT_BASIC_ORDER_ABI = [
+  {
+    type: "function",
+    name: "fulfillBasicOrder",
+    stateMutability: "payable",
+    inputs: [
+      {
+        name: "parameters",
+        type: "tuple",
+        components: [
+          { name: "considerationToken",                   type: "address"   },
+          { name: "considerationIdentifier",              type: "uint256"   },
+          { name: "considerationAmount",                  type: "uint256"   },
+          { name: "offerer",                              type: "address"   },
+          { name: "zone",                                 type: "address"   },
+          { name: "offerToken",                           type: "address"   },
+          { name: "offerIdentifier",                      type: "uint256"   },
+          { name: "offerAmount",                          type: "uint256"   },
+          { name: "basicOrderType",                       type: "uint8"     },
+          { name: "startTime",                            type: "uint256"   },
+          { name: "endTime",                              type: "uint256"   },
+          { name: "zoneHash",                             type: "bytes32"   },
+          { name: "salt",                                 type: "uint256"   },
+          { name: "offererConduitKey",                    type: "bytes32"   },
+          { name: "fulfillerConduitKey",                  type: "bytes32"   },
+          { name: "totalOriginalAdditionalRecipients",    type: "uint256"   },
+          {
+            name: "additionalRecipients",
+            type: "tuple[]",
+            components: [
+              { name: "amount",    type: "uint256" },
+              { name: "recipient", type: "address" },
+            ],
+          },
+          { name: "signature", type: "bytes" },
+        ],
+      },
+    ],
+    outputs: [{ name: "fulfilled", type: "bool" }],
+  },
+  {
+    type: "function",
+    name: "fulfillBasicOrder_efficient_6GL6yc",
+    stateMutability: "payable",
+    inputs: [
+      {
+        name: "parameters",
+        type: "tuple",
+        components: [
+          { name: "considerationToken",                   type: "address"   },
+          { name: "considerationIdentifier",              type: "uint256"   },
+          { name: "considerationAmount",                  type: "uint256"   },
+          { name: "offerer",                              type: "address"   },
+          { name: "zone",                                 type: "address"   },
+          { name: "offerToken",                           type: "address"   },
+          { name: "offerIdentifier",                      type: "uint256"   },
+          { name: "offerAmount",                          type: "uint256"   },
+          { name: "basicOrderType",                       type: "uint8"     },
+          { name: "startTime",                            type: "uint256"   },
+          { name: "endTime",                              type: "uint256"   },
+          { name: "zoneHash",                             type: "bytes32"   },
+          { name: "salt",                                 type: "uint256"   },
+          { name: "offererConduitKey",                    type: "bytes32"   },
+          { name: "fulfillerConduitKey",                  type: "bytes32"   },
+          { name: "totalOriginalAdditionalRecipients",    type: "uint256"   },
+          {
+            name: "additionalRecipients",
+            type: "tuple[]",
+            components: [
+              { name: "amount",    type: "uint256" },
+              { name: "recipient", type: "address" },
+            ],
+          },
+          { name: "signature", type: "bytes" },
+        ],
+      },
+    ],
+    outputs: [{ name: "fulfilled", type: "bool" }],
+  },
+] as const;
 import { fetchSeaportFulfillment } from "@/lib/api";
 import type { SeaportOrder, SeaportOrderParameters } from "@/lib/types";
 
@@ -187,50 +271,23 @@ export function useFulfillSeaportOrder(order: SeaportOrder | null) {
         chain:        order.chain as "ethereum" | "polygon",
         buyerAddress: address,
       });
-      console.log("[fulfill] ✓ backend returned fulfillment data — opening MetaMask for Seaport tx");
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const params = fulfillment.parameters as any;
-      const sig    = fulfillment.signature as `0x${string}`;
-      const value  = isNative ? BigInt(fulfillment.value) : 0n;
+      const fnName = fulfillment.functionName as
+        | "fulfillBasicOrder"
+        | "fulfillBasicOrder_efficient_6GL6yc";
+
+      console.log(
+        `[fulfill] ✓ calldata ready — fn=${fnName} to=${fulfillment.to}` +
+        ` value=${fulfillment.value} — opening wallet`
+      );
 
       const hash = await writeContractAsync({
-        address: SEAPORT_ADDRESS,
-        abi: SEAPORT_ABI,
-        functionName: "fulfillOrder",
-        args: [
-          {
-            parameters: {
-              offerer:    params.offerer as `0x${string}`,
-              zone:       params.zone   as `0x${string}`,
-              offer: (params.offer as SeaportOrderParameters["offer"]).map((o) => ({
-                itemType:             o.itemType,
-                token:                o.token as `0x${string}`,
-                identifierOrCriteria: BigInt(o.identifierOrCriteria),
-                startAmount:          BigInt(o.startAmount),
-                endAmount:            BigInt(o.endAmount),
-              })),
-              consideration: (params.consideration as SeaportOrderParameters["consideration"]).map((c) => ({
-                itemType:             c.itemType,
-                token:                c.token as `0x${string}`,
-                identifierOrCriteria: BigInt(c.identifierOrCriteria),
-                startAmount:          BigInt(c.startAmount),
-                endAmount:            BigInt(c.endAmount),
-                recipient:            c.recipient as `0x${string}`,
-              })),
-              orderType:                       params.orderType,
-              startTime:                       BigInt(params.startTime),
-              endTime:                         BigInt(params.endTime),
-              zoneHash:                        params.zoneHash as `0x${string}`,
-              salt:                            BigInt(params.salt),
-              conduitKey:                      params.conduitKey as `0x${string}`,
-              totalOriginalConsiderationItems: BigInt(params.totalOriginalConsiderationItems),
-            },
-            signature: sig,
-          },
-          "0x0000000000000000000000000000000000000000000000000000000000000000",
-        ],
-        value,
+        address:      fulfillment.to as `0x${string}`,
+        abi:          SEAPORT_BASIC_ORDER_ABI,
+        functionName: fnName,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        args:         [fulfillment.parameters as any],
+        value:        BigInt(fulfillment.value),
       });
 
       console.log("[fulfill] ✓ fulfill tx submitted:", hash);
@@ -241,7 +298,7 @@ export function useFulfillSeaportOrder(order: SeaportOrder | null) {
       setStep("error");
       setError(parseContractError(err));
     }
-  }, [order, address, isNative, writeContractAsync]);
+  }, [order, address, writeContractAsync]);
 
   // ── execute ──────────────────────────────────────────────────────────────────
   // Main entry point.  For ERC-20 orders: approve → inline-wait for receipt →
