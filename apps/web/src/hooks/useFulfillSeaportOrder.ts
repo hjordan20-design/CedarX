@@ -10,6 +10,18 @@
  *
  * Uses the Seaport v1.5 fulfillOrder() function directly through viem/wagmi
  * (no @opensea/seaport-js dependency required).
+ *
+ * Approval → fulfillment bridge
+ * ------------------------------
+ * Previous versions used a useEffect([approveConfirmed]) to trigger fulfillment
+ * after approval — this was unreliable because:
+ *   1. The eslint-disable on the deps array meant submitFulfill could be stale.
+ *   2. void-ing the promise swallowed any early-return silently, leaving the UI
+ *      frozen on "pending-approval" with no error shown.
+ *
+ * The current implementation calls publicClient.waitForTransactionReceipt()
+ * inline inside execute() so the entire flow is one linear async chain with
+ * no cross-effect handoff.
  */
 
 import { useState, useCallback, useEffect } from "react";
@@ -18,6 +30,7 @@ import {
   useWaitForTransactionReceipt,
   useReadContract,
   useAccount,
+  usePublicClient,
 } from "wagmi";
 import { parseUnits } from "viem";
 import { SEAPORT_ADDRESS, SEAPORT_ABI, NATIVE_TOKEN } from "@/config/contracts";
@@ -110,9 +123,9 @@ function totalErc20Value(order: SeaportOrder): bigint {
 
 export function useFulfillSeaportOrder(order: SeaportOrder | null) {
   const { address } = useAccount();
+  const publicClient = usePublicClient();
   const [step, setStep] = useState<FulfillStep>("idle");
   const [error, setError] = useState<string | null>(null);
-  const [approveTxHash, setApproveTxHash] = useState<`0x${string}` | undefined>();
   const [fulfillTxHash, setFulfillTxHash] = useState<`0x${string}` | undefined>();
 
   const isNative = order ? isNativeEth(order.paymentToken) : false;
@@ -130,11 +143,8 @@ export function useFulfillSeaportOrder(order: SeaportOrder | null) {
 
   const { writeContractAsync } = useWriteContract();
 
-  const { isSuccess: approveConfirmed } = useWaitForTransactionReceipt({
-    hash: approveTxHash,
-    query: { enabled: !!approveTxHash },
-  });
-
+  // Watch for fulfill tx confirmation / revert (still reactive — we need the
+  // receipt to know when the on-chain transfer completes).
   const { isSuccess: fulfillConfirmed, isError: fulfillReverted } =
     useWaitForTransactionReceipt({
       hash: fulfillTxHash,
@@ -142,31 +152,42 @@ export function useFulfillSeaportOrder(order: SeaportOrder | null) {
     });
 
   useEffect(() => {
-    if (fulfillConfirmed) setStep("success");
+    if (fulfillConfirmed) {
+      console.log("[fulfill] ✓ fulfill tx confirmed on-chain");
+      setStep("success");
+    }
   }, [fulfillConfirmed]);
 
   useEffect(() => {
     if (fulfillReverted) {
+      console.log("[fulfill] ✗ fulfill tx reverted on-chain");
       setStep("error");
       setError("Transaction reverted on-chain.");
     }
   }, [fulfillReverted]);
 
+  // ── submitFulfill ────────────────────────────────────────────────────────────
+  // Fetches live calldata from the backend (OpenSea fulfillment_data API) then
+  // opens MetaMask for the Seaport fulfillOrder call.
+  // Called directly from execute() after any required approval is confirmed.
+
   const submitFulfill = useCallback(async () => {
-    if (!order || !address) return;
+    if (!order || !address) {
+      // Should never happen if called from execute(), but guard defensively.
+      console.warn("[fulfill] submitFulfill: missing order or address", { hasOrder: !!order, address });
+      return;
+    }
+
+    console.log("[fulfill] → step: fulfilling — requesting calldata from backend");
+    setStep("fulfilling");
 
     try {
-      setStep("fulfilling");
-
-      // Fetch the live order parameters + resolved seller signature from our
-      // backend, which proxies to OpenSea's fulfillment_data API.  OpenSea
-      // resolves lazy/on-chain signatures server-side so we never need a
-      // stored signature — it is always fetched fresh at purchase time.
       const fulfillment = await fetchSeaportFulfillment({
         orderHash:    order.orderHash,
         chain:        order.chain as "ethereum" | "polygon",
         buyerAddress: address,
       });
+      console.log("[fulfill] ✓ backend returned fulfillment data — opening MetaMask for Seaport tx");
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const params = fulfillment.parameters as any;
@@ -211,26 +232,32 @@ export function useFulfillSeaportOrder(order: SeaportOrder | null) {
         ],
         value,
       });
+
+      console.log("[fulfill] ✓ fulfill tx submitted:", hash);
       setFulfillTxHash(hash);
       setStep("pending-fulfill");
     } catch (err) {
+      console.error("[fulfill] submitFulfill error:", err);
       setStep("error");
       setError(parseContractError(err));
     }
   }, [order, address, isNative, writeContractAsync]);
 
-  // After ERC-20 approval confirms, auto-submit fulfillment
-  useEffect(() => {
-    if (approveConfirmed) void submitFulfill();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [approveConfirmed]);
+  // ── execute ──────────────────────────────────────────────────────────────────
+  // Main entry point.  For ERC-20 orders: approve → inline-wait for receipt →
+  // fulfillment.  For native ETH: go straight to fulfillment.
+  //
+  // Waiting for the approval receipt is done imperatively with
+  // publicClient.waitForTransactionReceipt() rather than via a useEffect bridge
+  // so the entire flow is one linear async chain with no stale-closure risk.
 
   const execute = useCallback(async () => {
     if (!address || !order) return;
+    console.log("[fulfill] execute — isNative:", isNative, "erc20Amount:", erc20Amount.toString(), "allowance:", String(allowance));
     setError(null);
 
-    // Validate before touching the wallet so the user sees a clear message
-    // instead of a raw JS error if the order blob is malformed.
+    // Validate stored order has usable parameter arrays (signature may be null —
+    // it is resolved at fulfillment time via the backend).
     if (!getValidatedParams(order)) {
       setStep("error");
       setError("Order data unavailable, try again later.");
@@ -241,30 +268,39 @@ export function useFulfillSeaportOrder(order: SeaportOrder | null) {
       if (!isNative) {
         const needsApproval =
           !(allowance as bigint | undefined) || (allowance as bigint) < erc20Amount;
+        console.log("[fulfill] needsApproval:", needsApproval);
+
         if (needsApproval) {
+          console.log("[fulfill] → step: approving-token");
           setStep("approving-token");
-          const hash = await writeContractAsync({
+
+          const approveHash = await writeContractAsync({
             address: paymentTokenAddress!,
             abi: ERC20_ABI,
             functionName: "approve",
             args: [SEAPORT_ADDRESS, erc20Amount],
           });
-          setApproveTxHash(hash);
+          console.log("[fulfill] ✓ approval tx submitted:", approveHash);
           setStep("pending-approval");
-          return;
+
+          if (!publicClient) throw new Error("No public client — wallet may be on an unsupported chain");
+          console.log("[fulfill] waiting for approval receipt...");
+          await publicClient.waitForTransactionReceipt({ hash: approveHash });
+          console.log("[fulfill] ✓ approval confirmed");
         }
       }
+
       await submitFulfill();
     } catch (err) {
+      console.error("[fulfill] execute error:", err);
       setStep("error");
       setError(parseContractError(err));
     }
-  }, [address, order, isNative, allowance, erc20Amount, paymentTokenAddress, writeContractAsync, submitFulfill]);
+  }, [address, order, isNative, allowance, erc20Amount, paymentTokenAddress, writeContractAsync, submitFulfill, publicClient]);
 
   const reset = useCallback(() => {
     setStep("idle");
     setError(null);
-    setApproveTxHash(undefined);
     setFulfillTxHash(undefined);
   }, []);
 
