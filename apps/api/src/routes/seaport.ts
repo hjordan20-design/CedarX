@@ -11,6 +11,7 @@
 
 import { Router, type Request, type Response } from "express";
 import { z } from "zod";
+import { encodeFunctionData } from "viem";
 import {
     getActiveSeaportOrder,
     upsertSeaportOrder,
@@ -136,6 +137,98 @@ seaportRouter.post("/listings", async (req: Request, res: Response) => {
 // store the signature at all — it is fetched fresh at the moment of purchase.
 
 const SEAPORT_PROTOCOL_ADDRESS = "0x00000000000000ADc04C56Bf30aC9d3c0aAF14dC";
+
+const BASIC_ORDER_COMPONENTS = [
+    { name: "considerationToken",                type: "address" as const },
+    { name: "considerationIdentifier",           type: "uint256" as const },
+    { name: "considerationAmount",               type: "uint256" as const },
+    { name: "offerer",                           type: "address" as const },
+    { name: "zone",                              type: "address" as const },
+    { name: "offerToken",                        type: "address" as const },
+    { name: "offerIdentifier",                   type: "uint256" as const },
+    { name: "offerAmount",                       type: "uint256" as const },
+    { name: "basicOrderType",                    type: "uint8"   as const },
+    { name: "startTime",                         type: "uint256" as const },
+    { name: "endTime",                           type: "uint256" as const },
+    { name: "zoneHash",                          type: "bytes32" as const },
+    { name: "salt",                              type: "uint256" as const },
+    { name: "offererConduitKey",                 type: "bytes32" as const },
+    { name: "fulfillerConduitKey",               type: "bytes32" as const },
+    { name: "totalOriginalAdditionalRecipients", type: "uint256" as const },
+    {
+        name: "additionalRecipients",
+        type: "tuple[]" as const,
+        components: [
+            { name: "amount",    type: "uint256"  as const },
+            { name: "recipient", type: "address"  as const },
+        ],
+    },
+    { name: "signature", type: "bytes" as const },
+] as const;
+
+// ABI for both Seaport fulfillBasicOrder variants (1.5 and 1.6 efficient).
+const SEAPORT_BASIC_ORDER_ABI = [
+    {
+        type: "function" as const,
+        name: "fulfillBasicOrder" as const,
+        stateMutability: "payable" as const,
+        inputs: [{ name: "parameters", type: "tuple" as const, components: BASIC_ORDER_COMPONENTS }],
+        outputs: [{ name: "fulfilled", type: "bool" as const }],
+    },
+    {
+        type: "function" as const,
+        name: "fulfillBasicOrder_efficient_6GL6yc" as const,
+        stateMutability: "payable" as const,
+        inputs: [{ name: "parameters", type: "tuple" as const, components: BASIC_ORDER_COMPONENTS }],
+        outputs: [{ name: "fulfilled", type: "bool" as const }],
+    },
+] as const;
+
+/**
+ * ABI-encode a BasicOrderParameters struct.
+ *
+ * OpenSea's fulfillment_data response returns uint256 fields as decimal
+ * strings.  We must convert them to BigInt before passing to viem's
+ * encodeFunctionData, otherwise they encode as 0x00…00.
+ */
+function encodeBasicOrderCalldata(
+    fnName: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    p: any,
+): `0x${string}` {
+    const functionName = (fnName === "fulfillBasicOrder_efficient_6GL6yc"
+        ? "fulfillBasicOrder_efficient_6GL6yc"
+        : "fulfillBasicOrder") as "fulfillBasicOrder" | "fulfillBasicOrder_efficient_6GL6yc";
+
+    return encodeFunctionData({
+        abi: SEAPORT_BASIC_ORDER_ABI,
+        functionName,
+        args: [{
+            considerationToken:               p.considerationToken as `0x${string}`,
+            considerationIdentifier:          BigInt(p.considerationIdentifier),
+            considerationAmount:              BigInt(p.considerationAmount),
+            offerer:                          p.offerer           as `0x${string}`,
+            zone:                             p.zone              as `0x${string}`,
+            offerToken:                       p.offerToken        as `0x${string}`,
+            offerIdentifier:                  BigInt(p.offerIdentifier),
+            offerAmount:                      BigInt(p.offerAmount),
+            basicOrderType:                   Number(p.basicOrderType),
+            startTime:                        BigInt(p.startTime),
+            endTime:                          BigInt(p.endTime),
+            zoneHash:                         p.zoneHash          as `0x${string}`,
+            salt:                             BigInt(p.salt),
+            offererConduitKey:                p.offererConduitKey as `0x${string}`,
+            fulfillerConduitKey:              p.fulfillerConduitKey as `0x${string}`,
+            totalOriginalAdditionalRecipients: BigInt(p.totalOriginalAdditionalRecipients),
+            additionalRecipients:             // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                (p.additionalRecipients as any[]).map((r: any) => ({
+                    amount:    BigInt(r.amount),
+                    recipient: r.recipient as `0x${string}`,
+                })),
+            signature: p.signature as `0x${string}`,
+        }],
+    });
+}
 
 interface OpenSeaFulfillmentResponse {
     protocol?: string; // e.g. "seaport1.6"
@@ -276,16 +369,31 @@ seaportRouter.post("/fulfill", async (req: Request, res: Response) => {
         : "fulfillBasicOrder";
 
     console.log(
-        `[seaport/fulfill] ✓ hash=${orderHash}` +
-        ` fn=${functionName} to=${tx.to} value=${tx.value ?? 0}`
+        `[seaport/fulfill] encoding calldata — fn=${functionName} to=${tx.to} value=${tx.value ?? 0}`
     );
+    console.log(`[seaport/fulfill] input_data.parameters:`, JSON.stringify(tx.input_data.parameters));
+
+    // Encode the calldata on the backend where we can safely convert all
+    // uint256 string fields to BigInt.  The frontend will use sendTransaction
+    // with the raw hex so no ABI encoding happens client-side.
+    let data: `0x${string}`;
+    try {
+        data = encodeBasicOrderCalldata(functionName, tx.input_data.parameters);
+    } catch (encErr) {
+        console.error("[seaport/fulfill] calldata encoding failed:", encErr);
+        return res.status(502).json({
+            error: "Failed to encode Seaport calldata",
+            details: encErr instanceof Error ? encErr.message : String(encErr),
+        });
+    }
+
+    console.log(`[seaport/fulfill] ✓ calldata encoded (${data.length / 2 - 1} bytes) for hash=${orderHash}`);
 
     return res.json({
-        to:           tx.to,
-        functionName,
-        parameters:   tx.input_data.parameters,
+        to:    tx.to,
+        data,
         // ETH value in wei as a decimal string; "0" for ERC-20 orders
-        value:        String(tx.value ?? "0"),
+        value: String(tx.value ?? "0"),
     });
 });
 

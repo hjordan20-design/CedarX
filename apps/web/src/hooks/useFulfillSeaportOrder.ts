@@ -28,96 +28,12 @@ import { useState, useCallback, useEffect } from "react";
 import {
   useWriteContract,
   useWaitForTransactionReceipt,
-  useReadContract,
+  useSendTransaction,
   useAccount,
   usePublicClient,
 } from "wagmi";
-import { parseUnits } from "viem";
 import { SEAPORT_ADDRESS, NATIVE_TOKEN } from "@/config/contracts";
 
-// ABI for Seaport's fulfillBasicOrder and the gas-optimised variant used by
-// Seaport 1.6.  Both take the same flat BasicOrderParameters struct.
-// The signature field is embedded inside the struct (not a separate arg).
-const SEAPORT_BASIC_ORDER_ABI = [
-  {
-    type: "function",
-    name: "fulfillBasicOrder",
-    stateMutability: "payable",
-    inputs: [
-      {
-        name: "parameters",
-        type: "tuple",
-        components: [
-          { name: "considerationToken",                   type: "address"   },
-          { name: "considerationIdentifier",              type: "uint256"   },
-          { name: "considerationAmount",                  type: "uint256"   },
-          { name: "offerer",                              type: "address"   },
-          { name: "zone",                                 type: "address"   },
-          { name: "offerToken",                           type: "address"   },
-          { name: "offerIdentifier",                      type: "uint256"   },
-          { name: "offerAmount",                          type: "uint256"   },
-          { name: "basicOrderType",                       type: "uint8"     },
-          { name: "startTime",                            type: "uint256"   },
-          { name: "endTime",                              type: "uint256"   },
-          { name: "zoneHash",                             type: "bytes32"   },
-          { name: "salt",                                 type: "uint256"   },
-          { name: "offererConduitKey",                    type: "bytes32"   },
-          { name: "fulfillerConduitKey",                  type: "bytes32"   },
-          { name: "totalOriginalAdditionalRecipients",    type: "uint256"   },
-          {
-            name: "additionalRecipients",
-            type: "tuple[]",
-            components: [
-              { name: "amount",    type: "uint256" },
-              { name: "recipient", type: "address" },
-            ],
-          },
-          { name: "signature", type: "bytes" },
-        ],
-      },
-    ],
-    outputs: [{ name: "fulfilled", type: "bool" }],
-  },
-  {
-    type: "function",
-    name: "fulfillBasicOrder_efficient_6GL6yc",
-    stateMutability: "payable",
-    inputs: [
-      {
-        name: "parameters",
-        type: "tuple",
-        components: [
-          { name: "considerationToken",                   type: "address"   },
-          { name: "considerationIdentifier",              type: "uint256"   },
-          { name: "considerationAmount",                  type: "uint256"   },
-          { name: "offerer",                              type: "address"   },
-          { name: "zone",                                 type: "address"   },
-          { name: "offerToken",                           type: "address"   },
-          { name: "offerIdentifier",                      type: "uint256"   },
-          { name: "offerAmount",                          type: "uint256"   },
-          { name: "basicOrderType",                       type: "uint8"     },
-          { name: "startTime",                            type: "uint256"   },
-          { name: "endTime",                              type: "uint256"   },
-          { name: "zoneHash",                             type: "bytes32"   },
-          { name: "salt",                                 type: "uint256"   },
-          { name: "offererConduitKey",                    type: "bytes32"   },
-          { name: "fulfillerConduitKey",                  type: "bytes32"   },
-          { name: "totalOriginalAdditionalRecipients",    type: "uint256"   },
-          {
-            name: "additionalRecipients",
-            type: "tuple[]",
-            components: [
-              { name: "amount",    type: "uint256" },
-              { name: "recipient", type: "address" },
-            ],
-          },
-          { name: "signature", type: "bytes" },
-        ],
-      },
-    ],
-    outputs: [{ name: "fulfilled", type: "bool" }],
-  },
-] as const;
 import { fetchSeaportFulfillment } from "@/lib/api";
 import type { SeaportOrder, SeaportOrderParameters } from "@/lib/types";
 
@@ -216,19 +132,12 @@ export function useFulfillSeaportOrder(order: SeaportOrder | null) {
   const paymentTokenAddress = order?.paymentToken as `0x${string}` | undefined;
   const erc20Amount = order ? totalErc20Value(order) : 0n;
 
-  // Check current ERC-20 allowance for Seaport
-  const { data: allowance } = useReadContract({
-    address: paymentTokenAddress,
-    abi: ERC20_ABI,
-    functionName: "allowance",
-    args: [address as `0x${string}`, SEAPORT_ADDRESS],
-    query: { enabled: !!address && !isNative && !!paymentTokenAddress },
-  });
-
+  // writeContractAsync: used only for ERC-20 approval
   const { writeContractAsync } = useWriteContract();
+  // sendTransactionAsync: used for the raw Seaport fulfillment calldata
+  const { sendTransactionAsync } = useSendTransaction();
 
-  // Watch for fulfill tx confirmation / revert (still reactive — we need the
-  // receipt to know when the on-chain transfer completes).
+  // Watch for fulfill tx confirmation / revert
   const { isSuccess: fulfillConfirmed, isError: fulfillReverted } =
     useWaitForTransactionReceipt({
       hash: fulfillTxHash,
@@ -250,110 +159,88 @@ export function useFulfillSeaportOrder(order: SeaportOrder | null) {
     }
   }, [fulfillReverted]);
 
-  // ── submitFulfill ────────────────────────────────────────────────────────────
-  // Fetches live calldata from the backend (OpenSea fulfillment_data API) then
-  // opens MetaMask for the Seaport fulfillOrder call.
-  // Called directly from execute() after any required approval is confirmed.
+  // ── execute ──────────────────────────────────────────────────────────────────
+  // New flow (fixes approval-to-wrong-contract + ABI encoding issues):
+  //
+  //   1. Fetch fulfillment_data from backend → get exact contract "to" + raw calldata
+  //   2. If ERC-20: read current allowance against that EXACT contract address,
+  //      approve if needed, wait for receipt imperatively
+  //   3. Send raw transaction with the pre-encoded calldata from backend
+  //
+  // Encoding is done on the backend where all uint256 string→BigInt conversions
+  // are guaranteed correct.  The frontend just forwards raw bytes.
 
-  const submitFulfill = useCallback(async () => {
-    if (!order || !address) {
-      // Should never happen if called from execute(), but guard defensively.
-      console.warn("[fulfill] submitFulfill: missing order or address", { hasOrder: !!order, address });
+  const execute = useCallback(async () => {
+    if (!address || !order) return;
+    setError(null);
+
+    if (!publicClient) {
+      setStep("error");
+      setError("No public client — wallet may be on an unsupported chain.");
       return;
     }
 
-    console.log("[fulfill] → step: fulfilling — requesting calldata from backend");
-    setStep("fulfilling");
-
     try {
+      // Step 1: fetch calldata (this also validates the order is still live)
+      console.log("[fulfill] → fetching calldata from backend");
+      setStep("fulfilling");
       const fulfillment = await fetchSeaportFulfillment({
         orderHash:    order.orderHash,
         chain:        order.chain as "ethereum" | "polygon",
         buyerAddress: address,
       });
+      const seaportContract = fulfillment.to as `0x${string}`;
+      console.log(`[fulfill] ✓ calldata ready — to=${seaportContract} value=${fulfillment.value}`);
 
-      const fnName = fulfillment.functionName as
-        | "fulfillBasicOrder"
-        | "fulfillBasicOrder_efficient_6GL6yc";
+      // Step 2: ERC-20 approval — must target the ACTUAL Seaport contract
+      if (!isNative && paymentTokenAddress) {
+        const currentAllowance = await publicClient.readContract({
+          address:      paymentTokenAddress,
+          abi:          ERC20_ABI,
+          functionName: "allowance",
+          args:         [address, seaportContract],
+        }) as bigint;
 
-      console.log(
-        `[fulfill] ✓ calldata ready — fn=${fnName} to=${fulfillment.to}` +
-        ` value=${fulfillment.value} — opening wallet`
-      );
+        console.log(`[fulfill] USDC allowance for ${seaportContract}: ${currentAllowance} (need ${erc20Amount})`);
 
-      const hash = await writeContractAsync({
-        address:      fulfillment.to as `0x${string}`,
-        abi:          SEAPORT_BASIC_ORDER_ABI,
-        functionName: fnName,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        args:         [fulfillment.parameters as any],
-        value:        BigInt(fulfillment.value),
+        if (currentAllowance < erc20Amount) {
+          console.log("[fulfill] → approving USDC for Seaport contract");
+          setStep("approving-token");
+
+          const approveHash = await writeContractAsync({
+            address:      paymentTokenAddress,
+            abi:          ERC20_ABI,
+            functionName: "approve",
+            args:         [seaportContract, erc20Amount],
+          });
+          console.log("[fulfill] ✓ approval tx submitted:", approveHash);
+          setStep("pending-approval");
+
+          await publicClient.waitForTransactionReceipt({ hash: approveHash });
+          console.log("[fulfill] ✓ approval confirmed on-chain");
+        } else {
+          console.log("[fulfill] sufficient allowance already present — skipping approval");
+        }
+      }
+
+      // Step 3: send the raw pre-encoded calldata from OpenSea/backend
+      console.log("[fulfill] → sending Seaport fulfillment tx");
+      setStep("fulfilling");
+      const hash = await sendTransactionAsync({
+        to:    seaportContract,
+        data:  fulfillment.data as `0x${string}`,
+        value: BigInt(fulfillment.value),
       });
 
       console.log("[fulfill] ✓ fulfill tx submitted:", hash);
       setFulfillTxHash(hash);
       setStep("pending-fulfill");
     } catch (err) {
-      console.error("[fulfill] submitFulfill error:", err);
+      console.error("[fulfill] error:", err);
       setStep("error");
       setError(parseContractError(err));
     }
-  }, [order, address, writeContractAsync]);
-
-  // ── execute ──────────────────────────────────────────────────────────────────
-  // Main entry point.  For ERC-20 orders: approve → inline-wait for receipt →
-  // fulfillment.  For native ETH: go straight to fulfillment.
-  //
-  // Waiting for the approval receipt is done imperatively with
-  // publicClient.waitForTransactionReceipt() rather than via a useEffect bridge
-  // so the entire flow is one linear async chain with no stale-closure risk.
-
-  const execute = useCallback(async () => {
-    if (!address || !order) return;
-    console.log("[fulfill] execute — isNative:", isNative, "erc20Amount:", erc20Amount.toString(), "allowance:", String(allowance));
-    setError(null);
-
-    // Validate stored order has usable parameter arrays (signature may be null —
-    // it is resolved at fulfillment time via the backend).
-    if (!getValidatedParams(order)) {
-      setStep("error");
-      setError("Order data unavailable, try again later.");
-      return;
-    }
-
-    try {
-      if (!isNative) {
-        const needsApproval =
-          !(allowance as bigint | undefined) || (allowance as bigint) < erc20Amount;
-        console.log("[fulfill] needsApproval:", needsApproval);
-
-        if (needsApproval) {
-          console.log("[fulfill] → step: approving-token");
-          setStep("approving-token");
-
-          const approveHash = await writeContractAsync({
-            address: paymentTokenAddress!,
-            abi: ERC20_ABI,
-            functionName: "approve",
-            args: [SEAPORT_ADDRESS, erc20Amount],
-          });
-          console.log("[fulfill] ✓ approval tx submitted:", approveHash);
-          setStep("pending-approval");
-
-          if (!publicClient) throw new Error("No public client — wallet may be on an unsupported chain");
-          console.log("[fulfill] waiting for approval receipt...");
-          await publicClient.waitForTransactionReceipt({ hash: approveHash });
-          console.log("[fulfill] ✓ approval confirmed");
-        }
-      }
-
-      await submitFulfill();
-    } catch (err) {
-      console.error("[fulfill] execute error:", err);
-      setStep("error");
-      setError(parseContractError(err));
-    }
-  }, [address, order, isNative, allowance, erc20Amount, paymentTokenAddress, writeContractAsync, submitFulfill, publicClient]);
+  }, [address, order, isNative, erc20Amount, paymentTokenAddress, publicClient, writeContractAsync, sendTransactionAsync]);
 
   const reset = useCallback(() => {
     setStep("idle");
