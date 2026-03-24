@@ -21,7 +21,7 @@ import {
 } from "wagmi";
 import { parseUnits } from "viem";
 import { SEAPORT_ADDRESS, SEAPORT_ABI, NATIVE_TOKEN } from "@/config/contracts";
-import type { SeaportOrder } from "@/lib/types";
+import type { SeaportOrder, SeaportOrderParameters } from "@/lib/types";
 
 const ERC20_ABI = [
   {
@@ -60,11 +60,46 @@ function isNativeEth(paymentToken: string): boolean {
          paymentToken === "0x0000000000000000000000000000000000000000";
 }
 
+/**
+ * Safely extract and validate the executable parts of a SeaportOrder.
+ *
+ * Handles every broken shape that has been observed in production:
+ *   1. orderParameters is null / undefined
+ *   2. orderParameters was stored as a JSON string (text column vs jsonb)
+ *   3. orderParameters is an object but .parameters is missing or null
+ *   4. parameters.offer or parameters.consideration is null / not an array
+ *
+ * Returns null when the order cannot be fulfilled; callers must show an error.
+ * Exported so BuyModal can use the same check at render time.
+ */
+export function getValidatedParams(
+  order: SeaportOrder,
+): { params: SeaportOrderParameters; signature: string } | null {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let blob: any = order.orderParameters;
+  if (blob == null) return null;
+
+  // Some DB rows store the blob as a JSON string rather than a parsed object.
+  if (typeof blob === "string") {
+    try { blob = JSON.parse(blob); } catch { return null; }
+  }
+
+  const params: SeaportOrderParameters | null | undefined = blob?.parameters;
+  const signature: string | null | undefined = blob?.signature;
+
+  if (!params || !signature) return null;
+
+  // Guard the inner arrays — they must be real arrays to call .map() / .reduce()
+  if (!Array.isArray(params.offer) || !Array.isArray(params.consideration)) return null;
+
+  return { params, signature };
+}
+
 /** Sum the total ETH consideration from order parameters */
 function totalEthValue(order: SeaportOrder): bigint {
-  if (!order.orderParameters) return 0n;
-  const params = order.orderParameters.parameters;
-  return params.consideration.reduce((acc, item) => {
+  const validated = getValidatedParams(order);
+  if (!validated) return 0n;
+  return validated.params.consideration.reduce((acc, item) => {
     if (item.itemType === 0) return acc + BigInt(item.endAmount); // NATIVE
     return acc;
   }, 0n);
@@ -72,9 +107,9 @@ function totalEthValue(order: SeaportOrder): bigint {
 
 /** Total ERC-20 amount the fulfiller needs to pay */
 function totalErc20Value(order: SeaportOrder): bigint {
-  if (!order.orderParameters) return 0n;
-  const params = order.orderParameters.parameters;
-  return params.consideration.reduce((acc, item) => {
+  const validated = getValidatedParams(order);
+  if (!validated) return 0n;
+  return validated.params.consideration.reduce((acc, item) => {
     if (item.itemType === 1) return acc + BigInt(item.endAmount); // ERC20
     return acc;
   }, 0n);
@@ -127,14 +162,18 @@ export function useFulfillSeaportOrder(order: SeaportOrder | null) {
 
   const submitFulfill = useCallback(async () => {
     if (!order) return;
-    if (!order.orderParameters) {
+
+    // Validate — covers null, JSON-string, missing .parameters, null arrays
+    const validated = getValidatedParams(order);
+    if (!validated) {
       setStep("error");
       setError("Order data unavailable, try again later.");
       return;
     }
+
     try {
       setStep("fulfilling");
-      const params = order.orderParameters.parameters;
+      const { params, signature } = validated;
       const hash = await writeContractAsync({
         address: SEAPORT_ADDRESS,
         abi: SEAPORT_ABI,
@@ -167,7 +206,7 @@ export function useFulfillSeaportOrder(order: SeaportOrder | null) {
               conduitKey:                      params.conduitKey as `0x${string}`,
               totalOriginalConsiderationItems: BigInt(params.totalOriginalConsiderationItems),
             },
-            signature: order.orderParameters.signature as `0x${string}`,
+            signature: signature as `0x${string}`,
           },
           "0x0000000000000000000000000000000000000000000000000000000000000000",
         ],
@@ -190,6 +229,14 @@ export function useFulfillSeaportOrder(order: SeaportOrder | null) {
   const execute = useCallback(async () => {
     if (!address || !order) return;
     setError(null);
+
+    // Validate before touching the wallet so the user sees a clear message
+    // instead of a raw JS error if the order blob is malformed.
+    if (!getValidatedParams(order)) {
+      setStep("error");
+      setError("Order data unavailable, try again later.");
+      return;
+    }
 
     try {
       if (!isNative) {

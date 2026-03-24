@@ -1,6 +1,6 @@
 import { X, ArrowRight, CheckCircle, AlertCircle, Loader2, ExternalLink } from "lucide-react";
 import { useBuyAsset, type BuyStep } from "@/hooks/useBuyAsset";
-import { useFulfillSeaportOrder, type FulfillStep } from "@/hooks/useFulfillSeaportOrder";
+import { useFulfillSeaportOrder, getValidatedParams, type FulfillStep } from "@/hooks/useFulfillSeaportOrder";
 import { formatUSDC, formatTokenPrice } from "@/lib/formatters";
 import type { SeaportOrder } from "@/lib/types";
 import { formatUnits } from "viem";
@@ -187,7 +187,7 @@ function SeaportBuyContent({ assetName, order, onClose }: SeaportBuyContentProps
   const canDismiss = step === "idle" || step === "success" || step === "error";
   const isNative   = order.paymentToken === "0x0000000000000000000000000000000000000000";
 
-  if (!order.orderParameters) {
+  if (!getValidatedParams(order)) {
     return (
       <>
         <div className="px-6 py-8 flex items-start gap-3 text-cedar-red text-sm">
