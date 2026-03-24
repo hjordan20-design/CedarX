@@ -501,6 +501,48 @@ export async function setSeaportOrderStatus(
 }
 
 /**
+ * Return all active Seaport orders whose stored signature is null (JSON null or
+ * absent).  Used by the backfill pass to re-fetch signatures from OpenSea.
+ */
+export async function getActiveOrdersWithNullSignature(): Promise<
+    Array<{ order_hash: string; chain: string }>
+> {
+    const db = getDb();
+    // PostgREST JSONB text-extraction filter: order_parameters->>'signature' IS NULL
+    const { data, error } = await (db.from("seaport_orders") as any)
+        .select("order_hash, chain")
+        .eq("status", "active")
+        .filter("order_parameters->>signature", "is", null);
+    if (error) throw error;
+    return (data ?? []) as Array<{ order_hash: string; chain: string }>;
+}
+
+/**
+ * Patch only the signature key inside the order_parameters JSONB column.
+ * Does a read-modify-write so the parameters sub-object is preserved exactly.
+ */
+export async function patchOrderSignature(
+    orderHash: string,
+    signature: string
+): Promise<void> {
+    const db = getDb();
+    const { data, error: fetchErr } = await db
+        .from("seaport_orders")
+        .select("order_parameters")
+        .eq("order_hash", orderHash)
+        .single();
+    if (fetchErr) throw fetchErr;
+    if (!data) return;
+
+    const updated = { ...(data.order_parameters as Record<string, unknown>), signature };
+    const { error } = await db
+        .from("seaport_orders")
+        .update({ order_parameters: updated, updated_at: new Date().toISOString() })
+        .eq("order_hash", orderHash);
+    if (error) throw error;
+}
+
+/**
  * Mark all active orders for the given hashes as expired (used when OpenSea
  * stops returning them, which means they were filled/cancelled/expired).
  */

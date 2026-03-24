@@ -43,6 +43,8 @@ import {
     syncAssetSeaportListing,
     getActiveSeaportOrder,
     getAssetsWithActiveListing,
+    getActiveOrdersWithNullSignature,
+    patchOrderSignature,
 } from "../db/queries";
 import type { AssetDetails, AssetInsert, SeaportOrderInsert } from "../db/types";
 import { resolveImageUrl } from "../lib/ipfs";
@@ -176,13 +178,28 @@ interface OpenSeaListing {
     };
     protocol_data: {
         parameters: OpenSeaOrderParameters;
-        signature: string;
+        // OpenSea's collection-listings endpoint occasionally returns null here
+        // (on-chain orders, lazily-signed listings, etc.).  We backfill via the
+        // orders endpoint in backfillMissingSignatures().
+        signature: string | null;
     };
     protocol_address: string;
 }
 
 interface OpenSeaCollectionListingsResponse {
     listings: OpenSeaListing[];
+    next: string | null;
+}
+
+// Endpoint: GET /api/v2/orders/{chain}/seaport/listings?order_hash={hash}
+// This endpoint reliably includes the seller signature.
+interface OpenSeaOrdersResponse {
+    orders: Array<{
+        protocol_data: {
+            parameters: OpenSeaOrderParameters;
+            signature: string | null;
+        };
+    }>;
     next: string | null;
 }
 
@@ -384,6 +401,11 @@ export class SeaportPoller {
             }
 
             this.log(`tick complete — ${freshlySeen.size} active listing(s), ${syncCount} asset(s) synced`);
+
+            // Backfill any active orders whose signature is still null.
+            // Runs every tick so newly-seen null-signature orders are resolved
+            // within one poll interval rather than requiring a manual re-sync.
+            await this.backfillMissingSignatures();
         } catch (err) {
             this.logError("tick failed", err);
         }
@@ -555,6 +577,65 @@ export class SeaportPoller {
         for (const o of stale) {
             if (o.asset_id) affectedAssets.add(o.asset_id);
         }
+    }
+
+    // ── Backfill null signatures via the OpenSea orders endpoint ─────────────
+    //
+    // The collection-listings endpoint (/listings/collection/{slug}/all) can
+    // return null for protocol_data.signature on certain listing types.  The
+    // per-order endpoint (/orders/{chain}/seaport/listings?order_hash=…) always
+    // returns the real seller signature, so we use it to patch any gaps.
+
+    private async backfillMissingSignatures(): Promise<void> {
+        const orders = await getActiveOrdersWithNullSignature();
+        if (!orders.length) return;
+
+        this.log(`backfilling signatures for ${orders.length} order(s)`);
+        let patched = 0;
+
+        for (const order of orders) {
+            try {
+                // Map CedarX chain name → OpenSea chain slug
+                const openSeaChain = order.chain === "polygon" ? "matic" : order.chain;
+                const url = new URL(
+                    `${OPENSEA_API_BASE_URL}/api/v2/orders/${openSeaChain}/seaport/listings`
+                );
+                url.searchParams.set("order_hash", order.order_hash);
+
+                this.log(`GET ${url.toString()}`);
+                const res = await fetch(url.toString(), {
+                    headers: { "X-API-KEY": OPENSEA_API_KEY, "accept": "application/json" },
+                });
+
+                if (res.status === 429) {
+                    this.log("rate limit during signature backfill — stopping early");
+                    await sleep(5000);
+                    break;
+                }
+                if (!res.ok) {
+                    this.logError(`orders API ${res.status} for ${order.order_hash}`, await res.text());
+                    await sleep(DELAY_MS);
+                    continue;
+                }
+
+                const body = (await res.json()) as OpenSeaOrdersResponse;
+                const sig = body.orders?.[0]?.protocol_data?.signature;
+
+                if (sig && sig !== "0x") {
+                    await patchOrderSignature(order.order_hash, sig);
+                    this.log(`patched signature for ${order.order_hash}`);
+                    patched++;
+                } else {
+                    this.log(`no signature available yet for ${order.order_hash}`);
+                }
+
+                await sleep(DELAY_MS);
+            } catch (err) {
+                this.logError(`signature backfill failed for ${order.order_hash}`, err);
+            }
+        }
+
+        this.log(`signature backfill complete — ${patched}/${orders.length} patched`);
     }
 
     // ── Logging ───────────────────────────────────────────────────────────────
