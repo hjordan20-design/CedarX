@@ -368,20 +368,43 @@ export class SeaportPoller {
             return;
         }
 
-        const freshlySeen  = new Set<string>(); // order_hash values seen this tick
+        // Load all active orders from DB once up-front so each contract can
+        // immediately expire its stale orders without a second DB round-trip.
+        const allActive = await getAllActiveSeaportOrders();
+        this.log(`tick start — ${allActive.length} active order(s) in DB`);
+
+        const freshlySeen    = new Set<string>(); // accumulates across all contracts this tick
         const affectedAssets = new Set<string>(); // asset IDs that need has_active_listing sync
+        let totalExpired     = 0;
 
         try {
             for (const contract of contracts) {
                 try {
                     await this.processContract(contract, freshlySeen, affectedAssets);
+
+                    // Expire stale orders for THIS contract immediately after its
+                    // listings are fully paginated — don't wait for other contracts.
+                    // Match by asset_id prefix: "<protocol>:<chainId>:<contractAddress>:"
+                    const prefix = `${contract.protocol}:${contract.chainId}:${contract.contractAddress}:`;
+                    const stale = allActive.filter(
+                        (o) => o.asset_id?.startsWith(prefix) && !freshlySeen.has(o.order_hash)
+                    );
+                    if (stale.length) {
+                        await expireSeaportOrders(stale.map((o) => o.order_hash));
+                        for (const o of stale) if (o.asset_id) affectedAssets.add(o.asset_id);
+                        totalExpired += stale.length;
+                        this.log(
+                            `[${contract.protocol}] expired ${stale.length} stale order(s): ` +
+                            stale.slice(0, 5).map((o) => o.order_hash.slice(0, 10) + "…").join(", ") +
+                            (stale.length > 5 ? ` +${stale.length - 5} more` : "")
+                        );
+                    } else {
+                        this.log(`[${contract.protocol}] all active orders confirmed live`);
+                    }
                 } catch (err) {
                     this.logError(`contract ${contract.contractAddress} failed`, err);
                 }
             }
-
-            // Expire stored active orders that OpenSea no longer returns
-            await this.expireStaleOrders(freshlySeen, affectedAssets);
 
             // Full sweep: sync every asset touched this tick PLUS every asset
             // still flagged has_active_listing=true in the DB (catches stragglers
@@ -400,11 +423,12 @@ export class SeaportPoller {
                 }
             }
 
-            this.log(`tick complete — ${freshlySeen.size} active listing(s), ${syncCount} asset(s) synced`);
+            this.log(
+                `tick complete — ${freshlySeen.size} live listing(s), ` +
+                `${totalExpired} expired this tick, ${syncCount} asset(s) synced`
+            );
 
             // Backfill any active orders whose signature is still null.
-            // Runs every tick so newly-seen null-signature orders are resolved
-            // within one poll interval rather than requiring a manual re-sync.
             await this.backfillMissingSignatures();
         } catch (err) {
             this.logError("tick failed", err);
@@ -560,43 +584,6 @@ export class SeaportPoller {
             this.log(`auto-created ${assetId} (${assetRow.name})`);
         } catch (err) {
             this.logError(`auto-create failed for ${assetId}`, err);
-        }
-    }
-
-    // ── Expire stale orders that OpenSea no longer returns ────────────────────
-
-    private async expireStaleOrders(
-        freshlySeen: Set<string>,
-        affectedAssets: Set<string>
-    ): Promise<void> {
-        const allActive = await getAllActiveSeaportOrders();
-
-        // Every active order NOT returned by OpenSea this tick is treated as
-        // expired (filled / cancelled / timed-out on-chain).  Log both sets so
-        // hash mismatches between what we stored and what OpenSea returns are
-        // immediately visible in server logs.
-        this.log(
-            `order validation: ${allActive.length} active in DB, ` +
-            `${freshlySeen.size} seen from OpenSea this tick`
-        );
-
-        const stale = allActive.filter((o) => !freshlySeen.has(o.order_hash));
-
-        if (!stale.length) {
-            this.log("order validation: all active orders confirmed live on OpenSea");
-            return;
-        }
-
-        this.log(
-            `expiring ${stale.length} stale order(s): ` +
-            stale.slice(0, 5).map((o) => o.order_hash).join(", ") +
-            (stale.length > 5 ? ` … +${stale.length - 5} more` : "")
-        );
-        await expireSeaportOrders(stale.map((o) => o.order_hash));
-
-        // Queue their assets for has_active_listing sync
-        for (const o of stale) {
-            if (o.asset_id) affectedAssets.add(o.asset_id);
         }
     }
 
