@@ -87,6 +87,8 @@ export interface SeaportFulfillmentData {
   data: string;
   /** ETH value in wei as a decimal string; "0" for ERC-20 orders */
   value: string;
+  /** Server-side eth_call result — logs revert reason before MetaMask opens */
+  simulation?: { ok: boolean; result?: string; revertReason?: string };
 }
 
 export async function fetchSeaportFulfillment(params: {

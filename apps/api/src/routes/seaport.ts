@@ -11,7 +11,8 @@
 
 import { Router, type Request, type Response } from "express";
 import { z } from "zod";
-import { encodeFunctionData } from "viem";
+import { encodeFunctionData, createPublicClient, http } from "viem";
+import { polygon, mainnet } from "viem/chains";
 import {
     getActiveSeaportOrder,
     upsertSeaportOrder,
@@ -23,7 +24,13 @@ import {
     OPENSEA_API_KEY,
     OPENSEA_API_BASE_URL,
     CEDARX_FEE_WALLET,
+    POLYGON_RPC,
+    ETH_MAINNET_RPC,
 } from "../config";
+
+// Viem public clients for on-chain simulation
+const polygonClient = createPublicClient({ chain: polygon,  transport: http(POLYGON_RPC) });
+const ethClient     = createPublicClient({ chain: mainnet,  transport: http(ETH_MAINNET_RPC) });
 import type { SeaportOrderInsert } from "../db/types";
 
 export const seaportRouter = Router();
@@ -387,13 +394,47 @@ seaportRouter.post("/fulfill", async (req: Request, res: Response) => {
         });
     }
 
-    console.log(`[seaport/fulfill] ✓ calldata encoded (${data.length / 2 - 1} bytes) for hash=${orderHash}`);
+    const calldataBytes = data.length / 2 - 1;
+    console.log(`[seaport/fulfill] ✓ calldata encoded (${calldataBytes} bytes) selector=${data.slice(0, 10)}`);
+
+    // ── Server-side simulation (eth_call) ────────────────────────────────────
+    // Simulate the exact tx the frontend will send.  Any revert here means the
+    // real tx will also revert — we get the reason before MetaMask even opens.
+    const txValue = BigInt(tx.value ?? "0");
+    const rpcClient = chain === "polygon" ? polygonClient : ethClient;
+
+    let simulation: { ok: boolean; result?: string; revertReason?: string } = { ok: true };
+    try {
+        const simResult = await rpcClient.call({
+            to:      tx.to as `0x${string}`,
+            data,
+            value:   txValue,
+            account: buyerAddress as `0x${string}`,
+        });
+        simulation = { ok: true, result: simResult.data ?? "0x" };
+        console.log(`[seaport/fulfill] ✓ eth_call simulation succeeded — result=${simResult.data ?? "0x"}`);
+    } catch (simErr: unknown) {
+        // Extract revert reason from the error message / cause chain
+        let reason = "unknown";
+        if (simErr instanceof Error) {
+            // viem wraps revert data in ContractFunctionRevertedError or similar
+            const msg = simErr.message;
+            // Try to pull "reverted with reason string '...'" or raw hex
+            const reasonMatch = msg.match(/reverted(?:\s+with\s+(?:reason string\s+)?['"](.+?)['"])?/i);
+            reason = reasonMatch?.[1] ?? msg.slice(0, 300);
+        }
+        simulation = { ok: false, revertReason: reason };
+        console.error(`[seaport/fulfill] ✗ eth_call simulation REVERTED: ${reason}`);
+        console.error(`[seaport/fulfill] sim error full:`, simErr instanceof Error ? simErr.message : simErr);
+    }
 
     return res.json({
         to:    tx.to,
         data,
         // ETH value in wei as a decimal string; "0" for ERC-20 orders
         value: String(tx.value ?? "0"),
+        // Simulation result — frontend logs this; does not block the tx
+        simulation,
     });
 });
 

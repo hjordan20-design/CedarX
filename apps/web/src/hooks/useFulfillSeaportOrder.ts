@@ -191,6 +191,20 @@ export function useFulfillSeaportOrder(order: SeaportOrder | null) {
       });
       const seaportContract = fulfillment.to as `0x${string}`;
       console.log(`[fulfill] ✓ calldata ready — to=${seaportContract} value=${fulfillment.value}`);
+      console.log(`[fulfill] calldata selector=${fulfillment.data.slice(0, 10)} length=${fulfillment.data.length}`);
+
+      // Log simulation result — this tells us the EXACT revert reason before MetaMask opens
+      if (fulfillment.simulation) {
+        if (fulfillment.simulation.ok) {
+          console.log("[fulfill] ✓ server-side eth_call simulation PASSED");
+        } else {
+          console.error("[fulfill] ✗ server-side eth_call simulation REVERTED:", fulfillment.simulation.revertReason);
+          // Surface revert reason to user immediately rather than letting MetaMask show "likely to fail"
+          setStep("error");
+          setError(`Transaction will revert: ${fulfillment.simulation.revertReason ?? "unknown reason"}`);
+          return;
+        }
+      }
 
       // Step 2: ERC-20 approval — must target the ACTUAL Seaport contract
       if (!isNative && paymentTokenAddress) {
