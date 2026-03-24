@@ -1,4 +1,5 @@
 import { Search } from "lucide-react";
+import { Link } from "react-router-dom";
 import type { AssetFilters, Category } from "@/lib/types";
 
 // ─── Category pills ───────────────────────────────────────────────────────────
@@ -112,28 +113,25 @@ export function Hero({ filters, onFilterChange }: HeroProps) {
             animationDelay: "0.46s",
           }}
         >
-          {CATEGORY_PILLS.map((pill) => {
-            const active = (filters.category ?? "") === pill.value;
-            return (
-              <button
-                key={pill.value}
-                onClick={() => set({ category: pill.value || undefined })}
-                style={{
-                  padding: "6px 14px",
-                  fontSize: "13px",
-                  fontFamily: "DM Sans, system-ui, sans-serif",
-                  letterSpacing: "0.03em",
-                  border: active ? "1px solid #C4852A" : "1px solid rgba(196,133,42,0.22)",
-                  background: active ? "#C4852A" : "rgba(255,255,255,0.60)",
-                  color: active ? "#FFFFFF" : "rgba(28,23,16,0.52)",
-                  cursor: "pointer",
-                  transition: "all 0.3s cubic-bezier(.16,1,.3,1)",
-                }}
-              >
-                {pill.label}
-              </button>
-            );
-          })}
+          {CATEGORY_PILLS.map((pill) => (
+            <Link
+              key={pill.value}
+              to={pill.value ? `/explore?category=${pill.value}` : "/explore"}
+              style={{
+                padding: "6px 14px",
+                fontSize: "13px",
+                fontFamily: "DM Sans, system-ui, sans-serif",
+                letterSpacing: "0.03em",
+                border: "1px solid rgba(196,133,42,0.22)",
+                background: "rgba(255,255,255,0.60)",
+                color: "rgba(28,23,16,0.52)",
+                textDecoration: "none",
+                transition: "all 0.3s cubic-bezier(.16,1,.3,1)",
+              }}
+            >
+              {pill.label}
+            </Link>
+          ))}
         </div>
       </div>
     </section>
