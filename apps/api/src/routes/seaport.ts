@@ -396,12 +396,24 @@ seaportRouter.post("/fulfill", async (req: Request, res: Response) => {
     // OpenSea's Polygon conduit — ERC-20 approvals must target this address
     const approvalTarget = "0x1E0049783F008A0085193E00003D00cd54003c71";
 
-    // Extract the ERC-20 token the buyer needs to approve (zero address = native)
-    const ZERO_ADDR   = "0x0000000000000000000000000000000000000000";
-    const token       = (p.considerationToken as string | undefined) ?? ZERO_ADDR;
-    const tokenAmount = String(p.considerationAmount ?? "0");
+    // The conduit pulls the PRIMARY consideration (considerationAmount) PLUS all
+    // additional-recipient amounts (platform fee, royalties, etc.) from the buyer.
+    // The approval must cover the full sum — approving only considerationAmount
+    // leaves the conduit short and causes an "insufficient allowance" revert.
+    const ZERO_ADDR = "0x0000000000000000000000000000000000000000";
+    const token     = (p.considerationToken as string | undefined) ?? ZERO_ADDR;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const additionalSum = Array.isArray(p.additionalRecipients)
+        ? (p.additionalRecipients as any[]).reduce((acc: bigint, r: any) => acc + BigInt(r.amount ?? 0), 0n)
+        : 0n;
+    const totalAmount = BigInt(p.considerationAmount ?? 0) + additionalSum;
+    const tokenAmount = String(totalAmount);
 
-    console.log(`[seaport/fulfill] ✓ to=${seaportAddr} approvalTarget=${approvalTarget} token=${token} amount=${tokenAmount}`);
+    console.log(
+        `[seaport/fulfill] ✓ to=${seaportAddr} approvalTarget=${approvalTarget}` +
+        ` token=${token} considerationAmount=${p.considerationAmount} additionalSum=${additionalSum} totalAmount=${totalAmount}` +
+        ` selector=${data.slice(0, 10)}`
+    );
 
     return res.json({
         to:             seaportAddr,
