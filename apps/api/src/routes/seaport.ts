@@ -171,22 +171,30 @@ seaportRouter.post("/fulfill", async (req: Request, res: Response) => {
 
     const openSeaChain = chain === "polygon" ? "matic" : "ethereum";
 
+    // Normalise hash to lowercase — OpenSea's API is case-sensitive, and hashes
+    // may arrive from the frontend with mixed capitalisation.
+    const normalizedHash = orderHash.toLowerCase();
+
     // Look up the stored order so we can use the exact protocol_address that
     // OpenSea attached to this listing.  Different listings can be on Seaport
     // 1.5 vs 1.6; passing the wrong one returns 400 "Order not found".
-    // Fall back to the well-known 1.5 address only if the row is missing.
+    // We try both the original hash and the lowercased hash to be safe.
     const { data: orderRow } = await (getDb() as any)
         .from("seaport_orders")
         .select("order_parameters")
-        .eq("order_hash", orderHash)
+        .ilike("order_hash", normalizedHash)
         .maybeSingle();
 
-    const protocolAddress: string =
+    const storedProtocolAddress =
         (orderRow?.order_parameters as { protocol_address?: string } | null)
-            ?.protocol_address ?? SEAPORT_PROTOCOL_ADDRESS;
+            ?.protocol_address ?? null;
 
-    // Normalise hash to lowercase — OpenSea's API is case-sensitive.
-    const normalizedHash = orderHash.toLowerCase();
+    const protocolAddress: string = storedProtocolAddress ?? SEAPORT_PROTOCOL_ADDRESS;
+
+    console.log(
+        `[seaport/fulfill] protocol_address=${protocolAddress}` +
+        ` (${storedProtocolAddress ? "from DB" : "fallback — order predates Fix 6 or not in DB"})`
+    );
 
     const requestBody = {
         listing: {
