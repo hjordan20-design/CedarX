@@ -470,8 +470,12 @@ export class SeaportPoller {
                 price_usd:              null, // not provided by this endpoint
                 expiration,
                 order_parameters: {
-                    parameters: params,
-                    signature:  listing.protocol_data.signature,
+                    parameters:       params,
+                    signature:        listing.protocol_data.signature,
+                    // Store the exact Seaport contract address from the listing
+                    // so the fulfill route can pass the right protocol_address
+                    // to OpenSea's fulfillment_data API (1.5 vs 1.6 differ).
+                    protocol_address: listing.protocol_address,
                 },
                 source: "opensea",
                 status: "active",

@@ -171,7 +171,9 @@ export interface SeaportOrderParameters {
 
 export interface SeaportOrderBlob {
     parameters: SeaportOrderParameters;
-    signature: string;
+    signature: string | null;
+    /** Seaport contract address the order was created on (e.g. 1.5 vs 1.6). */
+    protocol_address?: string;
 }
 
 export interface SeaportOrderRow {

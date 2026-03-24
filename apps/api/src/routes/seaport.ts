@@ -17,6 +17,7 @@ import {
     syncAssetSeaportListing,
     expireSeaportOrders,
 } from "../db/queries";
+import { getDb } from "../db/client";
 import {
     OPENSEA_API_KEY,
     OPENSEA_API_BASE_URL,
@@ -170,12 +171,36 @@ seaportRouter.post("/fulfill", async (req: Request, res: Response) => {
 
     const openSeaChain = chain === "polygon" ? "matic" : "ethereum";
 
-    // Log the exact payload so order_hash mismatches can be diagnosed in production.
-    // The hash stored in seaport_orders.order_hash must match what OpenSea's
-    // fulfillment_data API expects (it comes from listing.order_hash verbatim).
+    // Look up the stored order so we can use the exact protocol_address that
+    // OpenSea attached to this listing.  Different listings can be on Seaport
+    // 1.5 vs 1.6; passing the wrong one returns 400 "Order not found".
+    // Fall back to the well-known 1.5 address only if the row is missing.
+    const { data: orderRow } = await (getDb() as any)
+        .from("seaport_orders")
+        .select("order_parameters")
+        .eq("order_hash", orderHash)
+        .maybeSingle();
+
+    const protocolAddress: string =
+        (orderRow?.order_parameters as { protocol_address?: string } | null)
+            ?.protocol_address ?? SEAPORT_PROTOCOL_ADDRESS;
+
+    // Normalise hash to lowercase — OpenSea's API is case-sensitive.
+    const normalizedHash = orderHash.toLowerCase();
+
+    const requestBody = {
+        listing: {
+            hash:             normalizedHash,
+            chain:            openSeaChain,
+            protocol_address: protocolAddress,
+        },
+        fulfiller: { address: buyerAddress },
+    };
+
+    // Log the EXACT JSON body sent to OpenSea so mismatches are immediately visible.
     console.log(
-        `[seaport/fulfill] → OpenSea fulfillment_data` +
-        ` | hash=${orderHash} chain=${openSeaChain} buyer=${buyerAddress}`
+        `[seaport/fulfill] → OpenSea fulfillment_data body:`,
+        JSON.stringify(requestBody)
     );
 
     const osRes = await fetch(
@@ -187,14 +212,7 @@ seaportRouter.post("/fulfill", async (req: Request, res: Response) => {
                 "content-type": "application/json",
                 accept:         "application/json",
             },
-            body: JSON.stringify({
-                listing: {
-                    hash:             orderHash,
-                    chain:            openSeaChain,
-                    protocol_address: SEAPORT_PROTOCOL_ADDRESS,
-                },
-                fulfiller: { address: buyerAddress },
-            }),
+            body: JSON.stringify(requestBody),
         }
     );
 
