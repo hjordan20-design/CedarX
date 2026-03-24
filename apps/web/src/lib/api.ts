@@ -84,16 +84,18 @@ export interface SeaportFulfillmentData {
   /** Seaport contract address to send the tx to */
   to: string;
   /**
-   * Address the buyer must have approved for ERC-20 spending.
-   * Usually the Seaport conduit (≠ "to") when fulfillerConduitKey is non-zero.
+   * Address the buyer must approve for ERC-20 spending (the Seaport conduit,
+   * or the Seaport contract itself when fulfillerConduitKey is zero).
    */
   approvalTarget: string;
-  /** ABI-encoded calldata produced by the backend; ready to pass to sendTransaction */
+  /** ABI-encoded calldata; pass directly to sendTransaction */
   data: string;
-  /** ETH value in wei as a decimal string; "0" for ERC-20 orders */
+  /** Native ETH value in wei as a decimal string; "0" for ERC-20 orders */
   value: string;
-  /** Server-side eth_call result — logs revert reason before MetaMask opens */
-  simulation?: { ok: boolean; result?: string; revertReason?: string };
+  /** ERC-20 token the buyer pays; zero address for native ETH orders */
+  token: string;
+  /** ERC-20 amount in token base units as a decimal string */
+  amount: string;
 }
 
 export async function fetchSeaportFulfillment(params: {

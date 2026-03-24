@@ -394,125 +394,59 @@ seaportRouter.post("/fulfill", async (req: Request, res: Response) => {
         });
     }
 
-    const calldataBytes = data.length / 2 - 1;
-    console.log(`[seaport/fulfill] ✓ calldata encoded (${calldataBytes} bytes) selector=${data.slice(0, 10)}`);
+    console.log(`[seaport/fulfill] ✓ calldata encoded (${data.length / 2 - 1} bytes) selector=${data.slice(0, 10)}`);
 
-    const txValue    = BigInt(tx.value ?? "0");
-    const rpcClient  = chain === "polygon" ? polygonClient : ethClient;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const p          = tx.input_data.parameters as any;
+    const p           = tx.input_data.parameters as any;
     const seaportAddr = tx.to as `0x${string}`;
+    const rpcClient   = chain === "polygon" ? polygonClient : ethClient;
 
     // ── Conduit resolution ───────────────────────────────────────────────────
-    // Seaport uses a conduit to pull ERC-20 tokens when fulfillerConduitKey is
-    // non-zero.  The approval MUST go to the conduit, NOT to the Seaport contract.
-    // Resolve the conduit address via Seaport's getConduit() view function.
-    const ZERO_CONDUIT_KEY = "0x" + "0".repeat(64);
+    // Seaport pulls ERC-20 tokens via a conduit when fulfillerConduitKey != 0.
+    // The ERC-20 approval MUST target the conduit, not the Seaport contract.
+    const ZERO_CONDUIT_KEY    = "0x" + "0".repeat(64);
     const fulfillerConduitKey = (p.fulfillerConduitKey as string) ?? ZERO_CONDUIT_KEY;
 
     const GET_CONDUIT_ABI = [{
-        type:            "function" as const,
-        name:            "getConduit" as const,
-        stateMutability: "view" as const,
+        type: "function" as const, name: "getConduit" as const, stateMutability: "view" as const,
         inputs:  [{ name: "conduitKey", type: "bytes32" as const }],
         outputs: [{ name: "conduit", type: "address" as const }, { name: "exists", type: "bool" as const }],
     }] as const;
 
-    let approvalTarget: string = seaportAddr; // default: approve Seaport directly
+    let approvalTarget: string = seaportAddr;
     if (fulfillerConduitKey !== ZERO_CONDUIT_KEY) {
         try {
             const [conduitAddr, exists] = await rpcClient.readContract({
-                address:      seaportAddr,
-                abi:          GET_CONDUIT_ABI,
-                functionName: "getConduit",
-                args:         [fulfillerConduitKey as `0x${string}`],
+                address: seaportAddr, abi: GET_CONDUIT_ABI, functionName: "getConduit",
+                args: [fulfillerConduitKey as `0x${string}`],
             });
             if (exists) {
                 approvalTarget = conduitAddr;
-                console.log(`[seaport/fulfill] conduit key=${fulfillerConduitKey} → conduit=${conduitAddr}`);
             } else {
-                console.warn(`[seaport/fulfill] conduitKey ${fulfillerConduitKey} returned exists=false — falling back to Seaport`);
+                console.warn(`[seaport/fulfill] conduitKey ${fulfillerConduitKey} not found — using Seaport as approval target`);
             }
-        } catch (conduitErr) {
-            console.warn("[seaport/fulfill] getConduit call failed:", conduitErr instanceof Error ? conduitErr.message : conduitErr);
-        }
-    } else {
-        console.log("[seaport/fulfill] fulfillerConduitKey is zero — approval goes directly to Seaport");
-    }
-    console.log(`[seaport/fulfill] approvalTarget=${approvalTarget}`);
-
-    // ── Balance + allowance diagnostic ──────────────────────────────────────
-    // Log these unconditionally so we can see the state at fulfillment time.
-    const considerationToken = (p.considerationToken as string) ?? "";
-    const ZERO_ADDR = "0x0000000000000000000000000000000000000000";
-    if (considerationToken && considerationToken !== ZERO_ADDR) {
-        const ERC20_DIAGNOSTIC_ABI = [
-            {
-                type: "function" as const, name: "balanceOf" as const, stateMutability: "view" as const,
-                inputs:  [{ name: "owner", type: "address" as const }],
-                outputs: [{ type: "uint256" as const }],
-            },
-            {
-                type: "function" as const, name: "allowance" as const, stateMutability: "view" as const,
-                inputs:  [{ name: "owner", type: "address" as const }, { name: "spender", type: "address" as const }],
-                outputs: [{ type: "uint256" as const }],
-            },
-        ] as const;
-        try {
-            const [balance, allowance] = await Promise.all([
-                rpcClient.readContract({
-                    address: considerationToken as `0x${string}`,
-                    abi:     ERC20_DIAGNOSTIC_ABI,
-                    functionName: "balanceOf",
-                    args:    [buyerAddress as `0x${string}`],
-                }),
-                rpcClient.readContract({
-                    address: considerationToken as `0x${string}`,
-                    abi:     ERC20_DIAGNOSTIC_ABI,
-                    functionName: "allowance",
-                    args:    [buyerAddress as `0x${string}`, approvalTarget as `0x${string}`],
-                }),
-            ]);
-            const needed = BigInt(p.considerationAmount ?? 0);
-            console.log(
-                `[seaport/fulfill] token=${considerationToken}` +
-                ` balance=${balance} allowance=${allowance} needed=${needed}` +
-                ` spender(approvalTarget)=${approvalTarget}` +
-                ` | hasBalance=${(balance as bigint) >= needed} hasAllowance=${(allowance as bigint) >= needed}`
-            );
-        } catch (diagErr) {
-            console.warn("[seaport/fulfill] balance/allowance check failed:", diagErr instanceof Error ? diagErr.message : diagErr);
+        } catch (e) {
+            console.warn("[seaport/fulfill] getConduit failed:", e instanceof Error ? e.message : e);
         }
     }
 
-    // ── Server-side simulation (eth_call) ────────────────────────────────────
-    let simulation: { ok: boolean; result?: string; revertReason?: string } = { ok: true };
-    try {
-        const simResult = await rpcClient.call({
-            to:      seaportAddr,
-            data,
-            value:   txValue,
-            account: buyerAddress as `0x${string}`,
-        });
-        simulation = { ok: true, result: simResult.data ?? "0x" };
-        console.log(`[seaport/fulfill] ✓ eth_call simulation succeeded`);
-    } catch (simErr: unknown) {
-        let reason = "unknown";
-        if (simErr instanceof Error) {
-            const msg = simErr.message;
-            const reasonMatch = msg.match(/reverted(?:\s+with\s+(?:reason string\s+)?['"](.+?)['"])?/i);
-            reason = reasonMatch?.[1] ?? msg.slice(0, 400);
-        }
-        simulation = { ok: false, revertReason: reason };
-        console.error(`[seaport/fulfill] ✗ eth_call simulation REVERTED: ${reason}`);
-    }
+    // Extract the ERC-20 token the buyer needs to approve (zero address = native)
+    const ZERO_ADDR   = "0x0000000000000000000000000000000000000000";
+    const token       = (p.considerationToken as string | undefined) ?? ZERO_ADDR;
+    const tokenAmount = String(p.considerationAmount ?? "0");
+
+    console.log(
+        `[seaport/fulfill] ✓ to=${seaportAddr} approvalTarget=${approvalTarget}` +
+        ` token=${token} amount=${tokenAmount} conduitKey=${fulfillerConduitKey.slice(0, 18)}…`
+    );
 
     return res.json({
         to:             seaportAddr,
-        approvalTarget, // may differ from "to" when Seaport uses a conduit
+        approvalTarget, // conduit or Seaport — always use this address for ERC-20 approve()
         data,
         value:          String(tx.value ?? "0"),
-        simulation,
+        token,          // ERC-20 token the buyer pays; zero address for native ETH orders
+        amount:         tokenAmount,
     });
 });
 
