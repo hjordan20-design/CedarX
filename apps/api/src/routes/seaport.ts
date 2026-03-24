@@ -397,43 +397,121 @@ seaportRouter.post("/fulfill", async (req: Request, res: Response) => {
     const calldataBytes = data.length / 2 - 1;
     console.log(`[seaport/fulfill] ✓ calldata encoded (${calldataBytes} bytes) selector=${data.slice(0, 10)}`);
 
-    // ── Server-side simulation (eth_call) ────────────────────────────────────
-    // Simulate the exact tx the frontend will send.  Any revert here means the
-    // real tx will also revert — we get the reason before MetaMask even opens.
-    const txValue = BigInt(tx.value ?? "0");
-    const rpcClient = chain === "polygon" ? polygonClient : ethClient;
+    const txValue    = BigInt(tx.value ?? "0");
+    const rpcClient  = chain === "polygon" ? polygonClient : ethClient;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const p          = tx.input_data.parameters as any;
+    const seaportAddr = tx.to as `0x${string}`;
 
+    // ── Conduit resolution ───────────────────────────────────────────────────
+    // Seaport uses a conduit to pull ERC-20 tokens when fulfillerConduitKey is
+    // non-zero.  The approval MUST go to the conduit, NOT to the Seaport contract.
+    // Resolve the conduit address via Seaport's getConduit() view function.
+    const ZERO_CONDUIT_KEY = "0x" + "0".repeat(64);
+    const fulfillerConduitKey = (p.fulfillerConduitKey as string) ?? ZERO_CONDUIT_KEY;
+
+    const GET_CONDUIT_ABI = [{
+        type:            "function" as const,
+        name:            "getConduit" as const,
+        stateMutability: "view" as const,
+        inputs:  [{ name: "conduitKey", type: "bytes32" as const }],
+        outputs: [{ name: "conduit", type: "address" as const }, { name: "exists", type: "bool" as const }],
+    }] as const;
+
+    let approvalTarget: string = seaportAddr; // default: approve Seaport directly
+    if (fulfillerConduitKey !== ZERO_CONDUIT_KEY) {
+        try {
+            const [conduitAddr, exists] = await rpcClient.readContract({
+                address:      seaportAddr,
+                abi:          GET_CONDUIT_ABI,
+                functionName: "getConduit",
+                args:         [fulfillerConduitKey as `0x${string}`],
+            });
+            if (exists) {
+                approvalTarget = conduitAddr;
+                console.log(`[seaport/fulfill] conduit key=${fulfillerConduitKey} → conduit=${conduitAddr}`);
+            } else {
+                console.warn(`[seaport/fulfill] conduitKey ${fulfillerConduitKey} returned exists=false — falling back to Seaport`);
+            }
+        } catch (conduitErr) {
+            console.warn("[seaport/fulfill] getConduit call failed:", conduitErr instanceof Error ? conduitErr.message : conduitErr);
+        }
+    } else {
+        console.log("[seaport/fulfill] fulfillerConduitKey is zero — approval goes directly to Seaport");
+    }
+    console.log(`[seaport/fulfill] approvalTarget=${approvalTarget}`);
+
+    // ── Balance + allowance diagnostic ──────────────────────────────────────
+    // Log these unconditionally so we can see the state at fulfillment time.
+    const considerationToken = (p.considerationToken as string) ?? "";
+    const ZERO_ADDR = "0x0000000000000000000000000000000000000000";
+    if (considerationToken && considerationToken !== ZERO_ADDR) {
+        const ERC20_DIAGNOSTIC_ABI = [
+            {
+                type: "function" as const, name: "balanceOf" as const, stateMutability: "view" as const,
+                inputs:  [{ name: "owner", type: "address" as const }],
+                outputs: [{ type: "uint256" as const }],
+            },
+            {
+                type: "function" as const, name: "allowance" as const, stateMutability: "view" as const,
+                inputs:  [{ name: "owner", type: "address" as const }, { name: "spender", type: "address" as const }],
+                outputs: [{ type: "uint256" as const }],
+            },
+        ] as const;
+        try {
+            const [balance, allowance] = await Promise.all([
+                rpcClient.readContract({
+                    address: considerationToken as `0x${string}`,
+                    abi:     ERC20_DIAGNOSTIC_ABI,
+                    functionName: "balanceOf",
+                    args:    [buyerAddress as `0x${string}`],
+                }),
+                rpcClient.readContract({
+                    address: considerationToken as `0x${string}`,
+                    abi:     ERC20_DIAGNOSTIC_ABI,
+                    functionName: "allowance",
+                    args:    [buyerAddress as `0x${string}`, approvalTarget as `0x${string}`],
+                }),
+            ]);
+            const needed = BigInt(p.considerationAmount ?? 0);
+            console.log(
+                `[seaport/fulfill] token=${considerationToken}` +
+                ` balance=${balance} allowance=${allowance} needed=${needed}` +
+                ` spender(approvalTarget)=${approvalTarget}` +
+                ` | hasBalance=${(balance as bigint) >= needed} hasAllowance=${(allowance as bigint) >= needed}`
+            );
+        } catch (diagErr) {
+            console.warn("[seaport/fulfill] balance/allowance check failed:", diagErr instanceof Error ? diagErr.message : diagErr);
+        }
+    }
+
+    // ── Server-side simulation (eth_call) ────────────────────────────────────
     let simulation: { ok: boolean; result?: string; revertReason?: string } = { ok: true };
     try {
         const simResult = await rpcClient.call({
-            to:      tx.to as `0x${string}`,
+            to:      seaportAddr,
             data,
             value:   txValue,
             account: buyerAddress as `0x${string}`,
         });
         simulation = { ok: true, result: simResult.data ?? "0x" };
-        console.log(`[seaport/fulfill] ✓ eth_call simulation succeeded — result=${simResult.data ?? "0x"}`);
+        console.log(`[seaport/fulfill] ✓ eth_call simulation succeeded`);
     } catch (simErr: unknown) {
-        // Extract revert reason from the error message / cause chain
         let reason = "unknown";
         if (simErr instanceof Error) {
-            // viem wraps revert data in ContractFunctionRevertedError or similar
             const msg = simErr.message;
-            // Try to pull "reverted with reason string '...'" or raw hex
             const reasonMatch = msg.match(/reverted(?:\s+with\s+(?:reason string\s+)?['"](.+?)['"])?/i);
-            reason = reasonMatch?.[1] ?? msg.slice(0, 300);
+            reason = reasonMatch?.[1] ?? msg.slice(0, 400);
         }
         simulation = { ok: false, revertReason: reason };
         console.error(`[seaport/fulfill] ✗ eth_call simulation REVERTED: ${reason}`);
-        console.error(`[seaport/fulfill] sim error full:`, simErr instanceof Error ? simErr.message : simErr);
     }
 
     return res.json({
-        to:    tx.to,
+        to:             seaportAddr,
+        approvalTarget, // may differ from "to" when Seaport uses a conduit
         data,
-        // ETH value in wei as a decimal string; "0" for ERC-20 orders
-        value: String(tx.value ?? "0"),
-        // Simulation result — frontend logs this; does not block the tx
+        value:          String(tx.value ?? "0"),
         simulation,
     });
 });

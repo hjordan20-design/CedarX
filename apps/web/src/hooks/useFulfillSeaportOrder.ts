@@ -189,8 +189,11 @@ export function useFulfillSeaportOrder(order: SeaportOrder | null) {
         chain:        order.chain as "ethereum" | "polygon",
         buyerAddress: address,
       });
-      const seaportContract = fulfillment.to as `0x${string}`;
-      console.log(`[fulfill] ✓ calldata ready — to=${seaportContract} value=${fulfillment.value}`);
+      const seaportContract  = fulfillment.to as `0x${string}`;
+      // approvalTarget is the conduit when fulfillerConduitKey is non-zero,
+      // otherwise it equals seaportContract.  Always use approvalTarget for approve().
+      const approvalTarget   = (fulfillment.approvalTarget ?? fulfillment.to) as `0x${string}`;
+      console.log(`[fulfill] ✓ calldata ready — to=${seaportContract} approvalTarget=${approvalTarget} value=${fulfillment.value}`);
       console.log(`[fulfill] calldata selector=${fulfillment.data.slice(0, 10)} length=${fulfillment.data.length}`);
 
       // Log simulation result — this tells us the EXACT revert reason before MetaMask opens
@@ -199,33 +202,32 @@ export function useFulfillSeaportOrder(order: SeaportOrder | null) {
           console.log("[fulfill] ✓ server-side eth_call simulation PASSED");
         } else {
           console.error("[fulfill] ✗ server-side eth_call simulation REVERTED:", fulfillment.simulation.revertReason);
-          // Surface revert reason to user immediately rather than letting MetaMask show "likely to fail"
           setStep("error");
           setError(`Transaction will revert: ${fulfillment.simulation.revertReason ?? "unknown reason"}`);
           return;
         }
       }
 
-      // Step 2: ERC-20 approval — must target the ACTUAL Seaport contract
+      // Step 2: ERC-20 approval — approve the CONDUIT (approvalTarget), not Seaport itself
       if (!isNative && paymentTokenAddress) {
         const currentAllowance = await publicClient.readContract({
           address:      paymentTokenAddress,
           abi:          ERC20_ABI,
           functionName: "allowance",
-          args:         [address, seaportContract],
+          args:         [address, approvalTarget],
         }) as bigint;
 
-        console.log(`[fulfill] USDC allowance for ${seaportContract}: ${currentAllowance} (need ${erc20Amount})`);
+        console.log(`[fulfill] token=${paymentTokenAddress} allowance for approvalTarget=${approvalTarget}: ${currentAllowance} (need ${erc20Amount})`);
 
         if (currentAllowance < erc20Amount) {
-          console.log("[fulfill] → approving USDC for Seaport contract");
+          console.log(`[fulfill] → approving token=${paymentTokenAddress} for spender=${approvalTarget}`);
           setStep("approving-token");
 
           const approveHash = await writeContractAsync({
             address:      paymentTokenAddress,
             abi:          ERC20_ABI,
             functionName: "approve",
-            args:         [seaportContract, erc20Amount],
+            args:         [approvalTarget, erc20Amount],
           });
           console.log("[fulfill] ✓ approval tx submitted:", approveHash);
           setStep("pending-approval");
@@ -237,7 +239,7 @@ export function useFulfillSeaportOrder(order: SeaportOrder | null) {
         }
       }
 
-      // Step 3: send the raw pre-encoded calldata from OpenSea/backend
+      // Step 3: send the raw pre-encoded calldata
       console.log("[fulfill] → sending Seaport fulfillment tx");
       setStep("fulfilling");
       const hash = await sendTransactionAsync({

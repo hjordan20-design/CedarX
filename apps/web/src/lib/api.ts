@@ -81,8 +81,13 @@ export async function postSeaportListing(
 }
 
 export interface SeaportFulfillmentData {
-  /** Seaport contract address to call (varies by version: 1.5 vs 1.6) */
+  /** Seaport contract address to send the tx to */
   to: string;
+  /**
+   * Address the buyer must have approved for ERC-20 spending.
+   * Usually the Seaport conduit (≠ "to") when fulfillerConduitKey is non-zero.
+   */
+  approvalTarget: string;
   /** ABI-encoded calldata produced by the backend; ready to pass to sendTransaction */
   data: string;
   /** ETH value in wei as a decimal string; "0" for ERC-20 orders */
