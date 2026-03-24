@@ -7,6 +7,7 @@ import type {
   Paginated,
   ProtocolInfo,
   SeaportOrder,
+  SeaportOrderParameters,
 } from "./types";
 
 async function get<T>(path: string, params?: Record<string, string | number | boolean | undefined>): Promise<T> {
