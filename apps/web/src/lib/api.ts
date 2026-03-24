@@ -79,6 +79,33 @@ export async function postSeaportListing(
   return res.json();
 }
 
+export interface SeaportFulfillmentData {
+  parameters: SeaportOrderParameters;
+  signature:  string;
+  /** ETH value in wei as a decimal string; "0" for ERC-20 orders */
+  value: string;
+}
+
+export async function fetchSeaportFulfillment(params: {
+  orderHash:    string;
+  chain:        "ethereum" | "polygon";
+  buyerAddress: string;
+}): Promise<SeaportFulfillmentData> {
+  const res = await fetch(`${API_BASE_URL}/api/seaport/fulfill`, {
+    method:  "POST",
+    headers: { "content-type": "application/json" },
+    body:    JSON.stringify(params),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({})) as Record<string, unknown>;
+    throw new Error(
+      (body.error as string | undefined) ??
+      `Fulfillment API error ${res.status}`
+    );
+  }
+  return res.json() as Promise<SeaportFulfillmentData>;
+}
+
 // ─── Stats ───────────────────────────────────────────────────────────────────
 
 export function fetchStats(): Promise<MarketStats> {

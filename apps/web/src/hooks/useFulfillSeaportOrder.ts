@@ -21,6 +21,7 @@ import {
 } from "wagmi";
 import { parseUnits } from "viem";
 import { SEAPORT_ADDRESS, SEAPORT_ABI, NATIVE_TOKEN } from "@/config/contracts";
+import { fetchSeaportFulfillment } from "@/lib/api";
 import type { SeaportOrder, SeaportOrderParameters } from "@/lib/types";
 
 const ERC20_ABI = [
@@ -97,16 +98,6 @@ export function getValidatedParams(
   return { params, signature: signature ?? "" };
 }
 
-/** Sum the total ETH consideration from order parameters */
-function totalEthValue(order: SeaportOrder): bigint {
-  const validated = getValidatedParams(order);
-  if (!validated) return 0n;
-  return validated.params.consideration.reduce((acc, item) => {
-    if (item.itemType === 0) return acc + BigInt(item.endAmount); // NATIVE
-    return acc;
-  }, 0n);
-}
-
 /** Total ERC-20 amount the fulfiller needs to pay */
 function totalErc20Value(order: SeaportOrder): bigint {
   const validated = getValidatedParams(order);
@@ -127,7 +118,6 @@ export function useFulfillSeaportOrder(order: SeaportOrder | null) {
   const isNative = order ? isNativeEth(order.paymentToken) : false;
   const paymentTokenAddress = order?.paymentToken as `0x${string}` | undefined;
   const erc20Amount = order ? totalErc20Value(order) : 0n;
-  const ethValue    = order ? totalEthValue(order)   : 0n;
 
   // Check current ERC-20 allowance for Seaport
   const { data: allowance } = useReadContract({
@@ -163,19 +153,26 @@ export function useFulfillSeaportOrder(order: SeaportOrder | null) {
   }, [fulfillReverted]);
 
   const submitFulfill = useCallback(async () => {
-    if (!order) return;
-
-    // Validate — covers null, JSON-string, missing .parameters, null arrays
-    const validated = getValidatedParams(order);
-    if (!validated) {
-      setStep("error");
-      setError("Order data unavailable, try again later.");
-      return;
-    }
+    if (!order || !address) return;
 
     try {
       setStep("fulfilling");
-      const { params, signature } = validated;
+
+      // Fetch the live order parameters + resolved seller signature from our
+      // backend, which proxies to OpenSea's fulfillment_data API.  OpenSea
+      // resolves lazy/on-chain signatures server-side so we never need a
+      // stored signature — it is always fetched fresh at purchase time.
+      const fulfillment = await fetchSeaportFulfillment({
+        orderHash:    order.orderHash,
+        chain:        order.chain as "ethereum" | "polygon",
+        buyerAddress: address,
+      });
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const params = fulfillment.parameters as any;
+      const sig    = fulfillment.signature as `0x${string}`;
+      const value  = isNative ? BigInt(fulfillment.value) : 0n;
+
       const hash = await writeContractAsync({
         address: SEAPORT_ADDRESS,
         abi: SEAPORT_ABI,
@@ -185,14 +182,14 @@ export function useFulfillSeaportOrder(order: SeaportOrder | null) {
             parameters: {
               offerer:    params.offerer as `0x${string}`,
               zone:       params.zone   as `0x${string}`,
-              offer: params.offer.map((o) => ({
+              offer: (params.offer as SeaportOrderParameters["offer"]).map((o) => ({
                 itemType:             o.itemType,
                 token:                o.token as `0x${string}`,
                 identifierOrCriteria: BigInt(o.identifierOrCriteria),
                 startAmount:          BigInt(o.startAmount),
                 endAmount:            BigInt(o.endAmount),
               })),
-              consideration: params.consideration.map((c) => ({
+              consideration: (params.consideration as SeaportOrderParameters["consideration"]).map((c) => ({
                 itemType:             c.itemType,
                 token:                c.token as `0x${string}`,
                 identifierOrCriteria: BigInt(c.identifierOrCriteria),
@@ -208,11 +205,11 @@ export function useFulfillSeaportOrder(order: SeaportOrder | null) {
               conduitKey:                      params.conduitKey as `0x${string}`,
               totalOriginalConsiderationItems: BigInt(params.totalOriginalConsiderationItems),
             },
-            signature: signature as `0x${string}`,
+            signature: sig,
           },
           "0x0000000000000000000000000000000000000000000000000000000000000000",
         ],
-        value: isNative ? ethValue : 0n,
+        value,
       });
       setFulfillTxHash(hash);
       setStep("pending-fulfill");
@@ -220,7 +217,7 @@ export function useFulfillSeaportOrder(order: SeaportOrder | null) {
       setStep("error");
       setError(parseContractError(err));
     }
-  }, [order, isNative, ethValue, writeContractAsync]);
+  }, [order, address, isNative, writeContractAsync]);
 
   // After ERC-20 approval confirms, auto-submit fulfillment
   useEffect(() => {
