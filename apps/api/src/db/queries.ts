@@ -401,10 +401,18 @@ export async function getSeaportPriceMap(
     for (const row of data ?? []) {
         // keep only the cheapest per asset (first occurrence due to ordering)
         if (row.asset_id && !map.has(row.asset_id)) {
+            const symbol = row.payment_token_symbol ?? "ETH";
+            // Use stored decimals when present and non-zero; otherwise infer from symbol.
+            // Stablecoins (USDC, USDT, DAI) use 6 decimals; everything else (ETH, WETH…) = 18.
+            const storedDecimals = row.payment_token_decimals;
+            const sym = symbol.toUpperCase();
+            const decimals = storedDecimals != null && storedDecimals > 0
+                ? Number(storedDecimals)
+                : (sym === "USDC" || sym === "USDT" || sym === "DAI" ? 6 : 18);
             map.set(row.asset_id, {
                 price:   String(row.price),
-                symbol:  row.payment_token_symbol ?? "ETH",
-                decimals: Number(row.payment_token_decimals ?? 18),
+                symbol,
+                decimals,
             });
         }
     }

@@ -187,6 +187,20 @@ function SeaportBuyContent({ assetName, order, onClose }: SeaportBuyContentProps
   const canDismiss = step === "idle" || step === "success" || step === "error";
   const isNative   = order.paymentToken === "0x0000000000000000000000000000000000000000";
 
+  if (!order.orderParameters) {
+    return (
+      <>
+        <div className="px-6 py-8 flex items-start gap-3 text-cedar-red text-sm">
+          <AlertCircle size={16} className="shrink-0 mt-0.5" />
+          <p>Order data unavailable, try again later.</p>
+        </div>
+        <div className="px-6 pb-5">
+          <button onClick={onClose} className="btn-ghost w-full justify-center text-sm py-2.5">Close</button>
+        </div>
+      </>
+    );
+  }
+
   const explorerBase =
     order.chain === "polygon" ? "https://polygonscan.com/tx/" : "https://etherscan.io/tx/";
 

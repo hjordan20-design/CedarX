@@ -163,7 +163,7 @@ export interface SeaportOrder {
   orderParameters: {
     parameters: SeaportOrderParameters;
     signature: string;
-  };
+  } | null;
   source: "opensea" | "cedarx";
   status: "active" | "filled" | "cancelled" | "expired";
 }

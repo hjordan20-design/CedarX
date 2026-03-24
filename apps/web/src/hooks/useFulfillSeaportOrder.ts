@@ -62,6 +62,7 @@ function isNativeEth(paymentToken: string): boolean {
 
 /** Sum the total ETH consideration from order parameters */
 function totalEthValue(order: SeaportOrder): bigint {
+  if (!order.orderParameters) return 0n;
   const params = order.orderParameters.parameters;
   return params.consideration.reduce((acc, item) => {
     if (item.itemType === 0) return acc + BigInt(item.endAmount); // NATIVE
@@ -71,6 +72,7 @@ function totalEthValue(order: SeaportOrder): bigint {
 
 /** Total ERC-20 amount the fulfiller needs to pay */
 function totalErc20Value(order: SeaportOrder): bigint {
+  if (!order.orderParameters) return 0n;
   const params = order.orderParameters.parameters;
   return params.consideration.reduce((acc, item) => {
     if (item.itemType === 1) return acc + BigInt(item.endAmount); // ERC20
@@ -125,6 +127,11 @@ export function useFulfillSeaportOrder(order: SeaportOrder | null) {
 
   const submitFulfill = useCallback(async () => {
     if (!order) return;
+    if (!order.orderParameters) {
+      setStep("error");
+      setError("Order data unavailable, try again later.");
+      return;
+    }
     try {
       setStep("fulfilling");
       const params = order.orderParameters.parameters;
