@@ -19,7 +19,14 @@ export interface AssetFilters {
     search?: string;
     page?: number;
     limit?: number;
-    /** When true, only return assets that have an active CedarX listing OR active Seaport order */
+    /**
+     * Three-way listing filter:
+     *  "listed"   — only assets with has_active_listing=true and a price (default)
+     *  "unlisted" — only assets with has_active_listing=false
+     *  "all"      — no listing filter
+     */
+    listingFilter?: "listed" | "unlisted" | "all";
+    /** @deprecated Use listingFilter="listed" instead. Kept for backward compat. */
     listedOnly?: boolean;
 }
 
@@ -55,7 +62,12 @@ export async function getAssets(filters: AssetFilters = {}): Promise<PaginatedRe
         query = query.in("category", values);
     }
     if (filters.protocol) query = query.eq("protocol", filters.protocol);
-    if (filters.listedOnly) {
+    // Resolve the effective listing filter: explicit listingFilter takes priority,
+    // then fall back to the deprecated listedOnly flag, then default to "listed".
+    const effectiveFilter = filters.listingFilter
+        ?? (filters.listedOnly === false ? "all" : filters.listedOnly ? "listed" : "listed");
+
+    if (effectiveFilter === "listed") {
         // has_active_listing is the canonical source of truth: it's set true by
         // syncAssetSeaportListing whenever an active Seaport order exists, and
         // false when the last order expires/fills.  We also require a non-null
@@ -64,7 +76,10 @@ export async function getAssets(filters: AssetFilters = {}): Promise<PaginatedRe
         query = query
             .eq("has_active_listing", true)
             .not("current_listing_price", "is", null);
+    } else if (effectiveFilter === "unlisted") {
+        query = query.eq("has_active_listing", false);
     }
+    // "all" → no listing filter applied
     if (filters.minPrice != null) query = query.gte("current_listing_price", filters.minPrice);
     if (filters.maxPrice != null) query = query.lte("current_listing_price", filters.maxPrice);
     if (filters.search) {
@@ -631,4 +646,95 @@ export async function setCursor(pollerId: string, lastBlock: number): Promise<vo
         .update({ last_block: lastBlock, updated_at: new Date().toISOString() })
         .eq("poller_id", pollerId);
     if (error) throw error;
+}
+
+// ─── Collection sweep cursors ─────────────────────────────────────────────────
+//
+// The collection sweep poller paginates OpenSea's /collection/{slug}/nfts
+// endpoint using opaque string cursors (not block numbers).  We store these
+// in the cursor_text column added to indexer_cursors.
+
+/**
+ * Return the stored OpenSea pagination cursor for a collection sweep poller.
+ * Returns null if no cursor is stored (sweep hasn't started or has completed).
+ */
+export async function getSweepCursor(pollerId: string): Promise<string | null> {
+    const db = getDb();
+    const { data } = await (db.from("indexer_cursors") as any)
+        .select("cursor_text")
+        .eq("poller_id", pollerId)
+        .maybeSingle();
+    return (data as { cursor_text: string | null } | null)?.cursor_text ?? null;
+}
+
+/**
+ * Persist the current OpenSea pagination cursor for a collection sweep poller.
+ * Pass null to indicate the sweep has completed (cursor will be cleared).
+ */
+export async function setSweepCursor(pollerId: string, cursor: string | null): Promise<void> {
+    const db = getDb();
+    const { error } = await (db.from("indexer_cursors") as any).upsert(
+        {
+            poller_id:   pollerId,
+            last_block:  0,
+            cursor_text: cursor,
+            updated_at:  new Date().toISOString(),
+        },
+        { onConflict: "poller_id" }
+    );
+    if (error) throw error;
+}
+
+// ─── Collection sweep asset upsert ────────────────────────────────────────────
+
+/**
+ * Upsert an asset row discovered during a collection sweep.
+ *
+ * Behaviour on conflict differs from the plain upsertAsset:
+ *   - If the asset already exists: only update display metadata (name,
+ *     description, image_url, details, external_url).  has_active_listing
+ *     and current_listing_price are intentionally left untouched so an
+ *     active listing is never accidentally cleared by a metadata refresh.
+ *   - If the asset is new: insert with has_active_listing = false.
+ *
+ * Returns true if a new row was inserted, false if an existing row was updated.
+ */
+export async function upsertAssetFromSweep(asset: AssetInsert): Promise<boolean> {
+    const db = getDb();
+
+    // Check whether the asset is already indexed.
+    const { data: existing } = await db
+        .from("assets")
+        .select("id")
+        .eq("id", asset.id)
+        .maybeSingle();
+
+    if (existing) {
+        // Update only safe metadata fields — do NOT touch listing state.
+        const { error } = await db
+            .from("assets")
+            .update({
+                name:         asset.name,
+                description:  asset.description ?? null,
+                image_url:    asset.image_url ?? null,
+                details:      asset.details,
+                external_url: asset.external_url ?? null,
+                last_updated: new Date().toISOString(),
+            })
+            .eq("id", asset.id);
+        if (error) throw error;
+        return false;
+    }
+
+    // New asset — full insert with has_active_listing = false.
+    const { error } = await db
+        .from("assets")
+        .insert({
+            ...asset,
+            has_active_listing: false,
+            last_updated:       new Date().toISOString(),
+        });
+    // Ignore unique-violation (race between parallel sweep pages).
+    if (error && error.code !== "23505") throw error;
+    return !error;
 }

@@ -223,6 +223,32 @@ INSERT INTO indexer_cursors (poller_id, last_block) VALUES ('seaport', 0)
     ON CONFLICT (poller_id) DO NOTHING;
 
 -- ---------------------------------------------------------------------------
+-- Migration: collection sweep cursor support
+-- ---------------------------------------------------------------------------
+-- Adds a text column to indexer_cursors for OpenSea collection-NFTs pagination
+-- tokens (which are opaque strings, not block numbers).
+
+ALTER TABLE indexer_cursors ADD COLUMN IF NOT EXISTS cursor_text TEXT;
+
+-- Seed collection sweep cursor rows (one per indexed collection).
+INSERT INTO indexer_cursors (poller_id, last_block) VALUES
+    ('sweep-fabrica',   0),
+    ('sweep-4k',        0),
+    ('sweep-courtyard', 0),
+    ('sweep-arianee',   0)
+ON CONFLICT (poller_id) DO NOTHING;
+
+-- ---------------------------------------------------------------------------
+-- Migration: arianee protocol support
+-- ---------------------------------------------------------------------------
+-- The assets.protocol CHECK constraint must be widened to allow 'arianee'.
+-- Run these two statements once on existing deployments.
+
+ALTER TABLE assets DROP CONSTRAINT IF EXISTS assets_protocol_check;
+ALTER TABLE assets ADD CONSTRAINT assets_protocol_check
+    CHECK (protocol IN ('fabrica', '4k', 'courtyard', 'arianee'));
+
+-- ---------------------------------------------------------------------------
 -- assets: add has_active_listing (Seaport-aware listing flag)
 -- ---------------------------------------------------------------------------
 -- TRUE  when at least one active Seaport order exists for this asset.

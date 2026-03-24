@@ -13,6 +13,9 @@ const ListQuerySchema = z.object({
     maxPrice:         z.coerce.number().nonnegative().optional(),
     sort:             z.enum(["price_asc", "price_desc", "newest", "volume"]).optional(),
     search:           z.string().max(100).optional(),
+    // Three-way listing filter (preferred)
+    listingFilter:    z.enum(["listed", "unlisted", "all"]).optional(),
+    // Legacy boolean flag — kept for backward compat; mapped to listingFilter below
     listedOnly:       z.coerce.boolean().optional(),
     // Also accept ?has_active_listing=true (exact column filter)
     has_active_listing: z.coerce.boolean().optional(),
@@ -26,10 +29,21 @@ assetsRouter.get("/", async (req: Request, res: Response) => {
         return res.status(400).json({ error: "Invalid query parameters", details: parsed.error.flatten() });
     }
 
+    // Resolve effective listingFilter:
+    //   1. Explicit ?listingFilter=listed|unlisted|all takes highest priority
+    //   2. Legacy ?listedOnly=false or ?has_active_listing=false → "all"
+    //   3. Legacy ?listedOnly=true or ?has_active_listing=true  → "listed"
+    //   4. Default → "listed" (marketplace shows buyable assets first)
+    let listingFilter = parsed.data.listingFilter;
+    if (!listingFilter) {
+        const legacyOff = parsed.data.listedOnly === false || parsed.data.has_active_listing === false;
+        const legacyOn  = parsed.data.listedOnly === true  || parsed.data.has_active_listing === true;
+        listingFilter   = legacyOff ? "all" : legacyOn ? "listed" : "listed";
+    }
+
     const filters: AssetFilters = {
         ...parsed.data,
-        // Normalise ?has_active_listing=true → listedOnly so one code path handles both
-        listedOnly: parsed.data.listedOnly || parsed.data.has_active_listing,
+        listingFilter,
     };
     const result = await getAssets(filters);
 

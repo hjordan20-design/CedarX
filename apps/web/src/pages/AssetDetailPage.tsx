@@ -319,7 +319,7 @@ function AssetActions({ asset }: { asset: Asset }) {
           </p>
         )}
         {!hasListing && asset.lastSalePrice == null && (
-          <p className="text-cedar-muted text-sm">Not currently listed</p>
+          <p className="text-cedar-muted text-sm italic">Not currently listed — submit an offer on OpenSea</p>
         )}
       </div>
 
@@ -352,7 +352,18 @@ function AssetActions({ asset }: { asset: Asset }) {
           </button>
         )}
 
-        {!hasListing && !ownsAsset && (
+        {!hasListing && !ownsAsset && asset.tokenId && (
+          <a
+            href={`https://opensea.io/assets/${asset.chain === "polygon" ? "matic" : asset.chain}/${asset.contractAddress}/${asset.tokenId}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-primary w-full justify-center py-3.5 text-sm font-semibold inline-flex items-center gap-2"
+          >
+            Make Offer on OpenSea
+            <ExternalLink size={14} />
+          </a>
+        )}
+        {!hasListing && !ownsAsset && !asset.tokenId && (
           <button
             disabled
             className="btn-primary w-full justify-center py-3.5 text-sm font-semibold opacity-40 cursor-not-allowed"

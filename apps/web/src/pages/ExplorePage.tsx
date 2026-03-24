@@ -18,12 +18,20 @@ export function ExplorePage() {
 
   // URL is the single source of truth for all filter state.
   // Deriving filters here means back/forward navigation automatically restores them.
-  // listedOnly defaults to true; only stored in URL when explicitly toggled off.
+  // listingFilter defaults to "listed"; only stored in URL when changed.
+  const rawListingFilter = searchParams.get("listingFilter");
+  // Backward-compat: old ?listedOnly=false links map to "all"
+  const legacyListedOff = searchParams.get("listedOnly") === "false";
+  const listingFilter: AssetFilters["listingFilter"] =
+    rawListingFilter === "unlisted" || rawListingFilter === "all" || rawListingFilter === "listed"
+      ? rawListingFilter
+      : legacyListedOff ? "all" : "listed";
+
   const filters: AssetFilters = {
     sort: (searchParams.get("sort") as AssetFilters["sort"]) ?? "newest",
     page: Number(searchParams.get("page")) || 1,
     limit: PAGE_SIZE,
-    listedOnly: searchParams.get("listedOnly") !== "false",
+    listingFilter,
     category: categoryFromParam(searchParams.get("category")),
     search: searchParams.get("search") ?? undefined,
   };
@@ -47,9 +55,11 @@ export function ExplorePage() {
         if (next.search) params.set("search", next.search);
         else params.delete("search");
 
-        // Only store listedOnly in URL when explicitly turned off (default is true)
-        if (next.listedOnly === false) params.set("listedOnly", "false");
-        else params.delete("listedOnly");
+        // Only store listingFilter when it differs from the default ("listed")
+        if (next.listingFilter && next.listingFilter !== "listed") params.set("listingFilter", next.listingFilter);
+        else params.delete("listingFilter");
+        // Clean up old listedOnly param if present
+        params.delete("listedOnly");
 
         // Reset to page 1 whenever filters change
         params.delete("page");

@@ -9,11 +9,12 @@ import { createPublicClient, http } from "viem";
 import { mainnet as viemMainnet, polygon as viemPolygon } from "viem/chains";
 import { createServer } from "./server";
 import { PORT, ETH_MAINNET_RPC, POLYGON_RPC } from "./config";
-import { FabricaPoller }    from "./pollers/fabrica";
-import { FourKPoller }      from "./pollers/4k";
-import { CourtyardPoller }  from "./pollers/courtyard";
-import { CedarXSwapPoller } from "./pollers/cedarxSwap";
-import { SeaportPoller }    from "./pollers/seaport";
+import { FabricaPoller }         from "./pollers/fabrica";
+import { FourKPoller }           from "./pollers/4k";
+import { CourtyardPoller }       from "./pollers/courtyard";
+import { CedarXSwapPoller }      from "./pollers/cedarxSwap";
+import { SeaportPoller }         from "./pollers/seaport";
+import { CollectionSweepPoller } from "./pollers/collectionSweep";
 import { getDb } from "./db/client";
 
 // ── Start API server ──────────────────────────────────────────────────────────
@@ -83,11 +84,12 @@ async function seedCursors(): Promise<void> {
 // ── Start pollers ─────────────────────────────────────────────────────────────
 
 const pollers = [
-    new FabricaPoller(),    // ERC-1155 real estate, Ethereum
-    new FourKPoller(),      // ERC-1155 luxury goods, Ethereum
-    new CourtyardPoller(),  // ERC-721 collectibles, Polygon
-    new CedarXSwapPoller(), // Swap contract events (follows CHAIN_ENV)
-    new SeaportPoller(),    // OpenSea Seaport listings (HTTP, not block-based)
+    new FabricaPoller(),         // ERC-1155 real estate, Ethereum
+    new FourKPoller(),           // ERC-1155 luxury goods, Ethereum
+    new CourtyardPoller(),       // ERC-721 collectibles, Polygon
+    new CedarXSwapPoller(),      // Swap contract events (follows CHAIN_ENV)
+    new SeaportPoller(),         // OpenSea Seaport listings (HTTP, not block-based)
+    new CollectionSweepPoller(), // Full-collection sweep via OpenSea /collection/{slug}/nfts
 ];
 
 // Seed cursors first, then start pollers.

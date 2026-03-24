@@ -16,6 +16,16 @@ const SORT_OPTIONS: { value: AssetFilters["sort"]; label: string }[] = [
   { value: "volume",     label: "Volume" },
 ];
 
+const LISTING_FILTER_OPTIONS: {
+  value: NonNullable<AssetFilters["listingFilter"]>;
+  label: string;
+  hint: string;
+}[] = [
+  { value: "listed",   label: "Listed",   hint: "Assets with an active listing and price" },
+  { value: "unlisted", label: "Unlisted", hint: "Assets not currently for sale" },
+  { value: "all",      label: "All",      hint: "All indexed assets" },
+];
+
 interface FilterBarProps {
   filters: AssetFilters;
   onChange: (next: AssetFilters) => void;
@@ -54,9 +64,16 @@ function PillGroup<T extends string>({
 }
 
 export function FilterBar({ filters, onChange, total }: FilterBarProps) {
-  // listedOnly:true is the default — don't count it as an active filter.
-  // Count listedOnly only when it's explicitly turned OFF (different from default).
-  const hasActiveFilters = !!(filters.category || filters.search || filters.sort !== "newest" || filters.listedOnly === false);
+  const effectiveListingFilter = filters.listingFilter ?? "listed";
+
+  // An active filter is anything that differs from the default view
+  // (newest sort, no category/search, listed-only mode).
+  const hasActiveFilters = !!(
+    filters.category ||
+    filters.search ||
+    filters.sort !== "newest" ||
+    effectiveListingFilter !== "listed"
+  );
 
   function set(partial: Partial<AssetFilters>) {
     onChange({ ...filters, ...partial, page: 1 });
@@ -101,7 +118,7 @@ export function FilterBar({ filters, onChange, total }: FilterBarProps) {
           )}
           {hasActiveFilters && (
             <button
-              onClick={() => onChange({ sort: "newest", page: 1, listedOnly: true })}
+              onClick={() => onChange({ sort: "newest", page: 1, listingFilter: "listed" })}
               className="inline-flex items-center gap-1 text-cedar-muted text-xs hover:text-cedar-text transition-colors"
             >
               <X className="w-3 h-3" />
@@ -120,22 +137,34 @@ export function FilterBar({ filters, onChange, total }: FilterBarProps) {
         />
       </div>
 
-      {/* Listed-only toggle */}
-      <div className="flex items-center gap-3">
-        <button
-          onClick={() => set({ listedOnly: !filters.listedOnly })}
-          className={`inline-flex items-center gap-2 text-xs font-sans tracking-wide border transition-colors duration-150 px-3 py-1 ${
-            filters.listedOnly
-              ? "bg-cedar-amber text-cedar-bg border-cedar-amber"
-              : "border-cedar-border text-cedar-muted hover:border-cedar-muted hover:text-cedar-text"
-          }`}
-        >
-          <span
-            className={`w-2 h-2 rounded-full ${filters.listedOnly ? "bg-cedar-bg" : "bg-cedar-muted/40"}`}
-          />
-          Listed only
-        </button>
-        {!filters.listedOnly && (
+      {/* Listing status three-way filter */}
+      <div className="flex items-center gap-4 flex-wrap">
+        <span className="text-cedar-muted text-xs font-sans tracking-widest uppercase w-16 shrink-0">Status</span>
+        <div className="flex flex-wrap gap-1.5">
+          {LISTING_FILTER_OPTIONS.map((opt) => {
+            const active = effectiveListingFilter === opt.value;
+            return (
+              <button
+                key={opt.value}
+                title={opt.hint}
+                onClick={() => set({ listingFilter: opt.value })}
+                className={`px-3 py-1 text-xs font-sans tracking-wide border transition-colors duration-150 ${
+                  active
+                    ? "bg-cedar-amber text-cedar-bg border-cedar-amber"
+                    : "border-cedar-border text-cedar-muted hover:border-cedar-muted hover:text-cedar-text"
+                }`}
+              >
+                {opt.label}
+              </button>
+            );
+          })}
+        </div>
+        {effectiveListingFilter === "unlisted" && (
+          <span className="text-cedar-muted/50 text-[11px]">
+            Unlisted assets show "Make Offer"
+          </span>
+        )}
+        {effectiveListingFilter === "all" && (
           <span className="text-cedar-muted/50 text-[11px]">
             Showing all indexed assets
           </span>

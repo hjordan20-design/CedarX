@@ -42,6 +42,18 @@ function PriceLine({ asset }: { asset: Asset }) {
       </div>
     );
   }
+  if (asset.hasActiveListing) {
+    // Active listing exists but price not yet synced
+    return <span className="text-cedar-muted text-sm font-sans">Listed</span>;
+  }
+  if (!asset.hasActiveListing) {
+    // Unlisted — direct buyer to OpenSea for a Seaport offer
+    return (
+      <span className="text-cedar-muted/60 text-sm font-sans italic tracking-wide">
+        Make Offer
+      </span>
+    );
+  }
   if (asset.lastSalePrice != null) {
     return (
       <div className="flex items-baseline gap-1.5">
@@ -49,9 +61,6 @@ function PriceLine({ asset }: { asset: Asset }) {
         <span className="text-cedar-muted text-xs font-sans">last sale</span>
       </div>
     );
-  }
-  if (asset.hasActiveListing) {
-    return <span className="text-cedar-muted text-sm font-sans">Listed</span>;
   }
   return <span className="text-cedar-muted text-sm font-mono">—</span>;
 }

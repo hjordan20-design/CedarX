@@ -55,9 +55,9 @@ const DELAY_MS = 600; // ms between OpenSea API requests (~1.7 req/s)
 
 // ─── Contract registry ────────────────────────────────────────────────────────
 
-type Protocol = "fabrica" | "4k" | "courtyard" | "arianee";
+export type Protocol = "fabrica" | "4k" | "courtyard" | "arianee";
 
-interface ContractConfig {
+export interface ContractConfig {
     chain: string;
     openSeaChain: string; // OpenSea chain slug ("matic" for Polygon)
     openSeaSlug: string;  // OpenSea collection slug for /listings/collection/{slug}/all
@@ -68,7 +68,7 @@ interface ContractConfig {
 }
 
 /** Build the list of whitelisted contracts to poll from env-provided addresses. */
-function buildContracts(): ContractConfig[] {
+export function buildContracts(): ContractConfig[] {
     const contracts: ContractConfig[] = [];
 
     if (FABRICA_TOKEN_V2) {
@@ -203,14 +203,14 @@ interface OpenSeaOrdersResponse {
     next: string | null;
 }
 
-interface OpenSeaNFTTrait {
+export interface OpenSeaNFTTrait {
     trait_type: string;
     display_type: string | null;
     max_value: string | null;
     value: string | number;
 }
 
-interface OpenSeaNFT {
+export interface OpenSeaNFT {
     identifier: string;
     collection: string;
     contract: string;
@@ -231,7 +231,7 @@ interface OpenSeaNFTResponse {
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 /** Build the deterministic CedarX asset ID for a token. */
-function buildAssetId(config: ContractConfig, tokenId: string): string {
+export function buildAssetId(config: ContractConfig, tokenId: string): string {
     return `${config.protocol}:${config.chainId}:${config.contractAddress}:${tokenId}`;
 }
 
@@ -239,7 +239,7 @@ function buildAssetId(config: ContractConfig, tokenId: string): string {
  * Normalize an OpenSea NFT API response into an AssetInsert row.
  * Uses the same field mappings as the per-protocol normalizers.
  */
-function normalizeOpenSeaNFT(nft: OpenSeaNFT, config: ContractConfig): AssetInsert {
+export function normalizeOpenSeaNFT(nft: OpenSeaNFT, config: ContractConfig): AssetInsert {
     const tokenId = nft.identifier;
     const id = buildAssetId(config, tokenId);
 
@@ -330,7 +330,7 @@ function normalizeOpenSeaNFT(nft: OpenSeaNFT, config: ContractConfig): AssetInse
     };
 }
 
-function sleep(ms: number): Promise<void> {
+export function sleep(ms: number): Promise<void> {
     return new Promise((r) => setTimeout(r, ms));
 }
 

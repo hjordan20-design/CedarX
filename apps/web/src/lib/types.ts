@@ -115,7 +115,13 @@ export interface AssetFilters {
   maxPrice?: number;
   sort?: "price_asc" | "price_desc" | "newest" | "volume";
   search?: string;
-  listedOnly?: boolean;
+  /**
+   * Three-way listing filter:
+   *  "listed"   — only assets with an active listing and a price (default)
+   *  "unlisted" — only assets with no active listing
+   *  "all"      — show everything
+   */
+  listingFilter?: "listed" | "unlisted" | "all";
   page?: number;
   limit?: number;
 }

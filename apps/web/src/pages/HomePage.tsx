@@ -5,7 +5,7 @@ import { CategoryCards } from "@/components/home/CategoryCards";
 import { HowItWorks } from "@/components/home/HowItWorks";
 import type { AssetFilters } from "@/lib/types";
 
-const DEFAULT_FILTERS: AssetFilters = { sort: "newest", listedOnly: true };
+const DEFAULT_FILTERS: AssetFilters = { sort: "newest", listingFilter: "listed" };
 
 export function HomePage() {
   const [filters, setFilters] = useState<AssetFilters>(DEFAULT_FILTERS);
