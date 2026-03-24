@@ -85,14 +85,16 @@ export function getValidatedParams(
   }
 
   const params: SeaportOrderParameters | null | undefined = blob?.parameters;
-  const signature: string | null | undefined = blob?.signature;
 
-  if (!params || !signature) return null;
+  if (!params) return null;
 
   // Guard the inner arrays — they must be real arrays to call .map() / .reduce()
   if (!Array.isArray(params.offer) || !Array.isArray(params.consideration)) return null;
 
-  return { params, signature };
+  // signature may be null for unsigned orders — pass it through as-is
+  const signature: string | null | undefined = blob?.signature;
+
+  return { params, signature: signature ?? "" };
 }
 
 /** Sum the total ETH consideration from order parameters */
