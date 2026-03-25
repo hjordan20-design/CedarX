@@ -352,7 +352,14 @@ function AssetActions({ asset }: { asset: Asset }) {
           </p>
         )}
         {!hasListing && asset.lastSalePrice == null && (
-          <p className="text-cedar-muted text-sm italic">Not currently listed — submit an offer on OpenSea</p>
+          <p className="text-cedar-muted text-sm italic">
+            {asset.tokenId
+              ? "Not currently listed — make an offer below."
+              : "Not currently listed."}
+          </p>
+        )}
+        {hasListing && asset.chain === "polygon" && (
+          <p className="text-cedar-muted/60 text-xs mt-1">Payment in USDC on Polygon</p>
         )}
       </div>
 
@@ -398,7 +405,7 @@ function AssetActions({ asset }: { asset: Asset }) {
             disabled
             className="btn-primary w-full justify-center py-3.5 text-sm font-semibold opacity-40 cursor-not-allowed"
           >
-            Not currently listed
+            Make Offer
           </button>
         )}
       </div>

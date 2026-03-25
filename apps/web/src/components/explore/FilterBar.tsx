@@ -21,9 +21,9 @@ const LISTING_FILTER_OPTIONS: {
   label: string;
   hint: string;
 }[] = [
-  { value: "listed",   label: "Listed",   hint: "Assets with an active listing and price" },
-  { value: "unlisted", label: "Unlisted", hint: "Assets not currently for sale" },
-  { value: "all",      label: "All",      hint: "All indexed assets" },
+  { value: "listed",   label: "For Sale",   hint: "Assets with an active listing and price" },
+  { value: "unlisted", label: "Make Offer", hint: "Assets not currently for sale — submit an offer to the owner" },
+  { value: "all",      label: "All",        hint: "All indexed assets" },
 ];
 
 interface FilterBarProps {
@@ -159,16 +159,6 @@ export function FilterBar({ filters, onChange, total }: FilterBarProps) {
             );
           })}
         </div>
-        {effectiveListingFilter === "unlisted" && (
-          <span className="text-cedar-muted/50 text-[11px]">
-            Unlisted assets show "Make Offer"
-          </span>
-        )}
-        {effectiveListingFilter === "all" && (
-          <span className="text-cedar-muted/50 text-[11px]">
-            Showing all indexed assets
-          </span>
-        )}
       </div>
     </div>
   );

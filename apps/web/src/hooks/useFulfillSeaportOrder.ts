@@ -32,7 +32,10 @@ import {
   useAccount,
   usePublicClient,
 } from "wagmi";
-import { SEAPORT_ADDRESS, NATIVE_TOKEN } from "@/config/contracts";
+import { SEAPORT_ADDRESS, NATIVE_TOKEN, USDC_POLYGON, USDC_E_POLYGON } from "@/config/contracts";
+
+// Optional 0x API key for higher rate limits (set VITE_ZRX_API_KEY in .env)
+const ZRX_API_KEY = import.meta.env.VITE_ZRX_API_KEY as string | undefined;
 
 import { fetchSeaportFulfillment } from "@/lib/api";
 import type { SeaportOrder, SeaportOrderParameters } from "@/lib/types";
@@ -58,10 +61,18 @@ const ERC20_ABI = [
     ],
     outputs: [{ type: "bool" }],
   },
+  {
+    type: "function",
+    name: "balanceOf",
+    stateMutability: "view",
+    inputs: [{ name: "account", type: "address" }],
+    outputs: [{ type: "uint256" }],
+  },
 ] as const;
 
 export type FulfillStep =
   | "idle"
+  | "swapping-usdc"       // auto-swapping native USDC → USDC.e before approval
   | "approving-token"
   | "pending-approval"
   | "fulfilling"
@@ -127,6 +138,7 @@ export function useFulfillSeaportOrder(order: SeaportOrder | null) {
   const [step, setStep] = useState<FulfillStep>("idle");
   const [error, setError] = useState<string | null>(null);
   const [fulfillTxHash, setFulfillTxHash] = useState<`0x${string}` | undefined>();
+  const [needsSwap, setNeedsSwap] = useState(false);
 
   const isNative = order ? isNativeEth(order.paymentToken) : false;
   const paymentTokenAddress = order?.paymentToken as `0x${string}` | undefined;
@@ -203,7 +215,86 @@ export function useFulfillSeaportOrder(order: SeaportOrder | null) {
       );
       console.log(`[fulfill] calldata selector=${fulfillment.data.slice(0, 10)} length=${fulfillment.data.length}`);
 
-      // Step 2: ERC-20 approval — approve the conduit (approvalTarget), not Seaport itself
+      // Step 2a: USDC.e auto-swap — if buyer is short on USDC.e but has native USDC,
+      // swap the shortfall via 0x before proceeding to approval.
+      if (isErc20 && tokenAddr.toLowerCase() === USDC_E_POLYGON.toLowerCase()) {
+        const usdceBalance = await publicClient.readContract({
+          address:      tokenAddr,
+          abi:          ERC20_ABI,
+          functionName: "balanceOf",
+          args:         [address],
+        }) as bigint;
+
+        if (usdceBalance < tokenAmount) {
+          const needed = tokenAmount - usdceBalance;
+          const usdcBalance = await publicClient.readContract({
+            address:      USDC_POLYGON,
+            abi:          ERC20_ABI,
+            functionName: "balanceOf",
+            args:         [address],
+          }) as bigint;
+
+          if (usdcBalance < needed) {
+            throw new Error(
+              "Insufficient USDC balance. You need more USDC or USDC.e on Polygon."
+            );
+          }
+
+          // Get swap quote from 0x
+          console.log("[fulfill] USDC.e balance insufficient — swapping native USDC via 0x");
+          setNeedsSwap(true);
+          setStep("swapping-usdc");
+
+          const quoteUrl = new URL("https://polygon.api.0x.org/swap/v1/quote");
+          quoteUrl.searchParams.set("buyToken",     USDC_E_POLYGON);
+          quoteUrl.searchParams.set("sellToken",    USDC_POLYGON);
+          quoteUrl.searchParams.set("buyAmount",    needed.toString());
+          quoteUrl.searchParams.set("takerAddress", address);
+          const quoteHeaders: Record<string, string> = { Accept: "application/json" };
+          if (ZRX_API_KEY) quoteHeaders["0x-api-key"] = ZRX_API_KEY;
+
+          const quoteRes = await fetch(quoteUrl.toString(), { headers: quoteHeaders });
+          if (!quoteRes.ok) {
+            const txt = await quoteRes.text().catch(() => "");
+            throw new Error(`Swap quote failed (${quoteRes.status}): ${txt.slice(0, 80)}`);
+          }
+          const quote = await quoteRes.json() as {
+            to: string; data: string; value: string;
+            sellAmount: string; allowanceTarget: string;
+          };
+
+          const swapTarget  = quote.allowanceTarget as `0x${string}`;
+          const sellAmount  = BigInt(quote.sellAmount);
+
+          // Approve native USDC for the 0x router
+          const swapAllowance = await publicClient.readContract({
+            address:      USDC_POLYGON,
+            abi:          ERC20_ABI,
+            functionName: "allowance",
+            args:         [address, swapTarget],
+          }) as bigint;
+          if (swapAllowance < sellAmount) {
+            const approveSwapHash = await writeContractAsync({
+              address:      USDC_POLYGON,
+              abi:          ERC20_ABI,
+              functionName: "approve",
+              args:         [swapTarget, sellAmount],
+            });
+            await publicClient.waitForTransactionReceipt({ hash: approveSwapHash });
+          }
+
+          // Execute the swap
+          const swapHash = await sendTransactionAsync({
+            to:    quote.to as `0x${string}`,
+            data:  quote.data as `0x${string}`,
+            value: BigInt(quote.value ?? "0"),
+          });
+          await publicClient.waitForTransactionReceipt({ hash: swapHash });
+          console.log("[fulfill] ✓ USDC → USDC.e swap complete");
+        }
+      }
+
+      // Step 2b: ERC-20 approval — approve the conduit (approvalTarget), not Seaport itself
       if (isErc20) {
         const currentAllowance = await publicClient.readContract({
           address:      tokenAddr,
@@ -257,9 +348,10 @@ export function useFulfillSeaportOrder(order: SeaportOrder | null) {
     setStep("idle");
     setError(null);
     setFulfillTxHash(undefined);
+    setNeedsSwap(false);
   }, []);
 
-  return { step, execute, reset, error, fulfillTxHash };
+  return { step, execute, reset, error, fulfillTxHash, needsSwap };
 }
 
 function parseContractError(err: unknown): string {

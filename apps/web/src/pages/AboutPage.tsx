@@ -59,6 +59,36 @@ const FAQ_SECTIONS: { heading: string; items: FAQItem[] }[] = [
     ],
   },
   {
+    heading: "Buying & selling",
+    items: [
+      {
+        q: "What does 'For Sale' mean?",
+        a: "An asset marked 'For Sale' has been listed by its owner at a fixed price. Click Buy, approve the USDC payment in your wallet, and the asset transfers to you instantly — no negotiation required.",
+      },
+      {
+        q: "What does 'Make Offer' mean?",
+        a: "An asset showing 'Make Offer' is not currently listed for sale. You can still submit a USDC offer directly to the owner. If the owner accepts, the trade settles automatically. Your wallet signs the offer off-chain — no gas is needed until the owner accepts.",
+      },
+      {
+        q: "How does trade settlement work?",
+        a: (
+          <>
+            All CedarX trades settle through a secure smart contract protocol. When a trade executes:
+            <ol className="mt-3 space-y-2 list-decimal list-inside text-cedar-muted">
+              <li>Your USDC payment and the seller's asset token are exchanged atomically in a single transaction.</li>
+              <li>If either side fails, the entire transaction reverts — you cannot lose funds to a partial fill.</li>
+              <li>There is no counterparty risk between signing and settlement.</li>
+            </ol>
+          </>
+        ),
+      },
+      {
+        q: "Are CedarX listings visible on other marketplaces?",
+        a: "Yes. Listings created on CedarX are simultaneously visible on OpenSea and any other Seaport-compatible marketplace. Offers you submit through CedarX are also broadcast to OpenSea so sellers can see and accept them from any compatible interface.",
+      },
+    ],
+  },
+  {
     heading: "The protocols",
     items: [
       {

@@ -7,21 +7,24 @@ import { formatUnits } from "viem";
 
 // ─── Shared helpers ───────────────────────────────────────────────────────────
 
-const CEDARX_STEPS  = ["Approve USDC", "Confirm purchase", "Complete"];
-const SEAPORT_STEPS = ["Approve token", "Confirm purchase", "Complete"];
+const CEDARX_STEPS       = ["Approve USDC", "Confirm purchase", "Complete"];
+const SEAPORT_STEPS      = ["Approve token", "Confirm purchase", "Complete"];
+const SEAPORT_SWAP_STEPS = ["Swap USDC → USDC.e", "Approve USDC.e", "Confirm purchase", "Complete"];
 
 function isProcessingCedarX(step: BuyStep) {
   return ["approving-usdc", "pending-usdc", "buying", "pending-buy"].includes(step);
 }
 
 function isProcessingSeaport(step: FulfillStep) {
-  return ["approving-token", "pending-approval", "fulfilling", "pending-fulfill"].includes(step);
+  return ["swapping-usdc", "approving-token", "pending-approval", "fulfilling", "pending-fulfill"].includes(step);
 }
 
-function seaportStepIndex(step: FulfillStep): number {
-  if (step === "success") return 2;
-  if (step === "fulfilling" || step === "pending-fulfill") return 1;
-  return 0;
+function seaportStepIndex(step: FulfillStep, needsSwap: boolean): number {
+  if (step === "success")                                           return needsSwap ? 3 : 2;
+  if (step === "fulfilling" || step === "pending-fulfill")          return needsSwap ? 2 : 1;
+  if (step === "approving-token" || step === "pending-approval")    return needsSwap ? 1 : 0;
+  if (step === "swapping-usdc")                                     return 0;
+  return needsSwap ? 1 : 0;
 }
 
 function cedarxStepIndex(step: BuyStep): number {
@@ -182,8 +185,8 @@ interface SeaportBuyContentProps {
 }
 
 function SeaportBuyContent({ assetName, order, onClose }: SeaportBuyContentProps) {
-  const { step, execute, reset, error, fulfillTxHash } = useFulfillSeaportOrder(order);
-  const current    = seaportStepIndex(step);
+  const { step, execute, reset, error, fulfillTxHash, needsSwap } = useFulfillSeaportOrder(order);
+  const current    = seaportStepIndex(step, needsSwap);
   const canDismiss = step === "idle" || step === "success" || step === "error";
   const isNative   = order.paymentToken === "0x0000000000000000000000000000000000000000";
 
@@ -212,7 +215,11 @@ function SeaportBuyContent({ assetName, order, onClose }: SeaportBuyContentProps
 
         {step !== "idle" && step !== "error" && (
           <StepList
-            labels={isNative ? ["Confirm purchase", "Complete"] : SEAPORT_STEPS}
+            labels={
+              isNative ? ["Confirm purchase", "Complete"]
+              : needsSwap ? SEAPORT_SWAP_STEPS
+              : SEAPORT_STEPS
+            }
             current={isNative ? Math.max(0, current - 1) : current}
             pendingSteps={["Processing…"]}
           />

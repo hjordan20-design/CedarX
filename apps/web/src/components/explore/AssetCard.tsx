@@ -47,9 +47,8 @@ function PriceLine({ asset }: { asset: Asset }) {
     return <span className="text-cedar-muted text-sm font-sans">Listed</span>;
   }
   if (!asset.hasActiveListing) {
-    // Unlisted — direct buyer to OpenSea for a Seaport offer
     return (
-      <span className="text-cedar-muted/60 text-sm font-sans italic tracking-wide">
+      <span className="inline-flex items-center px-2.5 py-0.5 text-xs font-sans border border-cedar-amber/50 text-cedar-amber/80 group-hover:border-cedar-amber group-hover:text-cedar-amber transition-colors">
         Make Offer
       </span>
     );
