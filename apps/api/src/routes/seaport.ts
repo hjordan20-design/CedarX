@@ -19,6 +19,11 @@ import {
     syncAssetSeaportListing,
     expireSeaportOrders,
     backfillSeaportPrices,
+    getUserSeaportOrders,
+    getUserSeaportOffers,
+    getAssetsByIds,
+    setSeaportOrderStatus,
+    setSeaportOfferStatus,
 } from "../db/queries";
 import { getDb } from "../db/client";
 import {
@@ -597,6 +602,104 @@ seaportRouter.post("/offers", requireApiKey, async (req: Request, res: Response)
     );
 
     return res.status(201).json({ orderHash, openSeaError });
+});
+
+// ─── GET /api/seaport/user-listings?address=0x… ───────────────────────────────
+// Returns all Seaport orders where the connected wallet is the seller.
+
+seaportRouter.get("/user-listings", async (req: Request, res: Response) => {
+    const address = req.query.address as string | undefined;
+    if (!address || !/^0x[0-9a-fA-F]{40}$/i.test(address)) {
+        return res.status(400).json({ error: "Missing or invalid address query parameter" });
+    }
+
+    const orders = await getUserSeaportOrders(address);
+    const assetIds = [...new Set(orders.map((o) => o.asset_id as string | null).filter(Boolean))] as string[];
+    const assets = await getAssetsByIds(assetIds);
+    const assetMap = new Map(assets.map((a) => [a.id, a]));
+
+    return res.json({
+        data: orders.map((order) => ({
+            orderHash:            order.order_hash,
+            assetId:              order.asset_id,
+            chain:                order.chain,
+            price:                String(order.price),
+            paymentTokenSymbol:   order.payment_token_symbol,
+            paymentTokenDecimals: Number(order.payment_token_decimals),
+            expiration:           order.expiration,
+            status:               order.status,
+            createdAt:            order.created_at,
+            orderParameters:      order.order_parameters,
+            asset:                order.asset_id ? (assetMap.get(order.asset_id as string) ?? null) : null,
+        })),
+    });
+});
+
+// ─── GET /api/seaport/user-offers?address=0x… ─────────────────────────────────
+// Returns all Seaport offers placed by the connected wallet.
+
+seaportRouter.get("/user-offers", async (req: Request, res: Response) => {
+    const address = req.query.address as string | undefined;
+    if (!address || !/^0x[0-9a-fA-F]{40}$/i.test(address)) {
+        return res.status(400).json({ error: "Missing or invalid address query parameter" });
+    }
+
+    const offers = await getUserSeaportOffers(address);
+    const assetIds = [...new Set(offers.map((o) => o.asset_id as string | null).filter(Boolean))] as string[];
+    const assets = await getAssetsByIds(assetIds);
+    const assetMap = new Map(assets.map((a) => [a.id, a]));
+
+    return res.json({
+        data: offers.map((offer) => ({
+            id:                   offer.id,
+            assetId:              offer.asset_id,
+            amount:               String(offer.amount),
+            paymentTokenSymbol:   offer.payment_token_symbol,
+            paymentTokenDecimals: Number(offer.payment_token_decimals),
+            expiresAt:            offer.expires_at,
+            status:               offer.status,
+            createdAt:            offer.created_at,
+            orderHash:            offer.order_hash,
+            orderParameters:      offer.order_parameters,
+            asset:                offer.asset_id ? (assetMap.get(offer.asset_id as string) ?? null) : null,
+        })),
+    });
+});
+
+// ─── POST /api/seaport/cancel-listing ─────────────────────────────────────────
+// Marks a specific Seaport order as cancelled in the CedarX database.
+// Called by the frontend after the seller has submitted an on-chain Seaport cancel tx.
+
+seaportRouter.post("/cancel-listing", requireApiKey, async (req: Request, res: Response) => {
+    const { orderHash } = req.body as { orderHash?: string };
+    if (!orderHash) return res.status(400).json({ error: "orderHash required" });
+
+    await setSeaportOrderStatus(orderHash, "cancelled");
+
+    // Re-sync the asset's listing state so has_active_listing + price are accurate
+    const { data: orderRow } = await (getDb() as any)
+        .from("seaport_orders")
+        .select("asset_id")
+        .eq("order_hash", orderHash)
+        .maybeSingle();
+
+    if (orderRow?.asset_id) {
+        const cheapest = await getActiveSeaportOrder(orderRow.asset_id as string);
+        await syncAssetSeaportListing(orderRow.asset_id as string, cheapest);
+    }
+
+    return res.json({ ok: true });
+});
+
+// ─── POST /api/seaport/cancel-offer ───────────────────────────────────────────
+// Marks a specific offer as cancelled in the CedarX database.
+// Called by the frontend after the buyer has submitted an on-chain Seaport cancel tx.
+
+seaportRouter.post("/cancel-offer", requireApiKey, async (req: Request, res: Response) => {
+    const { offerId } = req.body as { offerId?: string };
+    if (!offerId) return res.status(400).json({ error: "offerId required" });
+    await setSeaportOfferStatus(offerId, "cancelled");
+    return res.json({ ok: true });
 });
 
 // ─── Formatter ────────────────────────────────────────────────────────────────

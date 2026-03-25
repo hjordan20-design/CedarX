@@ -180,6 +180,7 @@ function WalletButton({ fullWidth }: { fullWidth?: boolean }) {
 export function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { pathname } = useLocation();
+  const { isConnected } = useAccount();
 
   useEffect(() => { setMobileOpen(false); }, [pathname]);
 
@@ -189,10 +190,11 @@ export function Header() {
   }, [mobileOpen]);
 
   const navLinks = [
-    { to: "/",        label: "Home" },
-    { to: "/explore", label: "Explore" },
-    { to: "/sell",    label: "Sell" },
-    { to: "/about",   label: "How it works" },
+    { to: "/",          label: "Home"         },
+    { to: "/explore",   label: "Explore"      },
+    { to: "/sell",      label: "Sell"         },
+    ...(isConnected ? [{ to: "/activity", label: "My Activity" }] : []),
+    { to: "/about",     label: "How it works" },
   ];
 
   return (

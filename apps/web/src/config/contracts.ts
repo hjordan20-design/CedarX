@@ -92,6 +92,50 @@ const ORDER_PARAMETERS_COMPONENTS = [
   { name: "totalOriginalConsiderationItems",  type: "uint256"  },
 ] as const;
 
+// ABI for Seaport cancel — used by the Activity page to cancel individual orders.
+// cancel(OrderComponents[] orders) → bool
+// Only the offerer may cancel their own orders.
+export const SEAPORT_CANCEL_ABI = [
+  {
+    type: "function",
+    name: "cancel",
+    stateMutability: "nonpayable",
+    inputs: [
+      {
+        name: "orders",
+        type: "tuple[]",
+        components: [
+          { name: "offerer",      type: "address" },
+          { name: "zone",         type: "address" },
+          { name: "offer", type: "tuple[]", components: [
+            { name: "itemType",               type: "uint8"   },
+            { name: "token",                  type: "address" },
+            { name: "identifierOrCriteria",   type: "uint256" },
+            { name: "startAmount",            type: "uint256" },
+            { name: "endAmount",              type: "uint256" },
+          ]},
+          { name: "consideration", type: "tuple[]", components: [
+            { name: "itemType",               type: "uint8"   },
+            { name: "token",                  type: "address" },
+            { name: "identifierOrCriteria",   type: "uint256" },
+            { name: "startAmount",            type: "uint256" },
+            { name: "endAmount",              type: "uint256" },
+            { name: "recipient",              type: "address" },
+          ]},
+          { name: "orderType",    type: "uint8"   },
+          { name: "startTime",    type: "uint256" },
+          { name: "endTime",      type: "uint256" },
+          { name: "zoneHash",     type: "bytes32" },
+          { name: "salt",         type: "uint256" },
+          { name: "conduitKey",   type: "bytes32" },
+          { name: "counter",      type: "uint256" },
+        ],
+      },
+    ],
+    outputs: [{ name: "cancelled", type: "bool" }],
+  },
+] as const;
+
 export const SEAPORT_ABI = [
   // fulfillOrder — general fulfillment for any order type
   {

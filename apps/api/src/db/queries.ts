@@ -768,6 +768,65 @@ export async function setSweepCursor(pollerId: string, cursor: string | null): P
     if (error) throw error;
 }
 
+// ─── Seaport user activity ────────────────────────────────────────────────────
+
+/**
+ * Return all Seaport orders where the caller is the seller.
+ * Used by the /activity page to show "My Listings".
+ */
+export async function getUserSeaportOrders(address: string) {
+    const db = getDb();
+    const { data, error } = await (db.from("seaport_orders") as any)
+        .select("order_hash, asset_id, chain, price, payment_token_symbol, payment_token_decimals, expiration, status, created_at, order_parameters")
+        .eq("seller_address", address.toLowerCase())
+        .order("created_at", { ascending: false });
+    if (error) throw error;
+    return (data ?? []) as Array<Record<string, unknown>>;
+}
+
+/**
+ * Return all Seaport offers placed by the given address.
+ * Used by the /activity page to show "My Offers".
+ */
+export async function getUserSeaportOffers(address: string) {
+    const db = getDb();
+    const { data, error } = await (db.from("seaport_offers") as any)
+        .select("id, asset_id, amount, payment_token_symbol, payment_token_decimals, status, expires_at, created_at, order_hash, order_parameters")
+        .eq("offerer_address", address.toLowerCase())
+        .order("created_at", { ascending: false });
+    if (error) throw error;
+    return (data ?? []) as Array<Record<string, unknown>>;
+}
+
+/**
+ * Batch-fetch minimal asset display fields for a list of asset IDs.
+ * Used to enrich user listings and offers with asset metadata.
+ */
+export async function getAssetsByIds(ids: string[]): Promise<Array<{ id: string; name: string; image_url: string | null; token_id: string | null; contract_address: string; chain: string }>> {
+    if (ids.length === 0) return [];
+    const db = getDb();
+    const { data, error } = await db
+        .from("assets")
+        .select("id, name, image_url, token_id, contract_address, chain")
+        .in("id", ids);
+    if (error) throw error;
+    return (data ?? []) as Array<{ id: string; name: string; image_url: string | null; token_id: string | null; contract_address: string; chain: string }>;
+}
+
+/**
+ * Update the status of a seaport_offer row.
+ */
+export async function setSeaportOfferStatus(
+    id: string,
+    status: "active" | "accepted" | "cancelled" | "expired"
+): Promise<void> {
+    const db = getDb();
+    const { error } = await (db.from("seaport_offers") as any)
+        .update({ status })
+        .eq("id", id);
+    if (error) throw error;
+}
+
 // ─── Collection sweep asset upsert ────────────────────────────────────────────
 
 /**

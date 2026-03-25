@@ -148,6 +148,71 @@ export async function postSeaportOffer(
   return res.json();
 }
 
+// ─── Activity (user listings + offers) ───────────────────────────────────────
+
+export interface ActivityAsset {
+  id: string;
+  name: string;
+  image_url: string | null;
+  token_id: string | null;
+  contract_address: string;
+  chain: string;
+}
+
+export interface UserListing {
+  orderHash: string;
+  assetId: string | null;
+  chain: string;
+  price: string;
+  paymentTokenSymbol: string;
+  paymentTokenDecimals: number;
+  expiration: string | null;
+  status: "active" | "filled" | "cancelled" | "expired";
+  createdAt: string;
+  orderParameters: { parameters: Record<string, unknown>; signature: string } | null;
+  asset: ActivityAsset | null;
+}
+
+export interface UserOffer {
+  id: string;
+  assetId: string | null;
+  amount: string;
+  paymentTokenSymbol: string;
+  paymentTokenDecimals: number;
+  expiresAt: string;
+  status: "active" | "accepted" | "cancelled" | "expired";
+  createdAt: string;
+  orderHash: string | null;
+  orderParameters: { parameters: Record<string, unknown>; signature: string } | null;
+  asset: ActivityAsset | null;
+}
+
+export async function fetchUserListings(address: string): Promise<{ data: UserListing[] }> {
+  return get("/api/seaport/user-listings", { address });
+}
+
+export async function fetchUserOffers(address: string): Promise<{ data: UserOffer[] }> {
+  return get("/api/seaport/user-offers", { address });
+}
+
+export async function cancelUserListing(orderHash: string): Promise<void> {
+  const res = await fetch(`${API_BASE_URL}/api/seaport/cancel-listing`, {
+    method:  "POST",
+    headers: { "content-type": "application/json" },
+    body:    JSON.stringify({ orderHash }),
+  });
+  if (!res.ok) throw new Error(`Cancel listing failed: ${res.status}`);
+}
+
+export async function cancelUserOffer(offerId: string): Promise<void> {
+  const res = await fetch(`${API_BASE_URL}/api/seaport/cancel-offer`, {
+    method:  "POST",
+    headers: { "content-type": "application/json" },
+    body:    JSON.stringify({ offerId }),
+  });
+  if (!res.ok) throw new Error(`Cancel offer failed: ${res.status}`);
+}
+
 // ─── Stats ───────────────────────────────────────────────────────────────────
 
 export function fetchStats(): Promise<MarketStats> {
