@@ -85,9 +85,9 @@ export function ExplorePage() {
   }, [setSearchParams]);
 
   return (
-    <div className="max-w-[1440px] mx-auto px-6 pb-24" style={{ paddingTop: "calc(66px + 48px)" }}>
-      {/* Page header */}
-      <div style={{ marginBottom: "40px" }}>
+    <div className="max-w-[1440px] mx-auto px-6 pb-24 pt-[82px] sm:pt-[114px]">
+      {/* Page header — compressed on mobile */}
+      <div className="mb-3 sm:mb-10">
         <h1
           style={{
             fontFamily: "Cormorant Garamond, Georgia, serif",
@@ -100,16 +100,16 @@ export function ExplorePage() {
         >
           Explore assets
         </h1>
-        <p style={{ fontFamily: "DM Sans, system-ui, sans-serif", fontWeight: 300, fontSize: "17px", color: "rgba(28,23,16,0.50)" }}>
+        <p className="hidden sm:block" style={{ fontFamily: "DM Sans, system-ui, sans-serif", fontWeight: 300, fontSize: "17px", color: "rgba(28,23,16,0.50)" }}>
           Browse tokenized real-world assets across real estate, collectibles, and luxury goods.
         </p>
       </div>
 
-      {/* Divider */}
-      <div className="divider mb-8" />
+      {/* Divider — hidden on mobile */}
+      <div className="divider hidden sm:block mb-8" />
 
       {/* Filter bar */}
-      <div className="mb-8">
+      <div className="mb-4 sm:mb-8">
         <FilterBar
           filters={filters}
           onChange={handleFilterChange}

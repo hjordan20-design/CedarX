@@ -81,7 +81,7 @@ export function FilterBar({ filters, onChange, total }: FilterBarProps) {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-2 sm:space-y-4">
       {/* Top row: on mobile stacks to two sub-rows; on sm+ sits in one line */}
       <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
         {/* Search + sort (always stay together) */}
@@ -122,8 +122,8 @@ export function FilterBar({ filters, onChange, total }: FilterBarProps) {
           </select>
         </div>
 
-        {/* Results count + clear — below search on mobile, right-aligned on sm+ */}
-        <div className="flex items-center gap-3 sm:ml-auto">
+        {/* Results count + clear — hidden on mobile, right-aligned on sm+ */}
+        <div className="hidden sm:flex items-center gap-3 sm:ml-auto">
           {total !== undefined && (
             <span className="text-cedar-muted text-xs font-mono tabular-nums whitespace-nowrap">
               {total.toLocaleString("en-US")} results

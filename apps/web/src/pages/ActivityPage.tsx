@@ -361,7 +361,7 @@ function ListingsTab({ address }: { address: string }) {
           >
             <AssetThumb imageUrl={listing.asset?.image_url} name={listing.asset?.name} />
 
-            <div className="min-w-0">
+            <div className="min-w-0 w-full">
               <p className="text-cedar-text text-sm font-medium truncate">
                 {listing.asset?.name ?? truncateAddress(listing.assetId ?? undefined)}
               </p>
@@ -470,7 +470,7 @@ function OffersTab({ address }: { address: string }) {
           >
             <AssetThumb imageUrl={offer.asset?.image_url} name={offer.asset?.name} />
 
-            <div className="min-w-0">
+            <div className="min-w-0 w-full">
               <p className="text-cedar-text text-sm font-medium truncate">
                 {offer.asset?.name ?? truncateAddress(offer.assetId ?? undefined)}
               </p>
@@ -564,7 +564,7 @@ function AssetsTab() {
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
       {assets.map((nft) => {
         const key = `${nft.contractAddress}-${nft.tokenId}`;
         return (
@@ -575,19 +575,19 @@ function AssetsTab() {
             {/* Image */}
             <NftCardImage imageUrl={nft.imageUrl} name={nft.name} />
 
-            <div className="p-3 flex-1 flex flex-col gap-2">
+            <div className="p-2 sm:p-3 flex-1 flex flex-col gap-2">
               <div className="min-w-0">
-                <p className="text-cedar-text text-sm font-medium truncate">{nft.name}</p>
-                <p className="text-cedar-muted text-xs">{nft.protocol} · {nft.chain}</p>
+                <p className="text-cedar-text text-xs sm:text-sm font-medium truncate">{nft.name}</p>
+                <p className="text-cedar-muted text-[10px] sm:text-xs">{nft.protocol} · {nft.chain}</p>
               </div>
 
               <Link
                 to="/sell"
-                className="mt-auto inline-flex items-center gap-1 text-sm font-sans
-                  tracking-wide border border-cedar-amber/40 text-cedar-amber px-3 py-1.5
+                className="mt-auto inline-flex items-center justify-center gap-1 text-xs sm:text-sm font-sans
+                  tracking-wide border border-cedar-amber/40 text-cedar-amber px-2 py-1.5 sm:px-3
                   hover:bg-cedar-amber hover:text-cedar-bg transition-colors"
               >
-                <ExternalLink size={11} />
+                <ExternalLink size={10} />
                 List for sale
               </Link>
             </div>
