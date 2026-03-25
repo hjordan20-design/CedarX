@@ -104,7 +104,10 @@ export class CollectionSweepPoller {
             return;
         }
 
-        this.log(`sweep started — ${contracts.length} collection(s)`);
+        this.log(
+            `sweep started — ${contracts.length} collection(s): ` +
+            contracts.map((c) => `${c.protocol} (slug: ${c.openSeaSlug})`).join(", ")
+        );
 
         for (const contract of contracts) {
             if (!this.running) break;
