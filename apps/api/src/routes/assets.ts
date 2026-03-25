@@ -7,7 +7,7 @@ export const assetsRouter = Router();
 // ─── GET /api/assets ─────────────────────────────────────────────────────────
 
 const ListQuerySchema = z.object({
-    category:         z.enum(["real-estate", "luxury-goods", "art", "collectibles"]).optional(),
+    category:         z.enum(["real-estate", "luxury-goods", "art", "collectibles", "watches", "digital-passports"]).optional(),
     protocol:         z.enum(["fabrica", "4k", "courtyard", "arianee"]).optional(),
     chain:            z.enum(["ethereum", "polygon"]).optional(),
     minPrice:         z.coerce.number().nonnegative().optional(),

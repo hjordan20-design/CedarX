@@ -2,11 +2,13 @@ import { Search, X } from "lucide-react";
 import type { AssetFilters, Category } from "@/lib/types";
 
 const CATEGORIES: { value: Category | ""; label: string }[] = [
-  { value: "",              label: "All" },
-  { value: "real-estate",  label: "Real Estate" },
-  { value: "collectibles", label: "Collectibles" },
-  { value: "luxury-goods", label: "Luxury Goods" },
-  { value: "art",          label: "Art" },
+  { value: "",                  label: "All" },
+  { value: "real-estate",       label: "Real Estate" },
+  { value: "collectibles",      label: "Collectibles" },
+  { value: "luxury-goods",      label: "Luxury Goods" },
+  { value: "watches",           label: "Watches" },
+  { value: "art",               label: "Art" },
+  { value: "digital-passports", label: "Digital Passports" },
 ];
 
 const SORT_OPTIONS: { value: AssetFilters["sort"]; label: string }[] = [

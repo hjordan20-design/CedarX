@@ -58,8 +58,12 @@ export async function getAssets(filters: AssetFilters = {}): Promise<PaginatedRe
 
     if (filters.category) {
         const cat = filters.category.toLowerCase();
-        // "real-estate" encompasses Fabrica's "land" category as well
-        const values = cat === "real-estate" ? ["real-estate", "land"] : [cat];
+        // "real-estate" encompasses Fabrica's legacy "land" category.
+        // "luxury-goods" encompasses the newer "watches" sub-category.
+        const values =
+            cat === "real-estate"   ? ["real-estate", "land"] :
+            cat === "luxury-goods"  ? ["luxury-goods", "watches"] :
+            [cat];
         query = query.in("category", values);
     }
     if (filters.protocol) query = query.eq("protocol", filters.protocol);

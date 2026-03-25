@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS assets (
     -- Display
     name                 TEXT        NOT NULL,
     description          TEXT,
-    category             TEXT        NOT NULL CHECK (category IN ('real-estate', 'luxury-goods', 'art', 'collectibles')),
+    category             TEXT        NOT NULL CHECK (category IN ('real-estate', 'luxury-goods', 'art', 'collectibles', 'watches', 'digital-passports', 'land')),
     image_url            TEXT,
 
     -- Protocol-specific details (flexible JSONB)
@@ -247,6 +247,18 @@ ON CONFLICT (poller_id) DO NOTHING;
 ALTER TABLE assets DROP CONSTRAINT IF EXISTS assets_protocol_check;
 ALTER TABLE assets ADD CONSTRAINT assets_protocol_check
     CHECK (protocol IN ('fabrica', '4k', 'courtyard', 'arianee'));
+
+-- ---------------------------------------------------------------------------
+-- Migration: expand assets.category to include watches + digital-passports
+-- ---------------------------------------------------------------------------
+-- Adds 'watches' (luxury watch sub-category) and 'digital-passports'
+-- (Arianee digital product passports) to the allowed category values.
+-- The legacy 'land' value is preserved for Fabrica compatibility.
+-- Run once on existing deployments.
+
+ALTER TABLE assets DROP CONSTRAINT IF EXISTS assets_category_check;
+ALTER TABLE assets ADD CONSTRAINT assets_category_check
+    CHECK (category = ANY (ARRAY['land', 'collectibles', 'watches', 'real-estate', 'luxury-goods', 'art', 'digital-passports']));
 
 -- ---------------------------------------------------------------------------
 -- assets: add has_active_listing (Seaport-aware listing flag)

@@ -4,11 +4,13 @@ import type { AssetFilters, Category } from "@/lib/types";
 
 // ─── Category pills ───────────────────────────────────────────────────────────
 const CATEGORY_PILLS: { value: Category | ""; label: string }[] = [
-  { value: "",              label: "All" },
-  { value: "real-estate",  label: "Real Estate" },
-  { value: "collectibles", label: "Collectibles" },
-  { value: "luxury-goods", label: "Luxury Goods" },
-  { value: "art",          label: "Art" },
+  { value: "",                  label: "All" },
+  { value: "real-estate",       label: "Real Estate" },
+  { value: "collectibles",      label: "Collectibles" },
+  { value: "luxury-goods",      label: "Luxury Goods" },
+  { value: "watches",           label: "Watches" },
+  { value: "art",               label: "Art" },
+  { value: "digital-passports", label: "Digital Passports" },
 ];
 
 // ─── Props ────────────────────────────────────────────────────────────────────
