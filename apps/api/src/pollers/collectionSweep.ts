@@ -121,10 +121,11 @@ export class CollectionSweepPoller {
     // ── Sweep a single collection ──────────────────────────────────────────────
 
     private async sweepContract(contract: ContractConfig): Promise<void> {
-        const pollerId = `sweep-${contract.protocol}`;
+        // poller_id matches the primary key column in indexer_cursors
+        const poller_id = `sweep-${contract.protocol}`;
 
         // Resume from the last saved cursor (null = start from the beginning)
-        let cursor = await getSweepCursor(pollerId);
+        let cursor = await getSweepCursor(poller_id);
         let totalIndexed = 0;
         let pageCount = 0;
 
@@ -137,7 +138,7 @@ export class CollectionSweepPoller {
             if (!this.running) {
                 this.log(`[${contract.protocol}] sweep interrupted at page ${pageCount}`);
                 // Save cursor so we can resume later
-                await setSweepCursor(pollerId, cursor).catch(() => {});
+                await setSweepCursor(poller_id, cursor).catch(() => {});
                 return;
             }
 
@@ -207,7 +208,7 @@ export class CollectionSweepPoller {
             // Checkpoint: persist cursor periodically so restarts can resume
             if (pageCount % CHECKPOINT_PAGES === 0 || !cursor) {
                 try {
-                    await setSweepCursor(pollerId, cursor);
+                    await setSweepCursor(poller_id, cursor);
                 } catch (err) {
                     this.logError(`[${contract.protocol}] failed to save cursor checkpoint`, err);
                 }
@@ -219,7 +220,7 @@ export class CollectionSweepPoller {
 
         // Clear cursor on completion so the next scheduled run restarts fresh
         try {
-            await setSweepCursor(pollerId, null);
+            await setSweepCursor(poller_id, null);
         } catch (_) { /* non-fatal */ }
 
         this.log(

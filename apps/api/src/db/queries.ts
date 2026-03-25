@@ -593,11 +593,14 @@ export async function syncAssetSeaportListing(
     };
 
     if (cheapestOrder) {
-        const sym = cheapestOrder.payment_token_symbol ?? "ETH";
-        const storedDec = cheapestOrder.payment_token_decimals;
-        const decimals = (storedDec != null && storedDec > 0)
+        const sym = (cheapestOrder.payment_token_symbol ?? "ETH").toUpperCase();
+        const storedDec = Number(cheapestOrder.payment_token_decimals);
+        // Use stored decimals when explicitly set (> 0); otherwise infer from symbol.
+        // USDC (including USDC.e on Polygon), USDT, DAI → 6 decimals.
+        // Everything else (ETH, WETH, …) → 18 decimals.
+        const decimals = storedDec > 0
             ? storedDec
-            : (sym === "USDC" || sym === "USDT" || sym === "DAI") ? 6 : 18;
+            : (sym.startsWith("USDC") || sym === "USDT" || sym === "DAI") ? 6 : 18;
         console.log("[syncAssetSeaportListing]", { assetId, rawPrice: cheapestOrder.price, sym, storedDec, decimals });
         update.current_listing_price = Number(cheapestOrder.price) / Math.pow(10, decimals);
         update.current_listing_payment_token_symbol = sym;
