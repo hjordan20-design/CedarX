@@ -85,7 +85,7 @@ export function FilterBar({ filters, onChange, total }: FilterBarProps) {
       {/* Top row: on mobile stacks to two sub-rows; on sm+ sits in one line */}
       <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
         {/* Search + sort (always stay together) */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 grow">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cedar-muted pointer-events-none" />
             <input

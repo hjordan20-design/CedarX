@@ -84,8 +84,8 @@ export function Footer() {
             <nav style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
               {[
                 { href: "https://fabrica.land",       label: "Fabrica" },
+                { href: "https://courtyard.io",       label: "Courtyard" },
                 { href: "https://www.4kprotocol.com", label: "4K Protocol" },
-                { href: "https://courtyard.io",        label: "Courtyard" },
               ].map(({ href, label }) => (
                 <a
                   key={href}

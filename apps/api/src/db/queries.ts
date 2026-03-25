@@ -56,6 +56,14 @@ export async function getAssets(filters: AssetFilters = {}): Promise<PaginatedRe
 
     let query = db.from("assets").select("*", { count: "exact" });
 
+    // Exclude placeholder / no-metadata assets:
+    //   1. Name matches "^#\d" — raw token-ID strings like "#425122922..."
+    //   2. Both name AND image_url are null — fully empty records
+    // These are valid on-chain tokens but provide no browseable information.
+    query = query
+        .not("name", "match", "^#[0-9]")
+        .or("name.not.is.null,image_url.not.is.null");
+
     if (filters.category) {
         const cat = filters.category.toLowerCase();
         // "real-estate" encompasses Fabrica's legacy "land" category.

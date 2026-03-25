@@ -36,7 +36,7 @@ export function Hero({ filters, onFilterChange }: HeroProps) {
           style={{
             fontFamily: "Cormorant Garamond, Georgia, serif",
             fontWeight: 300,
-            fontSize: "clamp(52px, 7vw, 80px)",
+            fontSize: "clamp(56px, 8vw, 88px)",
             lineHeight: 1.0,
             letterSpacing: "-0.02em",
             color: "#1C1710",
@@ -62,7 +62,7 @@ export function Hero({ filters, onFilterChange }: HeroProps) {
             animationDelay: "0.22s",
           }}
         >
-          Browse and trade tokenized real estate, luxury goods, and collectibles.
+          Browse and trade tokenized real estate, collectibles, and luxury goods.
           Connect your wallet. Settle in USDC.
         </p>
 
