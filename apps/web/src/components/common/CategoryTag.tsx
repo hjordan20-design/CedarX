@@ -1,10 +1,12 @@
 import type { Category } from "@/lib/types";
 
 const CATEGORY_LABELS: Record<Category, string> = {
-  "real-estate":  "Real Estate",
-  "luxury-goods": "Luxury Goods",
-  "art":          "Art",
-  "collectibles": "Collectibles",
+  "real-estate":       "Real Estate",
+  "luxury-goods":      "Luxury Goods",
+  "art":               "Art",
+  "collectibles":      "Collectibles",
+  "watches":           "Watches",
+  "digital-passports": "Digital Passports",
 };
 
 export function CategoryTag({ category }: { category: Category }) {

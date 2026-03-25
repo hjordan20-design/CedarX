@@ -244,7 +244,7 @@ function ListingForm({
       </div>
 
       {/* Active listing warning */}
-      {existingListing && step !== "success" && (
+      {existingListing && (step === "idle" || step === "error") && (
         <div className="p-4 border border-cedar-amber/40 bg-cedar-amber/5 space-y-3">
           <div className="flex items-start gap-3">
             <AlertCircle size={14} className="shrink-0 mt-0.5 text-cedar-amber" />
