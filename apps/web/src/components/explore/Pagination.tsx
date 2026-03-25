@@ -11,12 +11,13 @@ export function Pagination({ page, total, limit, onChange }: PaginationProps) {
   const totalPages = Math.max(1, Math.ceil(total / limit));
   if (totalPages <= 1) return null;
 
-  // Show at most 7 page slots: [1] ... [p-1][p][p+1] ... [last]
-  const delta = 1;
+  // Show a window of 5 pages, always including pages 1-5 at the start.
+  const delta = 2;
   const range: (number | "…")[] = [];
 
-  const left = Math.max(2, page - delta);
-  const right = Math.min(totalPages - 1, page + delta);
+  const left  = Math.max(2, page - delta);
+  // Ensure at least pages 1-5 are visible on early pages
+  const right = Math.min(totalPages - 1, Math.max(page + delta, 5));
 
   range.push(1);
   if (left > 2) range.push("…");

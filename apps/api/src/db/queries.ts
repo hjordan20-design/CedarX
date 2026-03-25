@@ -85,8 +85,9 @@ export async function getAssets(filters: AssetFilters = {}): Promise<PaginatedRe
     if (filters.minPrice != null) query = query.gte("current_listing_price", filters.minPrice);
     if (filters.maxPrice != null) query = query.lte("current_listing_price", filters.maxPrice);
     if (filters.search) {
-        // Simple name search — upgrade to full-text in a later session
-        query = query.ilike("name", `%${filters.search}%`);
+        // Search name and protocol fields
+        const s = filters.search.replace(/'/g, "''");
+        query = (query as any).or(`name.ilike.%${s}%,protocol.ilike.%${s}%`);
     }
 
     // Sorting
@@ -617,6 +618,40 @@ export async function syncAssetSeaportListing(
 }
 
 /**
+ * One-off backfill: re-sync current_listing_price for every asset that has at
+ * least one active Seaport order.  Prices stored before the decimal-division
+ * fix were raw (undivided) amounts; this corrects them in-place.
+ *
+ * Returns the number of assets updated.
+ */
+export async function backfillSeaportPrices(): Promise<number> {
+    const db = getDb();
+
+    // Fetch all active orders (asset_id, price, symbol, decimals)
+    const { data: orders, error } = await (db.from("seaport_orders") as any)
+        .select("asset_id, price, payment_token_symbol, payment_token_decimals")
+        .eq("status", "active")
+        .not("asset_id", "is", null);
+    if (error) throw error;
+
+    // Keep only the cheapest order per asset_id
+    const cheapest = new Map<string, { price: string; payment_token_symbol: string; payment_token_decimals: number }>();
+    for (const row of (orders ?? []) as Array<{ asset_id: string; price: string; payment_token_symbol: string; payment_token_decimals: number }>) {
+        const prev = cheapest.get(row.asset_id);
+        if (!prev || Number(row.price) < Number(prev.price)) {
+            cheapest.set(row.asset_id, row);
+        }
+    }
+
+    let count = 0;
+    for (const [assetId, order] of cheapest) {
+        await syncAssetSeaportListing(assetId, order as any);
+        count++;
+    }
+    return count;
+}
+
+/**
  * Return all asset IDs currently flagged as having an active listing.
  * Used by the Seaport poller to sweep and clear stale flags on assets
  * whose orders have already been expired in a previous tick.
@@ -697,11 +732,16 @@ export async function lookupApiKey(
  */
 export async function getSweepCursor(pollerId: string): Promise<string | null> {
     const db = getDb();
-    const { data } = await (db.from("indexer_cursors") as any)
+    const { data, error } = await db
+        .from("indexer_cursors")
         .select("cursor_text")
         .eq("poller_id", pollerId)
         .maybeSingle();
-    return (data as { cursor_text: string | null } | null)?.cursor_text ?? null;
+    if (error) {
+        console.error(`[getSweepCursor] DB error for ${pollerId}:`, error.message ?? error);
+        return null;
+    }
+    return data?.cursor_text ?? null;
 }
 
 /**
@@ -710,7 +750,7 @@ export async function getSweepCursor(pollerId: string): Promise<string | null> {
  */
 export async function setSweepCursor(pollerId: string, cursor: string | null): Promise<void> {
     const db = getDb();
-    const { error } = await (db.from("indexer_cursors") as any).upsert(
+    const { error } = await db.from("indexer_cursors").upsert(
         {
             poller_id:   pollerId,
             last_block:  0,

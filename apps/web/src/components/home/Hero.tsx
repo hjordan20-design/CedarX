@@ -6,8 +6,9 @@ import type { AssetFilters, Category } from "@/lib/types";
 const CATEGORY_PILLS: { value: Category | ""; label: string }[] = [
   { value: "",              label: "All" },
   { value: "real-estate",  label: "Real Estate" },
-  { value: "luxury-goods", label: "Luxury Goods" },
   { value: "collectibles", label: "Collectibles" },
+  { value: "luxury-goods", label: "Luxury Goods" },
+  { value: "art",          label: "Art" },
 ];
 
 // ─── Props ────────────────────────────────────────────────────────────────────
@@ -34,16 +35,16 @@ export function Hero({ filters, onFilterChange }: HeroProps) {
           style={{
             fontFamily: "Cormorant Garamond, Georgia, serif",
             fontWeight: 300,
-            fontSize: "clamp(32px, 4vw, 48px)",
+            fontSize: "clamp(44px, 6vw, 68px)",
             lineHeight: 1.0,
             letterSpacing: "-0.02em",
             color: "#1C1710",
-            marginBottom: "8px",
+            marginBottom: "28px",
             animationDelay: "0.1s",
+            whiteSpace: "nowrap",
           }}
         >
-          Real assets.<br />
-          <em style={{ fontStyle: "italic", color: "#C4852A" }}>Onchain.</em>
+          Real assets. <em style={{ fontStyle: "italic", color: "#C4852A" }}>Onchain.</em>
         </h1>
 
         {/* Subtitle */}

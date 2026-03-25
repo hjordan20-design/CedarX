@@ -4,9 +4,9 @@ import type { AssetFilters, Category } from "@/lib/types";
 const CATEGORIES: { value: Category | ""; label: string }[] = [
   { value: "",              label: "All" },
   { value: "real-estate",  label: "Real Estate" },
+  { value: "collectibles", label: "Collectibles" },
   { value: "luxury-goods", label: "Luxury Goods" },
   { value: "art",          label: "Art" },
-  { value: "collectibles", label: "Collectibles" },
 ];
 
 const SORT_OPTIONS: { value: AssetFilters["sort"]; label: string }[] = [

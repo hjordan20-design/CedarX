@@ -106,6 +106,13 @@
   }
 }
 
+/* ── iOS Safari: prevent auto-zoom on input focus ──────────────────────────── */
+/* Safari zooms the page when any input has font-size < 16px.                  */
+
+input, select, textarea {
+  font-size: 16px;
+}
+
 /* ── Search input — light mode ─────────────────────────────────────────────── */
 
 .search-input:focus {

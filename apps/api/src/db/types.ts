@@ -137,9 +137,10 @@ export type TradeInsert = TradeRow;
 // ─── indexer_cursors ─────────────────────────────────────────────────────────
 
 export interface CursorRow {
-    poller_id: string;
-    last_block: number;
-    updated_at: string;
+    poller_id:   string;
+    last_block:  number;
+    cursor_text: string | null;
+    updated_at:  string;
 }
 
 export type CursorInsert = Omit<CursorRow, "updated_at"> & { updated_at?: string };

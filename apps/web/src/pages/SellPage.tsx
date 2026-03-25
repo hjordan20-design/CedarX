@@ -23,13 +23,15 @@ import {
   ShieldCheck,
   Wallet,
 } from "lucide-react";
-import { useAccount } from "wagmi";
+import { useAccount, useWriteContract, usePublicClient } from "wagmi";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 
 import { useWalletNFTs, type WalletNFT } from "@/hooks/useWalletNFTs";
 import { useCreateSeaportListing } from "@/hooks/useCreateSeaportListing";
-import { NATIVE_TOKEN, USDC_MAINNET, USDC_POLYGON } from "@/config/contracts";
+import { useSeaportOrder } from "@/hooks/useSeaportOrder";
+import { NATIVE_TOKEN, USDC_MAINNET, USDC_POLYGON, SEAPORT_ADDRESS, SEAPORT_ABI } from "@/config/contracts";
 import { VerifiedBadge } from "@/components/common/VerifiedBadge";
+import { formatTokenPrice } from "@/lib/formatters";
 
 // ─── Payment token options ────────────────────────────────────────────────────
 
@@ -129,17 +131,56 @@ function ListingForm({
   const selectedToken  = paymentOptions[tokenIdx];
   const duration       = DURATION_OPTIONS[durationIdx];
 
+  // Derive assetId early so hooks that depend on it come after
+  const protocolSlug = PROTOCOL_SLUG[nft.protocol] ?? nft.protocol.toLowerCase();
+  const nftChainId   = CHAIN_ID[nft.chain] ?? 1;
+  const assetId      = `${protocolSlug}:${nftChainId}:${nft.contractAddress}:${nft.tokenId}`;
+
   const { step, execute, reset, error, orderHash } = useCreateSeaportListing();
+
+  // Check for an existing active Seaport listing on this asset
+  const { data: existingListing } = useSeaportOrder(assetId);
+  const existingPrice = existingListing
+    ? formatTokenPrice(
+        Number(existingListing.price) / Math.pow(10, existingListing.paymentTokenDecimals || 6),
+        existingListing.paymentTokenSymbol
+      )
+    : null;
+  const [cancellingListing, setCancellingListing] = useState(false);
+  const [cancelListingError, setCancelListingError] = useState<string | null>(null);
+  const { writeContractAsync } = useWriteContract();
+  const publicClient = usePublicClient();
+
+  async function cancelExistingListing() {
+    if (!publicClient) return;
+    setCancellingListing(true);
+    setCancelListingError(null);
+    try {
+      const hash = await writeContractAsync({
+        address: SEAPORT_ADDRESS,
+        abi: SEAPORT_ABI,
+        functionName: "incrementCounter",
+        args: [],
+      });
+      await publicClient.waitForTransactionReceipt({ hash });
+    } catch (err) {
+      setCancelListingError(
+        err instanceof Error
+          ? (err.message.toLowerCase().includes("user rejected") || err.message.toLowerCase().includes("user denied")
+              ? "Transaction cancelled."
+              : err.message.slice(0, 100))
+          : "Cancel failed."
+      );
+    } finally {
+      setCancellingListing(false);
+    }
+  }
 
   const priceValid = !!priceInput && parseFloat(priceInput) > 0;
 
   const feeEstimate = priceValid
     ? (parseFloat(priceInput) * 0.015).toLocaleString("en-US", { maximumFractionDigits: 6 })
     : null;
-
-  const protocolSlug = PROTOCOL_SLUG[nft.protocol] ?? nft.protocol.toLowerCase();
-  const nftChainId   = CHAIN_ID[nft.chain] ?? 1;
-  const assetId      = `${protocolSlug}:${nftChainId}:${nft.contractAddress}:${nft.tokenId}`;
 
   async function handleSubmit() {
     if (!priceValid || !FEE_WALLET) return;
@@ -201,6 +242,32 @@ function ListingForm({
           <p className="text-cedar-muted text-xs">{nft.protocol} · {nft.tokenStandard}</p>
         </div>
       </div>
+
+      {/* Active listing warning */}
+      {existingListing && step !== "success" && (
+        <div className="p-4 border border-cedar-amber/40 bg-cedar-amber/5 space-y-3">
+          <div className="flex items-start gap-3">
+            <AlertCircle size={14} className="shrink-0 mt-0.5 text-cedar-amber" />
+            <p className="text-cedar-text text-sm">
+              This asset is already listed at{" "}
+              <span className="font-mono font-medium">{existingPrice}</span>.
+              You can update the price by listing again, or cancel the current listing first.
+            </p>
+          </div>
+          <button
+            onClick={() => void cancelExistingListing()}
+            disabled={cancellingListing}
+            className="btn-ghost text-sm py-2 px-4 text-cedar-red/80 hover:text-cedar-red border-cedar-red/30 hover:border-cedar-red/60 disabled:opacity-40"
+          >
+            {cancellingListing ? <><Loader2 size={12} className="animate-spin" /> Cancelling…</> : "Cancel current listing"}
+          </button>
+          {cancelListingError && (
+            <p className="text-cedar-red text-xs flex items-center gap-1.5">
+              <AlertCircle size={11} /> {cancelListingError}
+            </p>
+          )}
+        </div>
+      )}
 
       {/* Price */}
       <div className="space-y-2">

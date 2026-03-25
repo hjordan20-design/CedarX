@@ -18,6 +18,7 @@ import {
     upsertSeaportOffer,
     syncAssetSeaportListing,
     expireSeaportOrders,
+    backfillSeaportPrices,
 } from "../db/queries";
 import { getDb } from "../db/client";
 import {
@@ -599,6 +600,21 @@ seaportRouter.post("/offers", requireApiKey, async (req: Request, res: Response)
 });
 
 // ─── Formatter ────────────────────────────────────────────────────────────────
+
+// ─── POST /api/seaport/admin/backfill-prices ──────────────────────────────────
+// One-off admin endpoint: re-syncs current_listing_price for all assets that
+// have an active Seaport order.  Corrects rows written before the decimal-
+// division fix.  Requires X-CedarX-API-Key header.
+
+seaportRouter.post("/admin/backfill-prices", requireApiKey, async (_req: Request, res: Response) => {
+    try {
+        const count = await backfillSeaportPrices();
+        return res.json({ ok: true, updated: count });
+    } catch (err) {
+        console.error("[backfill-prices]", err);
+        return res.status(500).json({ error: "Backfill failed", detail: String(err) });
+    }
+});
 
 function formatOrder(row: ReturnType<typeof Object.assign>) {
     return {
