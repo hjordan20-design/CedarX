@@ -163,8 +163,7 @@ function ListingForm({
         <CheckCircle size={48} className="text-cedar-green mx-auto" />
         <h2 className="display text-2xl text-cedar-text">Listed successfully</h2>
         <p className="text-cedar-muted text-sm max-w-sm mx-auto">
-          Your asset is now live on CedarX and on OpenSea.
-          Buyers on any Seaport-compatible marketplace can fill your order.
+          Your asset is now live on CedarX and on OpenSea. Buyers can purchase it instantly.
         </p>
         <div className="flex items-center gap-3 justify-center pt-2">
           <button onClick={() => { reset(); onBack(); }} className="btn-ghost text-sm py-2.5 px-5">
@@ -179,7 +178,7 @@ function ListingForm({
   }
 
   return (
-    <div className="max-w-lg space-y-6">
+    <div className="max-w-lg mx-auto space-y-6">
       {/* Back */}
       <button
         onClick={onBack}
@@ -297,8 +296,8 @@ function ListingForm({
       </button>
 
       <p className="text-cedar-muted/50 text-[11px]">
-        Gasless — your signature creates the Seaport order off-chain.
-        The listing is immediately buyable on CedarX and on OpenSea.
+        No gas fees — your signature creates the listing off-chain.
+        It goes live on CedarX and OpenSea immediately.
       </p>
     </div>
   );
@@ -339,8 +338,8 @@ export function SellPage() {
             color: "rgba(28,23,16,0.50)",
           }}
         >
-          Sign a Seaport order. Your listing goes live on CedarX, OpenSea, and
-          every Seaport-compatible marketplace — instantly, gaslessly.
+          List your asset for sale. Your listing goes live on CedarX and OpenSea
+          instantly — no gas fees required.
         </p>
       </div>
 
