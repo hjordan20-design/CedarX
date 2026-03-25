@@ -2,13 +2,12 @@ import { Search, X } from "lucide-react";
 import type { AssetFilters, Category } from "@/lib/types";
 
 const CATEGORIES: { value: Category | ""; label: string }[] = [
-  { value: "",                  label: "All" },
-  { value: "real-estate",       label: "Real Estate" },
-  { value: "collectibles",      label: "Collectibles" },
-  { value: "luxury-goods",      label: "Luxury Goods" },
-  { value: "watches",           label: "Watches" },
-  { value: "art",               label: "Art" },
-  { value: "digital-passports", label: "Digital Passports" },
+  { value: "",             label: "All" },
+  { value: "real-estate",  label: "Real Estate" },
+  { value: "collectibles", label: "Collectibles" },
+  { value: "luxury-goods", label: "Luxury Goods" },
+  { value: "watches",      label: "Watches" },
+  { value: "art",          label: "Art" },
 ];
 
 const SORT_OPTIONS: { value: AssetFilters["sort"]; label: string }[] = [
@@ -91,7 +90,7 @@ export function FilterBar({ filters, onChange, total }: FilterBarProps) {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cedar-muted pointer-events-none" />
             <input
               type="text"
-              placeholder="Search by name, location…"
+              placeholder="Search by name, location, brand…"
               value={filters.search ?? ""}
               onChange={(e) => set({ search: e.target.value || undefined })}
               className="w-full bg-cedar-surface border border-cedar-border pl-9 pr-4 py-2 text-sm font-sans text-cedar-text placeholder:text-cedar-muted/50

@@ -627,10 +627,9 @@ export function AssetDetailPage() {
                   }}
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <span className="text-cedar-muted/40 font-mono text-xs tracking-widest uppercase">
-                    {asset.category.replace(/-/g, " ")}
-                  </span>
+                <div className="w-full h-full flex flex-col items-center justify-center gap-2">
+                  <span className="text-cedar-muted/50 font-mono text-xs tracking-widest uppercase">{asset.protocol}</span>
+                  <span className="text-cedar-muted/30 font-sans text-[11px]">Image unavailable</span>
                 </div>
               );
             })()}

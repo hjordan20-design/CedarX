@@ -73,8 +73,9 @@ const CATEGORY_BG: Record<string, string> = {
 
 function AssetImageFallback({ asset }: { asset: Asset }) {
   return (
-    <div className={`w-full h-full flex items-center justify-center ${CATEGORY_BG[asset.category] ?? "bg-cedar-surface-alt"}`}>
-      <span className="text-cedar-muted/40 font-mono text-xs tracking-widest uppercase">{asset.category}</span>
+    <div className={`w-full h-full flex flex-col items-center justify-center gap-1.5 ${CATEGORY_BG[asset.category] ?? "bg-cedar-surface-alt"}`}>
+      <span className="text-cedar-muted/50 font-mono text-xs tracking-widest uppercase">{asset.protocol}</span>
+      <span className="text-cedar-muted/30 font-sans text-[10px]">Image unavailable</span>
     </div>
   );
 }

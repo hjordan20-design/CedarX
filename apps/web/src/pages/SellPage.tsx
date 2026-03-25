@@ -94,10 +94,9 @@ function NFTCard({
             loading="lazy"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <span className="text-cedar-muted/30 font-mono text-xs tracking-widest uppercase">
-              {nft.chain}
-            </span>
+          <div className="w-full h-full flex flex-col items-center justify-center gap-1.5">
+            <span className="text-cedar-muted/50 font-mono text-xs tracking-widest uppercase">{nft.protocol}</span>
+            <span className="text-cedar-muted/30 font-sans text-[10px]">Image unavailable</span>
           </div>
         )}
       </div>
@@ -207,7 +206,7 @@ function ListingForm({
           Your asset is now live on CedarX and on OpenSea. Buyers can purchase it instantly.
         </p>
         <div className="flex items-center gap-3 justify-center pt-2">
-          <button onClick={() => { reset(); onBack(); }} className="btn-ghost text-sm py-2.5 px-5">
+          <button onClick={() => { reset(); navigate("/sell"); }} className="btn-ghost text-sm py-2.5 px-5">
             List another
           </button>
           <button onClick={() => navigate(`/assets/${assetId}`)} className="btn-primary text-sm py-2.5 px-5">
@@ -222,7 +221,7 @@ function ListingForm({
     <div className="max-w-lg mx-auto space-y-6">
       {/* Back */}
       <button
-        onClick={onBack}
+        onClick={() => navigate("/sell")}
         className="inline-flex items-center gap-1.5 text-cedar-muted hover:text-cedar-text text-sm transition-colors"
       >
         <ChevronLeft size={14} /> Back to my NFTs
@@ -233,8 +232,9 @@ function ListingForm({
         {nft.imageUrl ? (
           <img src={nft.imageUrl} alt={nft.name} className="w-16 h-16 object-cover shrink-0" />
         ) : (
-          <div className="w-16 h-16 bg-cedar-surface-alt shrink-0 flex items-center justify-center">
-            <span className="text-cedar-muted/30 text-xs">NFT</span>
+          <div className="w-16 h-16 bg-cedar-surface-alt shrink-0 flex flex-col items-center justify-center gap-1">
+            <span className="text-cedar-muted/50 font-mono text-[10px] tracking-widest uppercase">{nft.protocol}</span>
+            <span className="text-cedar-muted/30 font-sans text-[9px]">No image</span>
           </div>
         )}
         <div className="min-w-0">
@@ -284,8 +284,9 @@ function ListingForm({
               value={priceInput}
               onChange={(e) => setPriceInput(e.target.value)}
               placeholder="0.00"
+              style={{ fontSize: "16px" }}
               className="w-full bg-cedar-bg border border-cedar-border pl-8 pr-4 py-2.5
-                text-cedar-text font-mono text-sm
+                text-cedar-text font-mono
                 focus:outline-none focus:border-cedar-amber transition-colors
                 placeholder:text-cedar-muted/40"
             />
@@ -441,8 +442,7 @@ export function SellPage() {
           <div className="flex items-center gap-3">
             <ShieldCheck size={14} className="text-cedar-amber/60" />
             <p className="text-cedar-muted text-sm">
-              Showing verified RWA NFTs in your wallet from Fabrica, 4K Protocol,
-              and Courtyard.
+              Showing verified assets in your wallet.
             </p>
           </div>
 

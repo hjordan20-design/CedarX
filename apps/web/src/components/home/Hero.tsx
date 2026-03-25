@@ -4,13 +4,12 @@ import type { AssetFilters, Category } from "@/lib/types";
 
 // ─── Category pills ───────────────────────────────────────────────────────────
 const CATEGORY_PILLS: { value: Category | ""; label: string }[] = [
-  { value: "",                  label: "All" },
-  { value: "real-estate",       label: "Real Estate" },
-  { value: "collectibles",      label: "Collectibles" },
-  { value: "luxury-goods",      label: "Luxury Goods" },
-  { value: "watches",           label: "Watches" },
-  { value: "art",               label: "Art" },
-  { value: "digital-passports", label: "Digital Passports" },
+  { value: "",             label: "All" },
+  { value: "real-estate",  label: "Real Estate" },
+  { value: "collectibles", label: "Collectibles" },
+  { value: "luxury-goods", label: "Luxury Goods" },
+  { value: "watches",      label: "Watches" },
+  { value: "art",          label: "Art" },
 ];
 
 // ─── Props ────────────────────────────────────────────────────────────────────
@@ -37,7 +36,7 @@ export function Hero({ filters, onFilterChange }: HeroProps) {
           style={{
             fontFamily: "Cormorant Garamond, Georgia, serif",
             fontWeight: 300,
-            fontSize: "clamp(44px, 6vw, 68px)",
+            fontSize: "clamp(52px, 7vw, 80px)",
             lineHeight: 1.0,
             letterSpacing: "-0.02em",
             color: "#1C1710",

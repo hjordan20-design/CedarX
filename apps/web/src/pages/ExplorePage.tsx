@@ -7,7 +7,7 @@ import { Pagination } from "@/components/explore/Pagination";
 import type { AssetFilters, Category } from "@/lib/types";
 
 const PAGE_SIZE = 24;
-const VALID_CATEGORIES = new Set<string>(["real-estate", "luxury-goods", "art", "collectibles"]);
+const VALID_CATEGORIES = new Set<string>(["real-estate", "luxury-goods", "art", "collectibles", "watches"]);
 
 function categoryFromParam(param: string | null): Category | undefined {
   return param && VALID_CATEGORIES.has(param) ? (param as Category) : undefined;
