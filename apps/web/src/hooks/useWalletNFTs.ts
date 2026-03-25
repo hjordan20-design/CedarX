@@ -13,7 +13,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { useAccount } from "wagmi";
 
-const ALCHEMY_KEY = import.meta.env.VITE_ALCHEMY_API_KEY as string | undefined;
+// Polygon key (VITE_ALCHEMY_API_KEY) — used for Courtyard on polygon-mainnet
+// Ethereum key (VITE_ALCHEMY_ETH_API_KEY) — used for Fabrica/4K on eth-mainnet
+// Falls back to the same key if the ETH-specific one is not set.
+const ALCHEMY_POLYGON_KEY = import.meta.env.VITE_ALCHEMY_API_KEY as string | undefined;
+const ALCHEMY_ETH_KEY = (import.meta.env.VITE_ALCHEMY_ETH_API_KEY || ALCHEMY_POLYGON_KEY) as string | undefined;
 
 // Whitelisted contract addresses (all lowercase for comparison)
 const ETH_CONTRACTS = [
@@ -57,20 +61,28 @@ const PROTOCOL_LABELS: Record<string, string> = {
 
 async function fetchAlchemyNFTs(
   network: string,
+  apiKey: string,
   ownerAddress: string,
   contractAddresses: string[]
 ): Promise<AlchemyNFTOwner[]> {
-  if (!ALCHEMY_KEY) return [];
-  const url = new URL(`https://${network}.g.alchemy.com/nft/v3/${ALCHEMY_KEY}/getNFTsForOwner`);
+  const url = new URL(`https://${network}.g.alchemy.com/nft/v3/${apiKey}/getNFTsForOwner`);
   url.searchParams.set("owner", ownerAddress);
   url.searchParams.set("withMetadata", "true");
   url.searchParams.set("pageSize", "100");
   for (const c of contractAddresses) {
     url.searchParams.append("contractAddresses[]", c);
   }
+  // Log the URL being called (mask the key for safety)
+  const maskedUrl = url.toString().replace(apiKey, `${apiKey.slice(0, 6)}…`);
+  console.log(`[useWalletNFTs] Fetching ${network}:`, maskedUrl);
   const res = await fetch(url.toString());
-  if (!res.ok) throw new Error(`Alchemy NFT API error ${res.status}`);
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    console.error(`[useWalletNFTs] Alchemy ${network} error ${res.status}:`, text);
+    throw new Error(`Alchemy NFT API error ${res.status} on ${network}`);
+  }
   const body = (await res.json()) as AlchemyResponse;
+  console.log(`[useWalletNFTs] ${network} response — totalCount:`, body.totalCount, "nfts:", body.ownedNfts?.length ?? 0);
   return body.ownedNfts ?? [];
 }
 
@@ -101,10 +113,29 @@ export function useWalletNFTs() {
     queryFn: async () => {
       if (!address) return [];
 
-      const [ethNfts, polyNfts] = await Promise.all([
-        fetchAlchemyNFTs("eth-mainnet",      address, ETH_CONTRACTS),
-        fetchAlchemyNFTs("polygon-mainnet",  address, POLYGON_CONTRACTS),
+      if (!ALCHEMY_POLYGON_KEY) {
+        console.warn("[useWalletNFTs] VITE_ALCHEMY_API_KEY is not set — cannot scan NFTs");
+        return [];
+      }
+      if (!ALCHEMY_ETH_KEY) {
+        console.warn("[useWalletNFTs] VITE_ALCHEMY_ETH_API_KEY is not set — falling back to polygon key for eth-mainnet");
+      }
+
+      // Use allSettled so a failure on one chain doesn't suppress the other
+      const [ethResult, polyResult] = await Promise.allSettled([
+        fetchAlchemyNFTs("eth-mainnet",     ALCHEMY_ETH_KEY!,     address, ETH_CONTRACTS),
+        fetchAlchemyNFTs("polygon-mainnet", ALCHEMY_POLYGON_KEY,  address, POLYGON_CONTRACTS),
       ]);
+
+      if (ethResult.status === "rejected") {
+        console.error("[useWalletNFTs] eth-mainnet scan failed:", ethResult.reason);
+      }
+      if (polyResult.status === "rejected") {
+        console.error("[useWalletNFTs] polygon-mainnet scan failed:", polyResult.reason);
+      }
+
+      const ethNfts  = ethResult.status  === "fulfilled" ? ethResult.value  : [];
+      const polyNfts = polyResult.status === "fulfilled" ? polyResult.value : [];
 
       return [
         ...mapNFTs(ethNfts,  "ethereum"),
