@@ -142,32 +142,46 @@ seaportRouter.post("/listings", requireApiKey, async (req: Request, res: Respons
     let openSeaError: string | null = null;
 
     if (OPENSEA_API_KEY) {
+        const requestBody = {
+            parameters:       d.orderParameters.parameters,
+            signature:        d.orderParameters.signature,
+            // protocol_address tells OpenSea which Seaport version (1.5) the order was signed against.
+            // Without this, OpenSea defaults to the wrong version and rejects the order.
+            protocol_address: "0x00000000000000ADc04C56Bf30aC9d3c0aAF14dC",
+        };
+
+        console.log(
+            `[seaport/listings] → OpenSea POST /api/v2/orders/${openSeaChain}/seaport/listings` +
+            ` protocol_address=${requestBody.protocol_address}` +
+            ` orderType=${(d.orderParameters.parameters as any)?.orderType}` +
+            ` offerer=${(d.orderParameters.parameters as any)?.offerer?.slice(0, 10)}…`
+        );
+
         try {
             const osRes = await fetch(
                 `${OPENSEA_API_BASE_URL}/api/v2/orders/${openSeaChain}/seaport/listings`,
                 {
                     method: "POST",
                     headers: {
-                        "x-api-key":   OPENSEA_API_KEY,
+                        "x-api-key":    OPENSEA_API_KEY,
                         "content-type": "application/json",
-                        accept:        "application/json",
+                        accept:         "application/json",
                     },
-                    body: JSON.stringify({
-                        parameters: d.orderParameters.parameters,
-                        signature:  d.orderParameters.signature,
-                    }),
+                    body: JSON.stringify(requestBody),
                 }
             );
+            const responseText = await osRes.text();
             if (osRes.ok) {
-                const body = await osRes.json() as { order?: { order_hash?: string } };
+                const body = JSON.parse(responseText) as { order?: { order_hash?: string } };
                 if (body?.order?.order_hash) orderHash = body.order.order_hash;
+                console.log(`[seaport/listings] OpenSea accepted listing, order_hash=${orderHash}`);
             } else {
-                openSeaError = `OpenSea responded ${osRes.status}: ${await osRes.text()}`;
-                console.warn("[seaport] OpenSea post failed:", openSeaError);
+                openSeaError = `OpenSea responded ${osRes.status}: ${responseText}`;
+                console.warn("[seaport/listings] OpenSea post failed:", openSeaError);
             }
         } catch (err) {
             openSeaError = err instanceof Error ? err.message : String(err);
-            console.warn("[seaport] OpenSea post error:", openSeaError);
+            console.warn("[seaport/listings] OpenSea post error:", openSeaError);
         }
     }
 
