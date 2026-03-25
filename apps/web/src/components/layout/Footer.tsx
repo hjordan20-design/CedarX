@@ -85,7 +85,7 @@ export function Footer() {
               {[
                 { href: "https://fabrica.land",       label: "Fabrica" },
                 { href: "https://courtyard.io",       label: "Courtyard" },
-                { href: "https://www.4kprotocol.com", label: "4K Protocol" },
+                { href: "https://opensea.io/collection/4kprotocol", label: "4K Protocol" },
               ].map(({ href, label }) => (
                 <a
                   key={href}

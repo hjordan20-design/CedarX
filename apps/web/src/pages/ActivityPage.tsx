@@ -266,13 +266,13 @@ function AssetThumb({ imageUrl, name }: { imageUrl?: string | null; name?: strin
       <img
         src={imageUrl}
         alt={name ?? ""}
-        className="w-10 h-10 object-cover border border-cedar-border shrink-0"
+        className="w-20 h-20 object-cover border border-cedar-border shrink-0"
         onError={() => setImgError(true)}
       />
     );
   }
   return (
-    <div className="w-10 h-10 bg-cedar-surface-alt border border-cedar-border shrink-0 flex items-center justify-center">
+    <div className="w-20 h-20 bg-cedar-surface-alt border border-cedar-border shrink-0 flex items-center justify-center">
       <span className="text-cedar-muted/30 text-[8px] font-mono uppercase tracking-widest">NFT</span>
     </div>
   );
@@ -331,7 +331,7 @@ function ListingsTab({ address }: { address: string }) {
     <div className="space-y-2">
       {/* Column headers */}
       <div className="hidden sm:grid sm:grid-cols-[auto_1fr_auto_auto_auto_auto] gap-4 items-center px-4 py-2">
-        <div className="w-10" />
+        <div className="w-20" />
         <span className="text-cedar-muted text-[10px] tracking-widest uppercase">Asset</span>
         <span className="text-cedar-muted text-[10px] tracking-widest uppercase text-right">Price</span>
         <span className="text-cedar-muted text-[10px] tracking-widest uppercase text-center">Status</span>
@@ -354,9 +354,6 @@ function ListingsTab({ address }: { address: string }) {
               <p className="text-cedar-text text-sm font-medium truncate">
                 {listing.asset?.name ?? truncateAddress(listing.assetId ?? undefined)}
               </p>
-              {listing.asset?.token_id && (
-                <p className="text-cedar-muted text-xs">#{listing.asset.token_id}</p>
-              )}
             </div>
 
             <div className="text-right">
@@ -445,7 +442,7 @@ function OffersTab({ address }: { address: string }) {
     <div className="space-y-2">
       {/* Column headers */}
       <div className="hidden sm:grid sm:grid-cols-[auto_1fr_auto_auto_auto_auto] gap-4 items-center px-4 py-2">
-        <div className="w-10" />
+        <div className="w-20" />
         <span className="text-cedar-muted text-[10px] tracking-widest uppercase">Asset</span>
         <span className="text-cedar-muted text-[10px] tracking-widest uppercase text-right">Offer</span>
         <span className="text-cedar-muted text-[10px] tracking-widest uppercase text-center">Status</span>
@@ -468,9 +465,6 @@ function OffersTab({ address }: { address: string }) {
               <p className="text-cedar-text text-sm font-medium truncate">
                 {offer.asset?.name ?? truncateAddress(offer.assetId ?? undefined)}
               </p>
-              {offer.asset?.token_id && (
-                <p className="text-cedar-muted text-xs">#{offer.asset.token_id}</p>
-              )}
             </div>
 
             <div className="text-right">
@@ -582,7 +576,7 @@ function AssetsTab() {
 
               <Link
                 to="/sell"
-                className="mt-auto inline-flex items-center gap-1 text-[11px] font-sans
+                className="mt-auto inline-flex items-center gap-1 text-sm font-sans
                   tracking-wide border border-cedar-amber/40 text-cedar-amber px-3 py-1.5
                   hover:bg-cedar-amber hover:text-cedar-bg transition-colors"
               >

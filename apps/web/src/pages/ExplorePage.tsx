@@ -101,7 +101,7 @@ export function ExplorePage() {
           Explore assets
         </h1>
         <p style={{ fontFamily: "DM Sans, system-ui, sans-serif", fontWeight: 300, fontSize: "17px", color: "rgba(28,23,16,0.50)" }}>
-          Browse tokenized real-world assets across land, luxury goods, and collectibles.
+          Browse tokenized real-world assets across real estate, collectibles, and luxury goods.
         </p>
       </div>
 

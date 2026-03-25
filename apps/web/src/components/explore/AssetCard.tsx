@@ -1,3 +1,4 @@
+import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import type { Asset } from "@/lib/types";
 import { VERIFIED_CONTRACTS } from "@/lib/types";
@@ -5,6 +6,26 @@ import { ProtocolBadge } from "@/components/common/ProtocolBadge";
 import { CategoryTag } from "@/components/common/CategoryTag";
 import { VerifiedBadge } from "@/components/common/VerifiedBadge";
 import { formatTokenPrice, formatUSDC, formatAcreage } from "@/lib/formatters";
+
+// ─── IPFS gateway cycling ─────────────────────────────────────────────────────
+// When an IPFS image fails to load, retry with the next public gateway.
+const IPFS_GATEWAYS = [
+  "https://ipfs.io/ipfs/",
+  "https://cloudflare-ipfs.com/ipfs/",
+  "https://nftstorage.link/ipfs/",
+];
+
+function extractIpfsCid(url: string): string | null {
+  for (const gw of IPFS_GATEWAYS) {
+    if (url.startsWith(gw)) return url.slice(gw.length);
+  }
+  return null;
+}
+
+/** Strip the "[Low Confidence]" AI-geocoder prefix Fabrica adds to some names. */
+function cleanAssetName(name: string): string {
+  return name.replace(/^\[Low Confidence\]\s*/i, "").trim();
+}
 
 function AssetSubtitle({ asset }: { asset: Asset }) {
   const { details, category } = asset;
@@ -80,7 +101,34 @@ function AssetImageFallback({ asset }: { asset: Asset }) {
   );
 }
 
+function AssetCardImage({ imageUrl, alt, fallback }: { imageUrl: string; alt: string; fallback: React.ReactNode }) {
+  const [src, setSrc] = useState(imageUrl);
+  const [failed, setFailed] = useState(false);
+  const tried = useRef(new Set<string>([imageUrl]));
+
+  function handleError() {
+    const cid = extractIpfsCid(src);
+    if (cid) {
+      const next = IPFS_GATEWAYS.map((gw) => `${gw}${cid}`).find((u) => !tried.current.has(u));
+      if (next) { tried.current.add(next); setSrc(next); return; }
+    }
+    setFailed(true);
+  }
+
+  if (failed) return <>{fallback}</>;
+  return (
+    <img
+      src={src}
+      alt={alt}
+      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+      loading="lazy"
+      onError={handleError}
+    />
+  );
+}
+
 export function AssetCard({ asset }: { asset: Asset }) {
+  const displayName = cleanAssetName(asset.name);
   return (
     <Link
       to={`/assets/${encodeURIComponent(asset.id)}`}
@@ -88,21 +136,11 @@ export function AssetCard({ asset }: { asset: Asset }) {
     >
       <div className="relative aspect-video overflow-hidden bg-cedar-surface-alt">
         {asset.imageUrl ? (
-          <>
-            <img
-              src={asset.imageUrl}
-              alt={asset.name}
-              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-              loading="lazy"
-              onError={(e) => {
-                (e.target as HTMLImageElement).style.display = "none";
-                (e.target as HTMLImageElement).nextElementSibling?.classList.remove("hidden");
-              }}
-            />
-            <div className="hidden w-full h-full absolute inset-0">
-              <AssetImageFallback asset={asset} />
-            </div>
-          </>
+          <AssetCardImage
+            imageUrl={asset.imageUrl}
+            alt={displayName}
+            fallback={<AssetImageFallback asset={asset} />}
+          />
         ) : (
           <AssetImageFallback asset={asset} />
         )}
@@ -117,7 +155,7 @@ export function AssetCard({ asset }: { asset: Asset }) {
           )}
         </div>
         <div className="flex-1 min-w-0">
-          <h3 className="text-cedar-text text-base font-sans font-medium leading-snug line-clamp-2">{asset.name}</h3>
+          <h3 className="text-cedar-text text-base font-sans font-medium leading-snug line-clamp-2">{displayName}</h3>
           <div className="mt-0.5"><AssetSubtitle asset={asset} /></div>
         </div>
         <div className="border-t border-cedar-border pt-3">

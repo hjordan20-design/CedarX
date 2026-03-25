@@ -36,7 +36,7 @@ export function Hero({ filters, onFilterChange }: HeroProps) {
           style={{
             fontFamily: "Cormorant Garamond, Georgia, serif",
             fontWeight: 300,
-            fontSize: "clamp(56px, 8vw, 88px)",
+            fontSize: "clamp(60px, 9vw, 96px)",
             lineHeight: 1.0,
             letterSpacing: "-0.02em",
             color: "#1C1710",

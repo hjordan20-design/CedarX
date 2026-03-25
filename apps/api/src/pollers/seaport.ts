@@ -316,7 +316,11 @@ export function normalizeOpenSeaNFT(nft: OpenSeaNFT, config: ContractConfig): As
         token_id: tokenId,
         token_standard: config.tokenStandard,
         chain: config.chain,
-        name: nft.name ?? `${config.protocol} #${tokenId}`,
+        // Strip Fabrica's "[Low Confidence]" AI-confidence prefix that sometimes
+        // appears in OpenSea metadata when the ML geocoder is uncertain.
+        name: (nft.name ?? `${config.protocol} #${tokenId}`)
+            .replace(/^\[Low Confidence\]\s*/i, "")
+            .trim(),
         description: nft.description ?? null,
         category,
         image_url: imageUrl,
