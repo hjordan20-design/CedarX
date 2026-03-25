@@ -323,3 +323,31 @@ EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- No public access to internal cursor state
 -- (indexer_cursors only accessible via service-role key)
+
+-- ---------------------------------------------------------------------------
+-- api_keys
+-- ---------------------------------------------------------------------------
+-- Agent API keys.  Only POST endpoints require a key; GET endpoints are open.
+-- key is the bearer value sent in the X-CedarX-API-Key header.
+-- rate_limit is requests-per-minute ceiling enforced in-process.
+
+CREATE TABLE IF NOT EXISTS api_keys (
+    id          UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+    key         UUID        NOT NULL UNIQUE DEFAULT gen_random_uuid(),
+    owner       TEXT        NOT NULL,
+    rate_limit  INT         NOT NULL DEFAULT 100,
+    created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Disable public read access — keys are only readable via service role.
+ALTER TABLE api_keys ENABLE ROW LEVEL SECURITY;
+
+-- Seed one test key so agents can get started immediately.
+-- Key value: d4e5f6a7-b8c9-4d0e-8f1a-2b3c4d5e6f70
+-- Pass as header: X-CedarX-API-Key: d4e5f6a7-b8c9-4d0e-8f1a-2b3c4d5e6f70
+INSERT INTO api_keys (id, key, owner, rate_limit) VALUES (
+    'a0000000-0000-4000-a000-000000000001',
+    'd4e5f6a7-b8c9-4d0e-8f1a-2b3c4d5e6f70',
+    'cedarx-test-agent',
+    100
+) ON CONFLICT (id) DO NOTHING;

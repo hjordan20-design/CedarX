@@ -13,6 +13,7 @@ import type { AssetInsert, AssetRow, ListingInsert, TradeInsert, SeaportOrderIns
 export interface AssetFilters {
     category?: string;
     protocol?: string;
+    chain?: string;
     minPrice?: number;
     maxPrice?: number;
     sort?: "price_asc" | "price_desc" | "newest" | "volume";
@@ -62,6 +63,7 @@ export async function getAssets(filters: AssetFilters = {}): Promise<PaginatedRe
         query = query.in("category", values);
     }
     if (filters.protocol) query = query.eq("protocol", filters.protocol);
+    if (filters.chain)    query = query.eq("chain", filters.chain);
     // Resolve the effective listing filter: explicit listingFilter takes priority,
     // then fall back to the deprecated listedOnly flag, then default to "listed".
     const effectiveFilter = filters.listingFilter
@@ -646,6 +648,23 @@ export async function setCursor(pollerId: string, lastBlock: number): Promise<vo
         .update({ last_block: lastBlock, updated_at: new Date().toISOString() })
         .eq("poller_id", pollerId);
     if (error) throw error;
+}
+
+// ─── API keys ────────────────────────────────────────────────────────────────
+
+/**
+ * Look up an API key by its bearer value (the UUID sent in X-CedarX-API-Key).
+ * Returns the key's metadata if found and active, null otherwise.
+ */
+export async function lookupApiKey(
+    key: string
+): Promise<{ owner: string; rate_limit: number } | null> {
+    const db = getDb();
+    const { data } = await (db.from("api_keys") as any)
+        .select("owner, rate_limit")
+        .eq("key", key)
+        .maybeSingle();
+    return (data as { owner: string; rate_limit: number } | null) ?? null;
 }
 
 // ─── Collection sweep cursors ─────────────────────────────────────────────────

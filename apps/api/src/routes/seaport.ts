@@ -23,8 +23,11 @@ import {
     OPENSEA_API_KEY,
     OPENSEA_API_BASE_URL,
     CEDARX_FEE_WALLET,
+    CEDARX_FEE_BPS,
 } from "../config";
 import type { SeaportOrderInsert } from "../db/types";
+import { requireApiKey } from "../middleware/apiKey";
+import { buildSeaportOrder, VALID_PAYMENT_TOKENS } from "../lib/seaportOrderBuilder";
 
 export const seaportRouter = Router();
 
@@ -34,6 +37,72 @@ seaportRouter.get("/orders/:assetId", async (req: Request, res: Response) => {
     const order = await getActiveSeaportOrder(req.params.assetId);
     if (!order) return res.status(404).json({ error: "No active Seaport order" });
     return res.json(formatOrder(order));
+});
+
+// ─── POST /api/seaport/list ───────────────────────────────────────────────────
+// Agent listing step 1: build unsigned Seaport OrderComponents.
+// The agent signs them with EIP-712 and submits to POST /api/seaport/listings.
+
+const BuildOrderSchema = z.object({
+    tokenContract:  z.string().regex(/^0x[0-9a-fA-F]{40}$/),
+    tokenId:        z.string(),
+    tokenStandard:  z.enum(["ERC-721", "ERC-1155"]),
+    chain:          z.enum(["ethereum", "polygon"]),
+    price:          z.string().regex(/^\d+(\.\d+)?$/, "price must be a positive decimal number"),
+    paymentToken:   z.enum(["ETH", "WETH", "USDC"]),
+    duration:       z.number().int().min(1).max(365),
+    sellerAddress:  z.string().regex(/^0x[0-9a-fA-F]{40}$/),
+    counter:        z.number().int().min(0),
+});
+
+seaportRouter.post("/list", requireApiKey, async (req: Request, res: Response) => {
+    const parsed = BuildOrderSchema.safeParse(req.body);
+    if (!parsed.success) {
+        return res.status(400).json({ error: "Invalid body", details: parsed.error.flatten() });
+    }
+
+    const d = parsed.data;
+
+    // Validate payment token is supported on the requested chain
+    const validTokens = VALID_PAYMENT_TOKENS[d.chain] as readonly string[];
+    if (!validTokens.includes(d.paymentToken)) {
+        return res.status(400).json({
+            error: `Payment token "${d.paymentToken}" is not supported on ${d.chain}. ` +
+                   `Supported: ${validTokens.join(", ")}`,
+        });
+    }
+
+    // Derive a deterministic CedarX asset ID from the on-chain identifiers.
+    // Format mirrors the SeaportPoller's buildAssetId: protocol:chainId:address:tokenId
+    // We use chain ID numbers (1 = ethereum, 137 = polygon).
+    const chainId = d.chain === "ethereum" ? 1 : 137;
+    const assetId = `cedarx:${chainId}:${d.tokenContract.toLowerCase()}:${d.tokenId}`;
+
+    let result: ReturnType<typeof buildSeaportOrder>;
+    try {
+        result = buildSeaportOrder(
+            {
+                offerer:       d.sellerAddress,
+                tokenContract: d.tokenContract,
+                tokenId:       d.tokenId,
+                tokenStandard: d.tokenStandard,
+                chain:         d.chain,
+                price:         d.price,
+                paymentToken:  d.paymentToken,
+                duration:      d.duration,
+                feeWallet:     CEDARX_FEE_WALLET ?? "",
+                feeBps:        CEDARX_FEE_BPS,
+                counter:       d.counter,
+            },
+            assetId
+        );
+    } catch (err) {
+        return res.status(400).json({
+            error: err instanceof Error ? err.message : "Failed to build order parameters",
+        });
+    }
+
+    return res.json(result);
 });
 
 // ─── POST /api/seaport/listings ───────────────────────────────────────────────
@@ -55,7 +124,7 @@ const CreateListingSchema = z.object({
     }),
 });
 
-seaportRouter.post("/listings", async (req: Request, res: Response) => {
+seaportRouter.post("/listings", requireApiKey, async (req: Request, res: Response) => {
     const parsed = CreateListingSchema.safeParse(req.body);
     if (!parsed.success) {
         return res.status(400).json({ error: "Invalid body", details: parsed.error.flatten() });
@@ -251,7 +320,7 @@ const FulfillRequestSchema = z.object({
     buyerAddress: z.string().regex(/^0x[0-9a-fA-F]{40}$/i),
 });
 
-seaportRouter.post("/fulfill", async (req: Request, res: Response) => {
+seaportRouter.post("/fulfill", requireApiKey, async (req: Request, res: Response) => {
     const parsed = FulfillRequestSchema.safeParse(req.body);
     if (!parsed.success) {
         return res.status(400).json({ error: "Invalid body", details: parsed.error.flatten() });
