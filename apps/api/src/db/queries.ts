@@ -6,7 +6,7 @@
  */
 
 import { getDb } from "./client";
-import type { AssetInsert, AssetRow, ListingInsert, TradeInsert, SeaportOrderInsert, SeaportOrderRow } from "./types";
+import type { AssetInsert, AssetRow, ListingInsert, TradeInsert, SeaportOrderInsert, SeaportOrderRow, SeaportOfferInsert } from "./types";
 
 // ─── Types returned by queries ────────────────────────────────────────────────
 
@@ -626,6 +626,21 @@ export async function getAssetsWithActiveListing(): Promise<string[]> {
         .eq("has_active_listing", true);
     if (error) throw error;
     return (data ?? []).map((r: { id: string }) => r.id);
+}
+
+// ─── Seaport offers: writes ───────────────────────────────────────────────────
+
+/**
+ * Insert a new buyer offer created through the CedarX native offer flow.
+ * Each offer generates a new UUID row (not upserted — duplicate offers are OK).
+ */
+export async function upsertSeaportOffer(offer: SeaportOfferInsert): Promise<void> {
+    const db = getDb();
+    const { error } = await (db.from("seaport_offers") as any).insert({
+        ...offer,
+        created_at: new Date().toISOString(),
+    });
+    if (error) throw error;
 }
 
 // ─── Indexer cursors ──────────────────────────────────────────────────────────

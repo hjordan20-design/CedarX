@@ -15,6 +15,7 @@ import { encodeFunctionData } from "viem";
 import {
     getActiveSeaportOrder,
     upsertSeaportOrder,
+    upsertSeaportOffer,
     syncAssetSeaportListing,
     expireSeaportOrders,
 } from "../db/queries";
@@ -25,7 +26,7 @@ import {
     CEDARX_FEE_WALLET,
     CEDARX_FEE_BPS,
 } from "../config";
-import type { SeaportOrderInsert } from "../db/types";
+import type { SeaportOrderInsert, SeaportOfferInsert } from "../db/types";
 import { requireApiKey } from "../middleware/apiKey";
 import { buildSeaportOrder, VALID_PAYMENT_TOKENS } from "../lib/seaportOrderBuilder";
 
@@ -492,6 +493,95 @@ seaportRouter.post("/fulfill", requireApiKey, async (req: Request, res: Response
         token,          // ERC-20 token the buyer pays; zero address for native ETH orders
         amount:         tokenAmount,
     });
+});
+
+// ─── POST /api/seaport/offers ─────────────────────────────────────────────────
+// Accepts a signed Seaport offer order from the buyer (native CedarX offer flow).
+// Stores the offer in the seaport_offers table and forwards it to OpenSea so the
+// NFT owner sees it on every Seaport-compatible marketplace.
+
+const CreateOfferSchema = z.object({
+    assetId:              z.string(),
+    chain:                z.enum(["ethereum", "polygon"]),
+    offererAddress:       z.string().regex(/^0x[0-9a-fA-F]{40}$/),
+    amount:               z.string(),              // raw USDC base units
+    paymentToken:         z.string(),              // token contract address
+    paymentTokenSymbol:   z.string(),
+    paymentTokenDecimals: z.number().int().min(0).max(18),
+    durationSeconds:      z.number().int().min(1),
+    expiresAt:            z.string(),              // ISO timestamp
+    orderParameters:      z.object({
+        parameters: z.record(z.unknown()),
+        signature:  z.string(),
+    }),
+});
+
+seaportRouter.post("/offers", requireApiKey, async (req: Request, res: Response) => {
+    const parsed = CreateOfferSchema.safeParse(req.body);
+    if (!parsed.success) {
+        return res.status(400).json({ error: "Invalid body", details: parsed.error.flatten() });
+    }
+
+    const d = parsed.data;
+    const openSeaChain = d.chain === "polygon" ? "matic" : "ethereum";
+    let orderHash: string | null = null;
+    let openSeaError: string | null = null;
+
+    // Forward to OpenSea's offers endpoint so the NFT owner sees it everywhere
+    if (OPENSEA_API_KEY) {
+        try {
+            const osRes = await fetch(
+                `${OPENSEA_API_BASE_URL}/api/v2/orders/${openSeaChain}/seaport/offers`,
+                {
+                    method: "POST",
+                    headers: {
+                        "x-api-key":    OPENSEA_API_KEY,
+                        "content-type": "application/json",
+                        accept:         "application/json",
+                    },
+                    body: JSON.stringify({
+                        parameters: d.orderParameters.parameters,
+                        signature:  d.orderParameters.signature,
+                    }),
+                }
+            );
+            if (osRes.ok) {
+                const body = await osRes.json() as { order?: { order_hash?: string } };
+                orderHash = body?.order?.order_hash ?? null;
+                console.log(`[seaport/offers] OpenSea accepted offer, order_hash=${orderHash}`);
+            } else {
+                openSeaError = `OpenSea responded ${osRes.status}: ${await osRes.text()}`;
+                console.warn("[seaport/offers] OpenSea post failed:", openSeaError);
+            }
+        } catch (err) {
+            openSeaError = err instanceof Error ? err.message : String(err);
+            console.warn("[seaport/offers] OpenSea post error:", openSeaError);
+        }
+    }
+
+    // Store in CedarX database regardless of OpenSea outcome
+    const insert: SeaportOfferInsert = {
+        asset_id:               d.assetId,
+        offerer_address:        d.offererAddress.toLowerCase(),
+        amount:                 d.amount,
+        payment_token:          d.paymentToken.toLowerCase(),
+        payment_token_symbol:   d.paymentTokenSymbol,
+        payment_token_decimals: d.paymentTokenDecimals,
+        duration:               d.durationSeconds,
+        order_hash:             orderHash,
+        order_parameters:       d.orderParameters as SeaportOfferInsert["order_parameters"],
+        status:                 "active",
+        expires_at:             d.expiresAt,
+    };
+
+    await upsertSeaportOffer(insert);
+    console.log(
+        `[seaport/offers] stored offer asset_id=${d.assetId}` +
+        ` offerer=${d.offererAddress.slice(0, 8)}… amount=${d.amount}` +
+        ` order_hash=${orderHash ?? "(none)"}`
+    );
+
+    return res.status(201).json({ orderHash, openSeaError });
 });
 
 // ─── Formatter ────────────────────────────────────────────────────────────────

@@ -21,9 +21,41 @@ import { CategoryTag } from "@/components/common/CategoryTag";
 import { VerifiedBadge } from "@/components/common/VerifiedBadge";
 import { BuyModal } from "@/components/asset/BuyModal";
 import { ListModal } from "@/components/asset/ListModal";
+import { OfferModal } from "@/components/asset/OfferModal";
 import { formatTokenPrice, formatUSDC, formatDate, truncateAddress, formatAcreage, stripMarkdown } from "@/lib/formatters";
 import type { Asset } from "@/lib/types";
 import { VERIFIED_CONTRACTS } from "@/lib/types";
+
+// ─── IPFS image gateway fallback ─────────────────────────────────────────────
+// Try each gateway in order when an image fails to load.
+
+const IPFS_GATEWAYS = [
+  "https://ipfs.io/ipfs/",
+  "https://cloudflare-ipfs.com/ipfs/",
+  "https://gateway.pinata.cloud/ipfs/",
+];
+
+/** Extract the IPFS CID+path from any gateway URL or ipfs:// URI. */
+function extractIpfsCid(url: string): string | null {
+  const m = url.match(/\/ipfs\/(.+)$/);
+  return m ? m[1] : null;
+}
+
+/**
+ * Return the next IPFS gateway URL to try after the current one fails.
+ * Returns null when all gateways have been exhausted or the URL is not IPFS.
+ */
+function nextIpfsUrl(currentUrl: string, triedCount: number): string | null {
+  const cid = extractIpfsCid(currentUrl);
+  if (!cid) return null;
+  if (triedCount >= IPFS_GATEWAYS.length) return null;
+  return `${IPFS_GATEWAYS[triedCount]}${cid}`;
+}
+
+/** Strip the "[Low Confidence]" prefix that Fabrica's AI metadata sometimes adds. */
+function stripLowConfidence(name: string): string {
+  return name.replace(/^\[Low Confidence\]\s*/i, "");
+}
 
 // ─── Category-tinted fallback backgrounds ────────────────────────────────────
 
@@ -227,8 +259,9 @@ const ERC1155_BALANCE_ABI = [
 ] as const;
 
 function AssetActions({ asset }: { asset: Asset }) {
-  const [showBuy, setShowBuy]   = useState(false);
-  const [showList, setShowList] = useState(false);
+  const [showBuy,   setShowBuy]   = useState(false);
+  const [showList,  setShowList]  = useState(false);
+  const [showOffer, setShowOffer] = useState(false);
   const { address, isConnected } = useAccount();
   const { openConnectModal }     = useConnectModal();
 
@@ -353,15 +386,12 @@ function AssetActions({ asset }: { asset: Asset }) {
         )}
 
         {!hasListing && !ownsAsset && asset.tokenId && (
-          <a
-            href={`https://opensea.io/assets/${asset.chain === "polygon" ? "matic" : asset.chain}/${asset.contractAddress}/${asset.tokenId}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn-primary w-full justify-center py-3.5 text-sm font-semibold inline-flex items-center gap-2"
+          <button
+            onClick={() => setShowOffer(true)}
+            className="btn-primary w-full justify-center py-3.5 text-sm font-semibold"
           >
-            Make Offer on OpenSea
-            <ExternalLink size={14} />
-          </a>
+            Make Offer
+          </button>
         )}
         {!hasListing && !ownsAsset && !asset.tokenId && (
           <button
@@ -427,6 +457,12 @@ function AssetActions({ asset }: { asset: Asset }) {
           onClose={() => setShowList(false)}
         />
       )}
+      {showOffer && asset.tokenId && (
+        <OfferModal
+          asset={asset}
+          onClose={() => setShowOffer(false)}
+        />
+      )}
     </>
   );
 }
@@ -463,7 +499,9 @@ function DetailSkeleton() {
 export function AssetDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { data: asset, isLoading, isError, error } = useAsset(id ?? "");
-  const [imgError, setImgError] = useState(false);
+  // imgGwIdx tracks how many IPFS gateways we've tried (0 = original URL)
+  const [imgGwIdx,  setImgGwIdx]  = useState(0);
+  const [imgFailed, setImgFailed] = useState(false);
 
   if (isLoading) return <DetailSkeleton />;
 
@@ -499,7 +537,7 @@ export function AssetDetailPage() {
           Explore
         </Link>
         <span className="shrink-0">/</span>
-        <span className="text-cedar-text truncate">{asset.name}</span>
+        <span className="text-cedar-text truncate">{stripLowConfidence(asset.name)}</span>
       </nav>
 
       {/* Two-column layout */}
@@ -512,20 +550,32 @@ export function AssetDetailPage() {
               CATEGORY_BG[asset.category] ?? "bg-cedar-surface-alt"
             }`}
           >
-            {asset.imageUrl && !imgError ? (
-              <img
-                src={asset.imageUrl}
-                alt={asset.name}
-                className="w-full h-full object-cover"
-                onError={() => setImgError(true)}
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center">
-                <span className="text-cedar-muted/40 font-mono text-xs tracking-widest uppercase">
-                  {asset.category.replace(/-/g, " ")}
-                </span>
-              </div>
-            )}
+            {(() => {
+              // Resolve the current src: original URL on first attempt, then
+              // cycle through IPFS gateways on each onError callback.
+              const src = imgGwIdx === 0
+                ? asset.imageUrl
+                : (asset.imageUrl ? nextIpfsUrl(asset.imageUrl, imgGwIdx) : null);
+              return src && !imgFailed ? (
+                <img
+                  src={src}
+                  alt={asset.name}
+                  className="w-full h-full object-cover"
+                  onError={() => {
+                    if (!asset.imageUrl) return setImgFailed(true);
+                    const next = nextIpfsUrl(asset.imageUrl, imgGwIdx + 1);
+                    if (next) setImgGwIdx(imgGwIdx + 1);
+                    else setImgFailed(true);
+                  }}
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <span className="text-cedar-muted/40 font-mono text-xs tracking-widest uppercase">
+                    {asset.category.replace(/-/g, " ")}
+                  </span>
+                </div>
+              );
+            })()}
             {/* Subtle vignette */}
             <div className="absolute inset-0 bg-gradient-to-t from-cedar-bg/30 to-transparent pointer-events-none" />
           </div>
@@ -549,7 +599,7 @@ export function AssetDetailPage() {
 
           {/* Name */}
           <h1 className="display text-2xl sm:text-3xl lg:text-4xl text-cedar-text leading-tight break-words">
-            {asset.name}
+            {stripLowConfidence(asset.name)}
           </h1>
 
           {/* Actions (price + buy/sell buttons + contract info) */}

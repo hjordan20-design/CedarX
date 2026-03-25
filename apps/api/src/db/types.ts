@@ -24,6 +24,11 @@ export interface Database {
                 Insert: SeaportOrderInsert;
                 Update: Partial<SeaportOrderInsert>;
             };
+            seaport_offers: {
+                Row: SeaportOfferRow;
+                Insert: SeaportOfferInsert;
+                Update: Partial<SeaportOfferInsert>;
+            };
             indexer_cursors: {
                 Row: CursorRow;
                 Insert: CursorInsert;
@@ -138,6 +143,29 @@ export interface CursorRow {
 }
 
 export type CursorInsert = Omit<CursorRow, "updated_at"> & { updated_at?: string };
+
+// ─── seaport_offers ──────────────────────────────────────────────────────────
+
+export interface SeaportOfferRow {
+    id:                      string;
+    asset_id:                string | null;
+    offerer_address:         string;
+    amount:                  string;
+    payment_token:           string;
+    payment_token_symbol:    string;
+    payment_token_decimals:  number;
+    duration:                number;
+    order_hash:              string | null;
+    order_parameters:        { parameters: Record<string, unknown>; signature: string };
+    status:                  "active" | "accepted" | "cancelled" | "expired";
+    created_at:              string;
+    expires_at:              string;
+}
+
+export type SeaportOfferInsert = Omit<SeaportOfferRow, "id" | "created_at"> & {
+    id?:         string;
+    created_at?: string;
+};
 
 // ─── seaport_orders ──────────────────────────────────────────────────────────
 

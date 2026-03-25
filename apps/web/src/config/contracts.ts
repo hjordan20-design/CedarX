@@ -25,6 +25,9 @@ export const USDC_MAINNET = (
 /** USDC on Polygon (native USDC via Circle CCTP bridge) */
 export const USDC_POLYGON = "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359" as `0x${string}`;
 
+/** USDC.e on Polygon (bridged / legacy USDC — used by Seaport offers on Polygon) */
+export const USDC_E_POLYGON = "0x2791bca1f2de4661ed88a30c99a7a9449aa84174" as `0x${string}`;
+
 /** Returns the correct USDC address for the given chain ID */
 export function usdcForChain(chainId: number): `0x${string}` {
   return chainId === 137 ? USDC_POLYGON : USDC_MAINNET;

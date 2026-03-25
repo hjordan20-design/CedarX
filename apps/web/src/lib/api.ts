@@ -118,6 +118,36 @@ export async function fetchSeaportFulfillment(params: {
   return res.json() as Promise<SeaportFulfillmentData>;
 }
 
+// ─── Seaport offers ──────────────────────────────────────────────────────────
+
+export interface CreateSeaportOfferParams {
+  assetId: string;
+  chain: "ethereum" | "polygon";
+  offererAddress: string;
+  amount: string;             // raw USDC base units as string
+  paymentToken: string;       // token contract address
+  paymentTokenSymbol: string;
+  paymentTokenDecimals: number;
+  durationSeconds: number;
+  expiresAt: string;          // ISO timestamp
+  orderParameters: {
+    parameters: Record<string, unknown>;
+    signature: string;
+  };
+}
+
+export async function postSeaportOffer(
+  params: CreateSeaportOfferParams
+): Promise<{ orderHash: string | null; openSeaError: string | null }> {
+  const res = await fetch(`${API_BASE_URL}/api/seaport/offers`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(params),
+  });
+  if (!res.ok) throw new Error(`API error ${res.status}: /api/seaport/offers`);
+  return res.json();
+}
+
 // ─── Stats ───────────────────────────────────────────────────────────────────
 
 export function fetchStats(): Promise<MarketStats> {

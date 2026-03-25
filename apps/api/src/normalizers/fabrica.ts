@@ -18,6 +18,11 @@ export interface FabricaTokenMetadata {
     attributes?: Array<{ trait_type: string; value: string | number }>;
 }
 
+/** Strip the "[Low Confidence]" prefix that Fabrica's AI property detection adds. */
+function stripLowConfidence(name: string): string {
+    return name.replace(/^\[Low Confidence\]\s*/i, "");
+}
+
 /** Normalize a Fabrica token into a CedarXAsset DB row */
 export function normalizeFabricaAsset(
     tokenId: string,
@@ -39,7 +44,7 @@ export function normalizeFabricaAsset(
         token_id: tokenId,
         token_standard: "ERC-1155",
         chain: "ethereum",
-        name: metadata.name ?? `Fabrica Land #${tokenId}`,
+        name: stripLowConfidence(metadata.name ?? `Fabrica Land #${tokenId}`),
         description: metadata.description ?? null,
         category: "real-estate",
         image_url: metadata.image ?? null,

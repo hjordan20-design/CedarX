@@ -325,6 +325,49 @@ EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 -- (indexer_cursors only accessible via service-role key)
 
 -- ---------------------------------------------------------------------------
+-- seaport_offers
+-- ---------------------------------------------------------------------------
+-- Native buyer offers created through the CedarX offer flow.
+-- One row per signed Seaport offer; status: active → accepted | cancelled | expired.
+-- The signed order is posted to OpenSea so the seller sees it everywhere.
+
+CREATE TABLE IF NOT EXISTS seaport_offers (
+    id                       UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+
+    -- Cross-referenced asset (may be NULL briefly before asset is indexed)
+    asset_id                 TEXT        REFERENCES assets(id) ON DELETE SET NULL,
+
+    offerer_address          TEXT        NOT NULL,  -- buyer's checksummed address
+    amount                   NUMERIC     NOT NULL,  -- raw USDC base units (no decimals)
+
+    -- Payment token info
+    payment_token            TEXT        NOT NULL,  -- USDC.e or USDC contract address
+    payment_token_symbol     TEXT        NOT NULL DEFAULT 'USDC',
+    payment_token_decimals   INT         NOT NULL DEFAULT 6,
+
+    duration                 INT         NOT NULL,  -- offer duration in seconds
+    order_hash               TEXT,                  -- assigned by OpenSea; may be NULL
+    order_parameters         JSONB       NOT NULL,  -- full signed Seaport {parameters, signature}
+
+    status                   TEXT        NOT NULL DEFAULT 'active'
+                                          CHECK (status IN ('active', 'accepted', 'cancelled', 'expired')),
+
+    created_at               TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    expires_at               TIMESTAMPTZ NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_seaport_offers_asset    ON seaport_offers (asset_id);
+CREATE INDEX IF NOT EXISTS idx_seaport_offers_status   ON seaport_offers (status);
+CREATE INDEX IF NOT EXISTS idx_seaport_offers_offerer  ON seaport_offers (offerer_address);
+
+-- RLS: public read, writes only via service-role key (same pattern as seaport_orders)
+ALTER TABLE seaport_offers ENABLE ROW LEVEL SECURITY;
+
+DO $$ BEGIN
+    CREATE POLICY "anon read seaport_offers" ON seaport_offers FOR SELECT USING (true);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+-- ---------------------------------------------------------------------------
 -- api_keys
 -- ---------------------------------------------------------------------------
 -- Agent API keys.  Only POST endpoints require a key; GET endpoints are open.
