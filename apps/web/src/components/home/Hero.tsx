@@ -36,13 +36,12 @@ export function Hero({ filters, onFilterChange }: HeroProps) {
           style={{
             fontFamily: "Cormorant Garamond, Georgia, serif",
             fontWeight: 300,
-            fontSize: "clamp(60px, 9vw, 96px)",
+            fontSize: "clamp(42px, 7vw, 96px)",
             lineHeight: 1.0,
             letterSpacing: "-0.02em",
             color: "#1C1710",
             marginBottom: "28px",
             animationDelay: "0.1s",
-            whiteSpace: "nowrap",
           }}
         >
           Real assets. <em style={{ fontStyle: "italic", color: "#C4852A" }}>Onchain.</em>

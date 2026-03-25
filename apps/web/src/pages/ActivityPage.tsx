@@ -309,7 +309,18 @@ function ListingsTab({ address }: { address: string }) {
     );
   }
 
-  const listings = data?.data ?? [];
+  const allListings = data?.data ?? [];
+
+  // Deduplicate: keep only the most recent listing per asset
+  const seen = new Set<string>();
+  const listings = [...allListings]
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .filter((l) => {
+      const key = l.assetId ?? l.orderHash;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
 
   if (listings.length === 0) {
     return (
@@ -346,7 +357,7 @@ function ListingsTab({ address }: { address: string }) {
             key={listing.orderHash}
             className="flex flex-col sm:grid sm:grid-cols-[auto_1fr_auto_auto_auto_auto]
               gap-3 sm:gap-4 items-start sm:items-center px-4 py-3 border border-cedar-border
-              hover:bg-cedar-surface transition-colors"
+              overflow-hidden hover:bg-cedar-surface transition-colors"
           >
             <AssetThumb imageUrl={listing.asset?.image_url} name={listing.asset?.name} />
 
@@ -372,10 +383,8 @@ function ListingsTab({ address }: { address: string }) {
             </p>
 
             <div className="flex justify-end">
-              {listing.status === "active" ? (
+              {listing.status === "active" && (
                 <CancelListingButton listing={listing} onSuccess={refetch} />
-              ) : (
-                <span className="text-cedar-muted/40 text-[11px] italic">—</span>
               )}
             </div>
           </div>
@@ -383,7 +392,7 @@ function ListingsTab({ address }: { address: string }) {
       })}
 
       <p className="text-cedar-muted/40 text-[11px] pt-2 text-right">
-        Cancelling a listing submits a Seaport cancel transaction on-chain. Gas fees apply.
+        Cancelling a listing submits a cancel transaction on-chain. Gas fees apply.
       </p>
     </div>
   );
@@ -457,7 +466,7 @@ function OffersTab({ address }: { address: string }) {
             key={offer.id}
             className="flex flex-col sm:grid sm:grid-cols-[auto_1fr_auto_auto_auto_auto]
               gap-3 sm:gap-4 items-start sm:items-center px-4 py-3 border border-cedar-border
-              hover:bg-cedar-surface transition-colors"
+              overflow-hidden hover:bg-cedar-surface transition-colors"
           >
             <AssetThumb imageUrl={offer.asset?.image_url} name={offer.asset?.name} />
 
@@ -483,10 +492,8 @@ function OffersTab({ address }: { address: string }) {
             </p>
 
             <div className="flex justify-end">
-              {offer.status === "active" ? (
+              {offer.status === "active" && (
                 <CancelOfferButton offer={offer} onSuccess={refetch} />
-              ) : (
-                <span className="text-cedar-muted/40 text-[11px] italic">—</span>
               )}
             </div>
           </div>
@@ -494,7 +501,7 @@ function OffersTab({ address }: { address: string }) {
       })}
 
       <p className="text-cedar-muted/40 text-[11px] pt-2 text-right">
-        Cancelling an offer submits a Seaport cancel transaction on-chain. Gas fees apply.
+        Cancelling an offer submits a cancel transaction on-chain. Gas fees apply.
       </p>
     </div>
   );
