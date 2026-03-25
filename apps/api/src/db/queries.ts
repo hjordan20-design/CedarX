@@ -244,6 +244,72 @@ export async function getStats() {
     };
 }
 
+// ─── Trending assets (by offer count) ────────────────────────────────────────
+
+export async function getTrendingAssets(limit = 8): Promise<AssetRow[]> {
+    const db = getDb();
+
+    // Tally active/accepted offers per asset
+    const { data: offerRows, error: offerErr } = await db
+        .from("seaport_offers")
+        .select("asset_id")
+        .in("status", ["active", "accepted"])
+        .not("asset_id", "is", null);
+
+    if (!offerErr && offerRows && offerRows.length > 0) {
+        const counts: Record<string, number> = {};
+        for (const row of offerRows) {
+            if (row.asset_id) counts[row.asset_id] = (counts[row.asset_id] ?? 0) + 1;
+        }
+        const topIds = Object.entries(counts)
+            .sort(([, a], [, b]) => b - a)
+            .slice(0, limit)
+            .map(([id]) => id);
+
+        if (topIds.length > 0) {
+            const { data: assets, error: assetsErr } = await db
+                .from("assets")
+                .select("*")
+                .in("id", topIds)
+                .not("name", "match", "^#[0-9]");
+
+            if (!assetsErr && assets && assets.length > 0) {
+                return topIds
+                    .map((id) => assets.find((a) => a.id === id))
+                    .filter((a): a is AssetRow => a != null);
+            }
+        }
+    }
+
+    // Fallback: most recently updated listed assets with images
+    const { data, error } = await db
+        .from("assets")
+        .select("*")
+        .eq("has_active_listing", true)
+        .not("name", "match", "^#[0-9]")
+        .not("image_url", "is", null)
+        .order("last_updated", { ascending: false })
+        .limit(limit);
+
+    if (error) throw error;
+    return data ?? [];
+}
+
+// ─── Asset price/listing history ──────────────────────────────────────────────
+
+export async function getAssetPriceHistory(assetId: string, limit = 20) {
+    const db = getDb();
+    const { data, error } = await db
+        .from("seaport_orders")
+        .select("order_hash, price, payment_token_symbol, payment_token_decimals, status, created_at, expiration")
+        .eq("asset_id", assetId)
+        .order("created_at", { ascending: false })
+        .limit(limit);
+
+    if (error) throw error;
+    return data ?? [];
+}
+
 // ─── Protocols ────────────────────────────────────────────────────────────────
 
 export async function getProtocols() {

@@ -1,6 +1,6 @@
 import { Router, type Request, type Response } from "express";
 import { z } from "zod";
-import { getAsset, getAssets, getAssetHistory, getSeaportPriceMap, type AssetFilters } from "../db/queries";
+import { getAsset, getAssets, getAssetHistory, getSeaportPriceMap, getTrendingAssets, type AssetFilters } from "../db/queries";
 
 export const assetsRouter = Router();
 
@@ -64,6 +64,16 @@ assetsRouter.get("/", async (req: Request, res: Response) => {
             hasMore: result.hasMore,
         },
     });
+});
+
+// ─── GET /api/assets/trending ────────────────────────────────────────────────
+
+assetsRouter.get("/trending", async (_req: Request, res: Response) => {
+    const assets = await getTrendingAssets(8);
+    const seaportPrices = await getSeaportPriceMap(
+        assets.filter(a => a.has_active_listing && a.current_listing_price == null).map(a => a.id)
+    );
+    return res.json({ data: assets.map(row => formatAsset(row, seaportPrices)) });
 });
 
 // ─── GET /api/assets/:id ─────────────────────────────────────────────────────

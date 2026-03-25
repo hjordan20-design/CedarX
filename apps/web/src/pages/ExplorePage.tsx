@@ -6,6 +6,33 @@ import { AssetGrid } from "@/components/explore/AssetGrid";
 import { Pagination } from "@/components/explore/Pagination";
 import type { AssetFilters, Category } from "@/lib/types";
 
+const CATEGORY_INFO: Record<string, { title: string; description: string }> = {
+  "real-estate": {
+    title: "Real Estate",
+    description:
+      "Tokenized property deeds and fractional real estate. From raw land parcels to residential homes.",
+  },
+  collectibles: {
+    title: "Collectibles",
+    description:
+      "Authenticated physical collectibles — sports memorabilia, rare coins, and trading cards.",
+  },
+  "luxury-goods": {
+    title: "Luxury Goods",
+    description:
+      "Authenticated watches, jewelry, and handbags. Each token is backed by a physically verified item.",
+  },
+  watches: {
+    title: "Watches",
+    description: "Luxury timepieces from top brands. Authenticated and tokenized on-chain.",
+  },
+  art: {
+    title: "Art",
+    description:
+      "Tokenized physical artwork from galleries and private collections. Coming soon.",
+  },
+};
+
 const DEFAULT_PAGE_SIZE = 24;
 const VALID_PAGE_SIZES = new Set([24, 48, 100, 200]);
 const VALID_CATEGORIES = new Set<string>(["real-estate", "luxury-goods", "art", "collectibles", "watches"]);
@@ -86,23 +113,45 @@ export function ExplorePage() {
 
   return (
     <div className="max-w-[1440px] mx-auto px-6 pb-24 pt-[82px] sm:pt-[114px]">
-      {/* Page header — compressed on mobile */}
+      {/* Page header — switches to category info when a category is selected */}
       <div className="mb-3 sm:mb-10">
-        <h1
-          style={{
-            fontFamily: "Cormorant Garamond, Georgia, serif",
-            fontWeight: 300,
-            fontSize: "clamp(2rem, 4vw, 3.5rem)",
-            letterSpacing: "-0.02em",
-            color: "#1C1710",
-            marginBottom: "8px",
-          }}
-        >
-          Explore assets
-        </h1>
-        <p className="hidden sm:block" style={{ fontFamily: "DM Sans, system-ui, sans-serif", fontWeight: 300, fontSize: "17px", color: "rgba(28,23,16,0.50)" }}>
-          Browse tokenized real-world assets across real estate, collectibles, and luxury goods.
-        </p>
+        {filters.category && CATEGORY_INFO[filters.category] ? (
+          <>
+            <h1
+              style={{
+                fontFamily: "Cormorant Garamond, Georgia, serif",
+                fontWeight: 300,
+                fontSize: "clamp(2rem, 4vw, 3.5rem)",
+                letterSpacing: "-0.02em",
+                color: "#1C1710",
+                marginBottom: "8px",
+              }}
+            >
+              {CATEGORY_INFO[filters.category].title}
+            </h1>
+            <p className="hidden sm:block" style={{ fontFamily: "DM Sans, system-ui, sans-serif", fontWeight: 300, fontSize: "17px", color: "rgba(28,23,16,0.50)" }}>
+              {CATEGORY_INFO[filters.category].description}
+            </p>
+          </>
+        ) : (
+          <>
+            <h1
+              style={{
+                fontFamily: "Cormorant Garamond, Georgia, serif",
+                fontWeight: 300,
+                fontSize: "clamp(2rem, 4vw, 3.5rem)",
+                letterSpacing: "-0.02em",
+                color: "#1C1710",
+                marginBottom: "8px",
+              }}
+            >
+              Explore assets
+            </h1>
+            <p className="hidden sm:block" style={{ fontFamily: "DM Sans, system-ui, sans-serif", fontWeight: 300, fontSize: "17px", color: "rgba(28,23,16,0.50)" }}>
+              Browse tokenized real-world assets across real estate, collectibles, and luxury goods.
+            </p>
+          </>
+        )}
       </div>
 
       {/* Divider — hidden on mobile */}

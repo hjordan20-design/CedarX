@@ -1,17 +1,18 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ["./index.html", "./src/**/*.{ts,tsx}"],
+  darkMode: ["selector", "[data-theme='dark']"],
   theme: {
     extend: {
       colors: {
         cedar: {
-          bg:            "#F9F6F0",   /* warm cream base */
-          surface:       "#FFFFFF",
-          "surface-alt": "#F3EDE2",
-          border:        "#E8DCC8",   /* warm amber-tinted divider */
-          footer:        "#F9F6F0",
-          text:          "#1C1710",   /* dark warm brown */
-          muted:         "#8B7355",   /* medium warm brown */
+          bg:            "var(--cedar-bg)",
+          surface:       "var(--cedar-surface)",
+          "surface-alt": "var(--cedar-surface-alt)",
+          border:        "var(--cedar-border)",
+          footer:        "var(--cedar-footer)",
+          text:          "var(--cedar-text)",
+          muted:         "var(--cedar-muted)",
           amber:         "#C4852A",
           "amber-lt":    "#D4952F",
           green:         "#3A6648",

@@ -13,8 +13,10 @@ import {
 import { useAccount, useReadContract, useWriteContract, usePublicClient } from "wagmi";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 
+import { useQuery } from "@tanstack/react-query";
 import { useAsset } from "@/hooks/useAsset";
 import { useAssetHistory, type HistoryItem } from "@/hooks/useAssetHistory";
+import { fetchAssetPriceHistory, type PriceHistoryItem } from "@/lib/api";
 import { useSeaportOrder } from "@/hooks/useSeaportOrder";
 import { ProtocolBadge } from "@/components/common/ProtocolBadge";
 import { CategoryTag } from "@/components/common/CategoryTag";
@@ -152,6 +154,68 @@ function AssetMap({ lat, lng }: { lat: number; lng: number }) {
       >
         View larger map <ExternalLink size={9} />
       </a>
+    </div>
+  );
+}
+
+// ─── Price history ────────────────────────────────────────────────────────────
+
+function PriceHistory({ assetId }: { assetId: string }) {
+  const { data, isLoading } = useQuery({
+    queryKey: ["price-history", assetId],
+    queryFn: () => fetchAssetPriceHistory(assetId),
+    staleTime: 60_000,
+  });
+
+  const items: PriceHistoryItem[] = data?.data ?? [];
+
+  if (!isLoading && items.length === 0) return null;
+
+  function humanPrice(item: PriceHistoryItem): string {
+    const n = Number(item.price) / Math.pow(10, item.payment_token_decimals);
+    return `${n.toLocaleString("en-US", { maximumFractionDigits: 2 })} ${item.payment_token_symbol}`;
+  }
+
+  return (
+    <div>
+      <h3 className="text-cedar-muted text-[10px] tracking-widest uppercase mb-3">
+        Price History
+      </h3>
+
+      {isLoading && (
+        <div className="animate-pulse space-y-px">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-10 bg-cedar-surface" />
+          ))}
+        </div>
+      )}
+
+      {!isLoading && items.length > 0 && (
+        <div className="space-y-px">
+          {items.map((item) => (
+            <div
+              key={item.order_hash}
+              className="flex items-center justify-between px-4 py-3 bg-cedar-surface hover:bg-cedar-surface-alt transition-colors"
+            >
+              <div className="min-w-0">
+                <p className="text-cedar-text text-sm font-mono">{humanPrice(item)}</p>
+                <p className="text-cedar-muted/60 text-[10px] mt-0.5">{formatDate(item.created_at)}</p>
+              </div>
+              <span
+                className={`text-[10px] tracking-widest uppercase px-2 py-0.5 border ${
+                  item.status === "active"
+                    ? "text-emerald-600 bg-emerald-50 border-emerald-200"
+                    : item.status === "filled"
+                    ? "text-blue-600 bg-blue-50 border-blue-200"
+                    : "text-cedar-muted bg-cedar-surface border-cedar-border"
+                }`}
+              >
+                {item.status === "active" ? "Listed" : item.status === "filled" ? "Sold" : item.status}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -692,6 +756,9 @@ export function AssetDetailPage() {
               </div>
             </div>
           )}
+
+          {/* Price history */}
+          <PriceHistory assetId={asset.id} />
 
           {/* Transaction history */}
           <TransactionHistory assetId={asset.id} />

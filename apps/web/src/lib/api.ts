@@ -222,3 +222,23 @@ export function fetchStats(): Promise<MarketStats> {
 export function fetchProtocols(): Promise<{ data: ProtocolInfo[] }> {
   return get("/api/stats/protocols");
 }
+
+// ─── Trending / price history ─────────────────────────────────────────────────
+
+export function fetchTrendingAssets(): Promise<{ data: Asset[] }> {
+  return get("/api/assets/trending");
+}
+
+export interface PriceHistoryItem {
+  order_hash: string;
+  price: string;
+  payment_token_symbol: string;
+  payment_token_decimals: number;
+  status: string;
+  created_at: string;
+  expiration: string | null;
+}
+
+export function fetchAssetPriceHistory(assetId: string): Promise<{ data: PriceHistoryItem[] }> {
+  return get(`/api/seaport/price-history/${encodeURIComponent(assetId)}`);
+}

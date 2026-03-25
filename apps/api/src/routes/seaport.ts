@@ -24,6 +24,7 @@ import {
     getAssetsByIds,
     setSeaportOrderStatus,
     setSeaportOfferStatus,
+    getAssetPriceHistory,
 } from "../db/queries";
 import { getDb } from "../db/client";
 import {
@@ -37,6 +38,13 @@ import { requireApiKey } from "../middleware/apiKey";
 import { buildSeaportOrder, VALID_PAYMENT_TOKENS } from "../lib/seaportOrderBuilder";
 
 export const seaportRouter = Router();
+
+// ─── GET /api/seaport/price-history/:assetId ─────────────────────────────────
+
+seaportRouter.get("/price-history/:assetId", async (req: Request, res: Response) => {
+    const rows = await getAssetPriceHistory(req.params.assetId);
+    return res.json({ data: rows });
+});
 
 // ─── GET /api/seaport/orders/:assetId ─────────────────────────────────────────
 

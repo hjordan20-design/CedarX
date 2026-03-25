@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { Menu, X, ChevronDown } from "lucide-react";
 import { useAccount, useChainId, useSwitchChain } from "wagmi";
+import { ThemeToggle } from "./ThemeToggle";
 
 // ─── Diamond mark ─────────────────────────────────────────────────────────────
 function DiamondMark({ className }: { className?: string }) {
@@ -227,6 +228,7 @@ export function Header() {
 
           {/* Desktop right — hidden below lg */}
           <div className="hidden lg:flex items-center gap-3 shrink-0">
+            <ThemeToggle />
             <ChainSwitcher />
             <WalletButton />
           </div>
