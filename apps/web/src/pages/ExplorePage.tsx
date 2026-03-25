@@ -6,7 +6,8 @@ import { AssetGrid } from "@/components/explore/AssetGrid";
 import { Pagination } from "@/components/explore/Pagination";
 import type { AssetFilters, Category } from "@/lib/types";
 
-const PAGE_SIZE = 24;
+const DEFAULT_PAGE_SIZE = 24;
+const VALID_PAGE_SIZES = new Set([24, 48, 100, 200]);
 const VALID_CATEGORIES = new Set<string>(["real-estate", "luxury-goods", "art", "collectibles", "watches"]);
 
 function categoryFromParam(param: string | null): Category | undefined {
@@ -27,10 +28,13 @@ export function ExplorePage() {
       ? rawListingFilter
       : legacyListedOff ? "all" : "listed";
 
+  const rawLimit = Number(searchParams.get("limit"));
+  const pageSize = VALID_PAGE_SIZES.has(rawLimit) ? rawLimit : DEFAULT_PAGE_SIZE;
+
   const filters: AssetFilters = {
     sort: (searchParams.get("sort") as AssetFilters["sort"]) ?? "newest",
     page: Number(searchParams.get("page")) || 1,
-    limit: PAGE_SIZE,
+    limit: pageSize,
     listingFilter,
     category: categoryFromParam(searchParams.get("category")),
     search: searchParams.get("search") ?? undefined,
@@ -51,6 +55,9 @@ export function ExplorePage() {
 
         if (next.sort && next.sort !== "newest") params.set("sort", next.sort);
         else params.delete("sort");
+
+        if (next.limit && next.limit !== DEFAULT_PAGE_SIZE) params.set("limit", String(next.limit));
+        else params.delete("limit");
 
         if (next.search) params.set("search", next.search);
         else params.delete("search");
@@ -124,7 +131,7 @@ export function ExplorePage() {
         <Pagination
           page={filters.page ?? 1}
           total={data.pagination.total}
-          limit={PAGE_SIZE}
+          limit={pageSize}
           onChange={handlePageChange}
         />
       )}

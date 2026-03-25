@@ -108,6 +108,18 @@ export function FilterBar({ filters, onChange, total }: FilterBarProps) {
               <option key={o.value} value={o.value}>{o.label}</option>
             ))}
           </select>
+
+          <select
+            value={filters.limit ?? 24}
+            onChange={(e) => set({ limit: Number(e.target.value) })}
+            className="shrink-0 bg-cedar-surface border border-cedar-border px-3 py-2 text-xs font-sans text-cedar-muted
+                       focus:outline-none focus:border-cedar-muted cursor-pointer transition-colors duration-150"
+            aria-label="Results per page"
+          >
+            {[24, 48, 100, 200].map((n) => (
+              <option key={n} value={n}>{n} / page</option>
+            ))}
+          </select>
         </div>
 
         {/* Results count + clear — below search on mobile, right-aligned on sm+ */}

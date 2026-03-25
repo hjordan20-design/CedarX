@@ -51,7 +51,7 @@ export interface PaginatedResult<T> {
 export async function getAssets(filters: AssetFilters = {}): Promise<PaginatedResult<AssetRow>> {
     const db = getDb();
     const page = Math.max(1, filters.page ?? 1);
-    const limit = Math.min(100, Math.max(1, filters.limit ?? 20));
+    const limit = Math.min(200, Math.max(1, filters.limit ?? 20));
     const offset = (page - 1) * limit;
 
     let query = db.from("assets").select("*", { count: "exact" });
@@ -76,12 +76,15 @@ export async function getAssets(filters: AssetFilters = {}): Promise<PaginatedRe
     if (effectiveFilter === "listed") {
         // has_active_listing is the canonical source of truth: it's set true by
         // syncAssetSeaportListing whenever an active Seaport order exists, and
-        // false when the last order expires/fills.  We also require a non-null
-        // current_listing_price so every returned asset renders a dollar amount —
-        // no "—" cards and no "Listed" placeholders without prices.
-        query = query
-            .eq("has_active_listing", true)
-            .not("current_listing_price", "is", null);
+        // false when the last order expires/fills.
+        query = query.eq("has_active_listing", true);
+        // In browse mode (no search), also require a non-null price so every
+        // card renders a dollar amount.  When the user is searching by name we
+        // relax this: the asset should be findable even if its price hasn't been
+        // synced yet.
+        if (!filters.search) {
+            query = query.not("current_listing_price", "is", null);
+        }
     } else if (effectiveFilter === "unlisted") {
         query = query.eq("has_active_listing", false);
     }
@@ -89,9 +92,8 @@ export async function getAssets(filters: AssetFilters = {}): Promise<PaginatedRe
     if (filters.minPrice != null) query = query.gte("current_listing_price", filters.minPrice);
     if (filters.maxPrice != null) query = query.lte("current_listing_price", filters.maxPrice);
     if (filters.search) {
-        // Search name and protocol fields
         const s = filters.search.replace(/'/g, "''");
-        query = (query as any).or(`name.ilike.%${s}%,protocol.ilike.%${s}%`);
+        query = query.or(`name.ilike.%${s}%,protocol.ilike.%${s}%`);
     }
 
     // Sorting

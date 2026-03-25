@@ -19,7 +19,7 @@ const DURATION_OPTIONS = [
   { label: "1 day",   seconds: 1  * 24 * 3600 },
   { label: "3 days",  seconds: 3  * 24 * 3600 },
   { label: "7 days",  seconds: 7  * 24 * 3600 },
-  { label: "30 days", seconds: 30 * 24 * 3600 },
+  { label: "14 days", seconds: 14 * 24 * 3600 },
 ] as const;
 
 interface OfferModalProps {

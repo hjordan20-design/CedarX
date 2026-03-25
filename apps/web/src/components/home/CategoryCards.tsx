@@ -18,6 +18,12 @@ const CATEGORIES: CategoryConfig[] = [
     protocols: "Fabrica",
   },
   {
+    category: "collectibles",
+    label: "Collectibles",
+    description: "Authenticated physical collectibles — sports memorabilia, rare coins, trading cards.",
+    protocols: "Courtyard",
+  },
+  {
     category: "luxury-goods",
     label: "Luxury Goods",
     description: "Authenticated watches, jewelry, and handbags. Each token backed by a physically verified item.",
@@ -28,12 +34,6 @@ const CATEGORIES: CategoryConfig[] = [
     label: "Art",
     description: "Tokenized physical artwork from galleries and private collections. Provenance onchain.",
     protocols: "Coming soon",
-  },
-  {
-    category: "collectibles",
-    label: "Collectibles",
-    description: "Authenticated physical collectibles — sports memorabilia, rare coins, trading cards.",
-    protocols: "Courtyard",
   },
 ];
 

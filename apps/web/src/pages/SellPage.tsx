@@ -44,10 +44,13 @@ const POLYGON_OPTIONS = [
   { label: "USDC", address: USDC_POLYGON, symbol: "USDC", decimals: 6 },
 ] as const;
 
+// OpenSea's orderbook rejects orders with endTime > ~6 months in the future.
+// "Until cancelled" maps to 180 days — the maximum accepted duration.
 const DURATION_OPTIONS = [
-  { label: "7 days",  seconds: 7  * 24 * 3600 },
-  { label: "30 days", seconds: 30 * 24 * 3600 },
-  { label: "90 days", seconds: 90 * 24 * 3600 },
+  { label: "Until cancelled", seconds: 180 * 24 * 3600 },
+  { label: "7 days",          seconds: 7   * 24 * 3600 },
+  { label: "30 days",         seconds: 30  * 24 * 3600 },
+  { label: "90 days",         seconds: 90  * 24 * 3600 },
 ];
 
 const FEE_WALLET = (import.meta.env.VITE_CEDARX_FEE_WALLET || "") as `0x${string}`;
@@ -124,7 +127,7 @@ function ListingForm({
   const navigate = useNavigate();
   const [priceInput, setPriceInput]   = useState("");
   const [tokenIdx, setTokenIdx]       = useState(0);
-  const [durationIdx, setDurationIdx] = useState(1); // 30 days default
+  const [durationIdx, setDurationIdx] = useState(0); // "Until cancelled" default
 
   const paymentOptions = nft.chain === "polygon" ? POLYGON_OPTIONS : ETH_OPTIONS;
   const selectedToken  = paymentOptions[tokenIdx];
