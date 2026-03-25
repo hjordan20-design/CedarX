@@ -162,7 +162,7 @@ function ListingForm({
       <div className="text-center space-y-5 py-12">
         <CheckCircle size={48} className="text-cedar-green mx-auto" />
         <h2 className="display text-2xl text-cedar-text">Listed successfully</h2>
-        <p className="text-cedar-muted text-sm max-w-sm mx-auto">
+        <p className="text-cedar-muted text-sm max-w-sm mx-auto px-4">
           Your asset is now live on CedarX and on OpenSea. Buyers can purchase it instantly.
         </p>
         <div className="flex items-center gap-3 justify-center pt-2">

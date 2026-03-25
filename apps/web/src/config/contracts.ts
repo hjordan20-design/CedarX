@@ -119,6 +119,14 @@ export const SEAPORT_ABI = [
     inputs: [{ name: "offerer", type: "address" }],
     outputs: [{ name: "counter", type: "uint256" }],
   },
+  // incrementCounter — invalidates all current orders for the caller (cancel all listings)
+  {
+    type: "function",
+    name: "incrementCounter",
+    stateMutability: "nonpayable",
+    inputs: [],
+    outputs: [{ name: "newCounter", type: "uint256" }],
+  },
 ] as const;
 
 // EIP-712 types for signing a Seaport order off-chain

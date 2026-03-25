@@ -10,7 +10,7 @@ import {
   AlertCircle,
   Loader2,
 } from "lucide-react";
-import { useAccount, useReadContract } from "wagmi";
+import { useAccount, useReadContract, useWriteContract, usePublicClient } from "wagmi";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 
 import { useAsset } from "@/hooks/useAsset";
@@ -25,6 +25,7 @@ import { OfferModal } from "@/components/asset/OfferModal";
 import { formatTokenPrice, formatUSDC, formatDate, truncateAddress, formatAcreage, stripMarkdown } from "@/lib/formatters";
 import type { Asset } from "@/lib/types";
 import { VERIFIED_CONTRACTS } from "@/lib/types";
+import { SEAPORT_ADDRESS, SEAPORT_ABI } from "@/config/contracts";
 
 // ─── IPFS image gateway fallback ─────────────────────────────────────────────
 // Try each gateway in order when an image fails to load.
@@ -259,11 +260,15 @@ const ERC1155_BALANCE_ABI = [
 ] as const;
 
 function AssetActions({ asset }: { asset: Asset }) {
-  const [showBuy,   setShowBuy]   = useState(false);
-  const [showList,  setShowList]  = useState(false);
-  const [showOffer, setShowOffer] = useState(false);
+  const [showBuy,      setShowBuy]      = useState(false);
+  const [showList,     setShowList]     = useState(false);
+  const [showOffer,    setShowOffer]    = useState(false);
+  const [cancelling,   setCancelling]   = useState(false);
+  const [cancelError,  setCancelError]  = useState<string | null>(null);
   const { address, isConnected } = useAccount();
   const { openConnectModal }     = useConnectModal();
+  const { writeContractAsync }   = useWriteContract();
+  const publicClient             = usePublicClient();
 
   // Seaport order (takes priority over CedarX swap listing for the buy flow)
   const { data: seaportOrder } = useSeaportOrder(asset.id);
@@ -330,6 +335,31 @@ function AssetActions({ asset }: { asset: Asset }) {
     ? formatTokenPrice(asset.currentListingPrice, asset.currentListingPaymentTokenSymbol ?? "USDC")
     : null;
 
+  async function cancelListing() {
+    if (!address || !publicClient) return;
+    setCancelling(true);
+    setCancelError(null);
+    try {
+      const hash = await writeContractAsync({
+        address: SEAPORT_ADDRESS,
+        abi: SEAPORT_ABI,
+        functionName: "incrementCounter",
+        args: [],
+      });
+      await publicClient.waitForTransactionReceipt({ hash });
+    } catch (err) {
+      setCancelError(
+        err instanceof Error
+          ? (err.message.toLowerCase().includes("user rejected") || err.message.toLowerCase().includes("user denied")
+              ? "Transaction cancelled."
+              : err.message.slice(0, 100))
+          : "Cancel failed."
+      );
+    } finally {
+      setCancelling(false);
+    }
+  }
+
   return (
     <>
       {/* Price block */}
@@ -383,7 +413,28 @@ function AssetActions({ asset }: { asset: Asset }) {
           </button>
         )}
 
-        {isConnected && ownsAsset && (
+        {isConnected && ownsAsset && hasListing && (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between py-3 px-4 border border-cedar-border">
+              <span className="text-cedar-muted text-sm">Your listing</span>
+              <span className="font-mono text-cedar-text font-medium">{displayPrice}</span>
+            </div>
+            <button
+              onClick={() => void cancelListing()}
+              disabled={cancelling}
+              className="btn-ghost w-full justify-center py-2.5 text-sm text-cedar-red/80 hover:text-cedar-red border-cedar-red/30 hover:border-cedar-red/60 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              {cancelling ? <><Loader2 size={13} className="animate-spin" /> Cancelling…</> : "Cancel listing"}
+            </button>
+            {cancelError && (
+              <p className="flex items-center gap-1.5 text-cedar-red text-xs">
+                <AlertCircle size={11} /> {cancelError}
+              </p>
+            )}
+          </div>
+        )}
+
+        {isConnected && ownsAsset && !hasListing && (
           <button
             onClick={() => setShowList(true)}
             className="btn-primary w-full justify-center py-3.5 text-sm font-semibold"
