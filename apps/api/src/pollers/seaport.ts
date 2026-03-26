@@ -435,8 +435,11 @@ export class SeaportPoller {
                 `${totalExpired} expired this tick, ${syncCount} asset(s) synced`
             );
 
-            // Backfill any active orders whose signature is still null.
-            await this.backfillMissingSignatures();
+            // Signature backfill intentionally disabled: we call OpenSea's
+            // fulfillment_data API at purchase time instead, so stored signatures
+            // are not required.  The backfill made 1,000+ individual API calls per
+            // tick without ever returning usable signatures.
+            // await this.backfillMissingSignatures();
         } catch (err) {
             this.logError("tick failed", err);
         }
