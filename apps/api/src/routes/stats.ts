@@ -1,6 +1,7 @@
 import { Router, type Request, type Response } from "express";
 import { getStats, getProtocols, getCategoryCounts } from "../db/queries";
 import { cache } from "../lib/cache";
+import { CROSSTAB_CACHE_KEY, type CrossTabCounts } from "../lib/countCache";
 
 export const statsRouter = Router();
 
@@ -39,6 +40,20 @@ statsRouter.get("/protocols", async (_req: Request, res: Response) => {
     res.setHeader("Cache-Control", "public, max-age=300");
     res.setHeader("X-Cache", "MISS");
     return res.json(body);
+});
+
+// ─── GET /api/stats/counts-crosstab ──────────────────────────────────────────
+// Returns the pre-computed CrossTabCounts[categoryKey][statusKey] matrix.
+// Populated by the SeaportPoller tick; 503 until the first tick completes.
+
+statsRouter.get("/counts-crosstab", (_req: Request, res: Response) => {
+    const crosstab = cache.get<CrossTabCounts>(CROSSTAB_CACHE_KEY);
+    if (!crosstab) {
+        return res.status(503).json({ error: "Cross-tab counts not yet computed — try again shortly" });
+    }
+    res.setHeader("Cache-Control", "public, max-age=300");
+    res.setHeader("X-Cache", "HIT");
+    return res.json(crosstab);
 });
 
 // ─── GET /api/stats/category-counts ──────────────────────────────────────────

@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getAsset, getAssets, getAssetHistory, getSeaportPriceMap, getTrendingAssets, type AssetFilters } from "../db/queries";
 import { cache } from "../lib/cache";
 import { formatAsset, type SeaportPriceMap } from "../lib/formatAsset";
+import { lookupCrossTab, type StatusKey } from "../lib/countCache";
 
 export const assetsRouter = Router();
 
@@ -28,6 +29,8 @@ const ListQuerySchema = z.object({
     has_active_listing: z.coerce.boolean().optional(),
     page:             z.coerce.number().int().positive().default(1),
     limit:            z.coerce.number().int().positive().max(200).default(20),
+    // Cursor for O(1) deep pagination (sort=newest only); value is a created_at timestamp
+    cursor:           z.string().optional(),
 });
 
 assetsRouter.get("/", async (req: Request, res: Response) => {
@@ -70,13 +73,29 @@ assetsRouter.get("/", async (req: Request, res: Response) => {
         .map(r => r.id);
     const seaportPrices = await getSeaportPriceMap(needsPrice);
 
+    // When the query skipped COUNT (total=null), try to serve the count from the
+    // pre-computed cross-tab cache instead of leaving it null.  Only substitute
+    // when there's no free-text search (cross-tab counts are category-wide totals).
+    let effectiveTotal = result.total;
+    let effectiveHasMore = result.hasMore;
+    if (result.total === null && !filters.search) {
+        const catKey = (filters.category ?? "") as string;
+        const statusKey = listingFilter as StatusKey;
+        const precomputed = lookupCrossTab(catKey, statusKey);
+        if (precomputed !== undefined) {
+            effectiveTotal = precomputed;
+            effectiveHasMore = (result.page * result.limit) < precomputed;
+        }
+    }
+
     const body = {
         data: result.data.map(row => formatAsset(row, seaportPrices)),
         pagination: {
-            total: result.total,
+            total: effectiveTotal,
             page: result.page,
             limit: result.limit,
-            hasMore: result.hasMore,
+            hasMore: effectiveHasMore,
+            ...(result.nextCursor ? { nextCursor: result.nextCursor } : {}),
         },
     };
     cache.set(cacheKey, body, ASSETS_LIST_TTL);

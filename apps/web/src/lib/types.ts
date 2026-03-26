@@ -106,6 +106,8 @@ export interface Paginated<T> {
     page: number;
     limit: number;
     hasMore: boolean;
+    /** Cursor for the next page (created_at of last item). Only present for sort=newest. */
+    nextCursor?: string;
   };
 }
 
@@ -125,6 +127,11 @@ export interface AssetFilters {
   listingFilter?: "listed" | "unlisted" | "all";
   page?: number;
   limit?: number;
+  /**
+   * Cursor for O(1) deep pagination when sort=newest.
+   * Pass the `nextCursor` from the previous page's response.
+   */
+  cursor?: string;
 }
 
 // ─── Seaport ─────────────────────────────────────────────────────────────────

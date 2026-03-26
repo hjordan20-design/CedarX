@@ -29,6 +29,12 @@ export interface AssetFilters {
     listingFilter?: "listed" | "unlisted" | "all";
     /** @deprecated Use listingFilter="listed" instead. Kept for backward compat. */
     listedOnly?: boolean;
+    /**
+     * Cursor for O(1) deep pagination when sort=newest.
+     * Pass the `nextCursor` from the previous page's response.
+     * When provided, `page` is used only for display — the cursor drives the query.
+     */
+    cursor?: string;
 }
 
 export interface ListingFilters {
@@ -49,6 +55,12 @@ export interface PaginatedResult<T> {
     page: number;
     limit: number;
     hasMore: boolean;
+    /**
+     * Cursor for the next page — the `created_at` of the last item in this
+     * result set. Only present when sort=newest and a full page was returned.
+     * Pass as `cursor` on the next request to avoid OFFSET scanning.
+     */
+    nextCursor?: string;
 }
 
 // ─── Assets: reads ────────────────────────────────────────────────────────────
@@ -134,13 +146,28 @@ export async function getAssets(filters: AssetFilters = {}): Promise<PaginatedRe
             break;
     }
 
-    query = query.range(offset, offset + limit - 1);
+    // Cursor-based pagination: when sort=newest and a cursor is provided, use
+    // WHERE created_at < cursor instead of OFFSET so deep pages are O(1).
+    const useCursor = (filters.sort === "newest" || !filters.sort) && filters.cursor != null;
+    if (useCursor) {
+        query = query.lt("created_at", filters.cursor!);
+        query = query.range(0, limit - 1);
+    } else {
+        query = query.range(offset, offset + limit - 1);
+    }
 
     const { data, error, count } = await query;
     if (error) throw error;
 
     const rows = data ?? [];
     const total: number | null = doCount ? (count ?? 0) : null;
+
+    // Provide nextCursor for future O(1) pagination on the newest sort.
+    const nextCursor =
+        rows.length === limit && (filters.sort === "newest" || !filters.sort)
+            ? (rows[rows.length - 1] as unknown as { created_at: string }).created_at
+            : undefined;
+
     return {
         data: rows,
         total,
@@ -148,6 +175,7 @@ export async function getAssets(filters: AssetFilters = {}): Promise<PaginatedRe
         limit,
         // When total is null, infer hasMore from whether we got a full page.
         hasMore: total !== null ? offset + limit < total : rows.length >= limit,
+        nextCursor,
     };
 }
 

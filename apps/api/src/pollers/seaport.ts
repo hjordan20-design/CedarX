@@ -35,6 +35,8 @@ import {
     ARIANEE_CONTRACT,
 } from "../config";
 import { cache } from "../lib/cache";
+import { refreshCrossTabCounts } from "../lib/countCache";
+import { warmCommonQueries } from "../lib/cacheWarm";
 import {
     getAsset,
     upsertAsset,
@@ -445,6 +447,24 @@ export class SeaportPoller {
             // Bust server-side response cache so next request reflects fresh listings.
             const evicted = cache.deleteByPrefix("assets:") + cache.deleteByPrefix("stats:") + cache.deleteByPrefix("homepage:");
             if (evicted > 0) this.log(`cache invalidated — ${evicted} entr${evicted === 1 ? "y" : "ies"} cleared`);
+
+            // Refresh pre-computed count matrix (18 parallel HEAD queries).
+            // Runs after cache invalidation so the next request finds fresh counts.
+            try {
+                await refreshCrossTabCounts();
+                this.log("cross-tab counts refreshed");
+            } catch (err) {
+                this.logError("cross-tab count refresh failed", err);
+            }
+
+            // Pre-warm the most common Explore page combos so cold-cache
+            // requests are served from memory on the next tick.
+            try {
+                await warmCommonQueries();
+                this.log("common query cache warmed");
+            } catch (err) {
+                this.logError("cache warming failed", err);
+            }
         } catch (err) {
             this.logError("tick failed", err);
         }

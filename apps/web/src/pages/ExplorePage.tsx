@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useAssets } from "@/hooks/useAssets";
 import { FilterBar } from "@/components/explore/FilterBar";
@@ -44,6 +44,11 @@ function categoryFromParam(param: string | null): Category | undefined {
 export function ExplorePage() {
   const [searchParams, setSearchParams] = useSearchParams();
 
+  // In-memory cursor map: page number → cursor for that page's starting point.
+  // Keyed by `${filterSignature}:${page}` so it auto-invalidates when filters change.
+  // Not persisted in the URL — cursor navigation is a perf optimisation, not state.
+  const cursorMapRef = useRef<Map<string, string>>(new Map());
+
   // URL is the single source of truth for all filter state.
   // Deriving filters here means back/forward navigation automatically restores them.
   // listingFilter defaults to "listed"; only stored in URL when changed.
@@ -58,18 +63,41 @@ export function ExplorePage() {
   const rawLimit = Number(searchParams.get("limit"));
   const pageSize = VALID_PAGE_SIZES.has(rawLimit) ? rawLimit : DEFAULT_PAGE_SIZE;
 
+  const sort = (searchParams.get("sort") as AssetFilters["sort"]) ?? "newest";
+  const page = Number(searchParams.get("page")) || 1;
+  const category = categoryFromParam(searchParams.get("category"));
+  const search = searchParams.get("search") ?? undefined;
+
+  // Build a stable signature for the current filter set (excluding page).
+  // Used to scope the cursor map so stale cursors don't leak across filter changes.
+  const filterSig = `${sort}|${listingFilter}|${category ?? ""}|${search ?? ""}|${pageSize}`;
+
+  // Look up the cursor for the current page (populated after user navigates forward).
+  const cursor = cursorMapRef.current.get(`${filterSig}:${page}`);
+
   const filters: AssetFilters = {
-    sort: (searchParams.get("sort") as AssetFilters["sort"]) ?? "newest",
-    page: Number(searchParams.get("page")) || 1,
+    sort,
+    page,
     limit: pageSize,
     listingFilter,
-    category: categoryFromParam(searchParams.get("category")),
-    search: searchParams.get("search") ?? undefined,
+    category,
+    search,
+    ...(cursor ? { cursor } : {}),
   };
 
   const { data, isLoading, isError, error, isFetching } = useAssets(filters);
 
+  // After each successful fetch, store the nextCursor for the following page.
+  // This is a ref write — no re-render needed.
+  if (data?.pagination.nextCursor) {
+    cursorMapRef.current.set(`${filterSig}:${page + 1}`, data.pagination.nextCursor);
+  }
+
   const handleFilterChange = useCallback((next: AssetFilters) => {
+    // Clear cursor map whenever filters change — cursors belong to a specific
+    // filter combination and must not carry over.
+    cursorMapRef.current.clear();
+
     const prevCategory = categoryFromParam(searchParams.get("category"));
     // Only push a new history entry when the category changes — that's what
     // the back button should undo. Sort/search/page changes replace in-place.
