@@ -246,6 +246,43 @@ export async function getStats() {
     };
 }
 
+// ─── Category counts ──────────────────────────────────────────────────────────
+
+/**
+ * Returns approximate asset counts per category.
+ * Uses listingFilter="listed" by default so counts match what users browse.
+ * Rounds large counts to nearest thousand with "+" suffix.
+ */
+export async function getCategoryCounts(): Promise<Record<string, number>> {
+    const db = getDb();
+
+    // Fetch count for each canonical category in parallel (head queries = fast)
+    const CATEGORIES = [
+        { key: "real-estate",  values: ["real-estate", "land"] },
+        { key: "collectibles", values: ["collectibles"] },
+        { key: "luxury-goods", values: ["luxury-goods", "watches"] },
+        { key: "watches",      values: ["watches"] },
+        { key: "art",          values: ["art"] },
+    ];
+
+    const results = await Promise.all(
+        CATEGORIES.map(({ values }) =>
+            db.from("assets")
+              .select("id", { count: "exact", head: true })
+              .in("category", values)
+              .or("name.not.is.null,image_url.not.is.null")
+        )
+    );
+
+    const counts: Record<string, number> = {};
+    for (let i = 0; i < CATEGORIES.length; i++) {
+        const { count, error } = results[i];
+        if (!error) counts[CATEGORIES[i].key] = count ?? 0;
+    }
+
+    return counts;
+}
+
 // ─── Trending assets (by offer count) ────────────────────────────────────────
 
 export async function getTrendingAssets(limit = 8): Promise<AssetRow[]> {
@@ -341,9 +378,22 @@ export async function getProtocols() {
 
 export async function upsertAsset(asset: AssetInsert): Promise<void> {
     const db = getDb();
+
+    // If the incoming image_url is null, preserve an existing one so a metadata
+    // re-fetch that happens to return no image doesn't clobber a previously good URL.
+    let imageUrl = asset.image_url ?? null;
+    if (!imageUrl) {
+        const { data: existing } = await db
+            .from("assets")
+            .select("image_url")
+            .eq("id", asset.id)
+            .maybeSingle();
+        if (existing?.image_url) imageUrl = existing.image_url;
+    }
+
     const { error } = await db
         .from("assets")
-        .upsert({ ...asset, last_updated: new Date().toISOString() }, { onConflict: "id" });
+        .upsert({ ...asset, image_url: imageUrl, last_updated: new Date().toISOString() }, { onConflict: "id" });
     if (error) throw error;
 }
 

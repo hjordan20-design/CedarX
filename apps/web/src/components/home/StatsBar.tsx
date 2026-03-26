@@ -1,11 +1,32 @@
 import { useQuery } from "@tanstack/react-query";
 import { fetchStats } from "@/lib/api";
+import type { MarketStats } from "@/lib/types";
+
+const CACHE_KEY = "cedar-stats-cache";
+
+function readCachedStats(): MarketStats | undefined {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    return raw ? (JSON.parse(raw) as MarketStats) : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function writeCachedStats(data: MarketStats) {
+  try { localStorage.setItem(CACHE_KEY, JSON.stringify(data)); } catch { /* blocked */ }
+}
 
 export function StatsBar() {
   const { data: stats } = useQuery({
     queryKey: ["stats"],
-    queryFn: fetchStats,
+    queryFn: async () => {
+      const result = await fetchStats();
+      writeCachedStats(result);
+      return result;
+    },
     staleTime: 120_000,
+    placeholderData: readCachedStats,
   });
 
   const volume = stats ? Number(stats.totalVolume) : 0;

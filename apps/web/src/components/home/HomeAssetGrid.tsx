@@ -1,19 +1,44 @@
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
-import { useAssets } from "@/hooks/useAssets";
+import { useQuery } from "@tanstack/react-query";
+import { fetchAssets } from "@/lib/api";
 import { AssetCard } from "@/components/explore/AssetCard";
 import { CardSkeleton } from "@/components/common/LoadingStates";
-import type { AssetFilters } from "@/lib/types";
+import type { Asset, AssetFilters, Paginated } from "@/lib/types";
 
 const MAX_ITEMS = 8;
 const SKELETON_COUNT = 4;
+const CACHE_KEY = "cedar-home-listings-cache";
+
+function readCachedListings(): Paginated<Asset> | undefined {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    return raw ? (JSON.parse(raw) as Paginated<Asset>) : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function writeCachedListings(data: Paginated<Asset>) {
+  try { localStorage.setItem(CACHE_KEY, JSON.stringify(data)); } catch { /* blocked */ }
+}
 
 interface HomeAssetGridProps {
   filters: AssetFilters;
 }
 
 export function HomeAssetGrid({ filters }: HomeAssetGridProps) {
-  const { data, isLoading, isError } = useAssets({ ...filters, limit: MAX_ITEMS });
+  const queryFilters = { ...filters, limit: MAX_ITEMS };
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ["assets", queryFilters],
+    queryFn: async () => {
+      const result = await fetchAssets(queryFilters);
+      writeCachedListings(result);
+      return result;
+    },
+    staleTime: 30_000,
+    placeholderData: readCachedListings,
+  });
 
   const assets = data?.data;
   const isEmpty = !isLoading && (!assets || assets.length === 0);
@@ -30,13 +55,13 @@ export function HomeAssetGrid({ filters }: HomeAssetGridProps) {
               fontWeight: 300,
               fontSize: "26px",
               letterSpacing: "-0.01em",
-              color: "#1C1710",
+              color: "var(--cedar-text)",
             }}
           >
             {isLoading ? "Loading" : "Latest listings"}
           </h2>
           {!isLoading && data?.pagination.total != null && (
-            <span style={{ fontFamily: "JetBrains Mono, monospace", fontSize: "12px", color: "rgba(28,23,16,0.35)" }}>
+            <span style={{ fontFamily: "JetBrains Mono, monospace", fontSize: "12px", color: "var(--cedar-muted)" }}>
               {data.pagination.total.toLocaleString("en-US")} total
             </span>
           )}

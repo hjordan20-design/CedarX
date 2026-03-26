@@ -11,7 +11,8 @@ import { formatTokenPrice, formatUSDC, formatAcreage } from "@/lib/formatters";
 // When an IPFS image fails to load, retry with the next public gateway.
 const IPFS_GATEWAYS = [
   "https://ipfs.io/ipfs/",
-  "https://cloudflare-ipfs.com/ipfs/",
+  "https://dweb.link/ipfs/",
+  "https://gateway.pinata.cloud/ipfs/",
   "https://nftstorage.link/ipfs/",
 ];
 
@@ -140,7 +141,7 @@ export function AssetCard({ asset }: { asset: Asset }) {
       to={`/assets/${encodeURIComponent(asset.id)}`}
       className="group card flex flex-col overflow-hidden hover:border-cedar-muted transition-colors duration-200"
     >
-      <div className="relative aspect-video overflow-hidden bg-cedar-surface-alt max-h-[220px]">
+      <div className="relative aspect-video overflow-hidden bg-cedar-surface-alt max-h-[180px]">
         {asset.imageUrl ? (
           <AssetCardImage
             imageUrl={asset.imageUrl}

@@ -227,6 +227,10 @@ export function fetchStats(): Promise<MarketStats> {
   return get("/api/stats");
 }
 
+export function fetchCategoryCounts(): Promise<Record<string, number>> {
+  return get("/api/stats/category-counts");
+}
+
 export function fetchProtocols(): Promise<{ data: ProtocolInfo[] }> {
   return get("/api/stats/protocols");
 }

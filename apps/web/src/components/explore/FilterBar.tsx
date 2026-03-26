@@ -1,5 +1,21 @@
 import { Search, X } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { fetchCategoryCounts } from "@/lib/api";
 import type { AssetFilters, Category } from "@/lib/types";
+
+const COUNTS_CACHE_KEY = "cedar-category-counts-cache";
+
+function readCachedCounts(): Record<string, number> | undefined {
+  try {
+    const raw = localStorage.getItem(COUNTS_CACHE_KEY);
+    return raw ? (JSON.parse(raw) as Record<string, number>) : undefined;
+  } catch { return undefined; }
+}
+
+function formatCount(n: number): string {
+  if (n >= 1000) return `${Math.round(n / 1000)}k+`;
+  return n.toLocaleString("en-US");
+}
 
 const CATEGORIES: { value: Category | ""; label: string }[] = [
   { value: "",             label: "All" },
@@ -37,15 +53,18 @@ function PillGroup<T extends string>({
   options,
   value,
   onSelect,
+  counts,
 }: {
   options: { value: T; label: string }[];
   value: T | undefined;
   onSelect: (v: T) => void;
+  counts?: Record<string, number>;
 }) {
   return (
     <div className="flex flex-wrap gap-1.5">
       {options.map((opt) => {
         const active = (value ?? "") === opt.value;
+        const count = opt.value && counts ? counts[opt.value] : undefined;
         return (
           <button
             key={opt.value}
@@ -57,6 +76,11 @@ function PillGroup<T extends string>({
             }`}
           >
             {opt.label}
+            {count != null && count > 0 && (
+              <span className={`ml-1.5 text-[10px] ${active ? "opacity-80" : "opacity-50"}`}>
+                {formatCount(count)}
+              </span>
+            )}
           </button>
         );
       })}
@@ -66,6 +90,17 @@ function PillGroup<T extends string>({
 
 export function FilterBar({ filters, onChange, total }: FilterBarProps) {
   const effectiveListingFilter = filters.listingFilter ?? "listed";
+
+  const { data: categoryCounts } = useQuery({
+    queryKey: ["category-counts"],
+    queryFn: async () => {
+      const result = await fetchCategoryCounts();
+      try { localStorage.setItem(COUNTS_CACHE_KEY, JSON.stringify(result)); } catch { /* blocked */ }
+      return result;
+    },
+    staleTime: 300_000, // counts are slow-moving; cache 5 min
+    placeholderData: readCachedCounts,
+  });
 
   // An active filter is anything that differs from the default view
   // (newest sort, no category/search, listed-only mode).
@@ -86,7 +121,7 @@ export function FilterBar({ filters, onChange, total }: FilterBarProps) {
       <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
         {/* Search + sort (always stay together) */}
         <div className="flex items-center gap-2 grow">
-          <div className="relative flex-1">
+          <div className="relative w-full max-w-[420px]">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cedar-muted pointer-events-none" />
             <input
               type="text"
@@ -147,6 +182,7 @@ export function FilterBar({ filters, onChange, total }: FilterBarProps) {
           options={CATEGORIES}
           value={(filters.category ?? "") as Category | ""}
           onSelect={(v) => set({ category: v || undefined })}
+          counts={categoryCounts}
         />
       </div>
 

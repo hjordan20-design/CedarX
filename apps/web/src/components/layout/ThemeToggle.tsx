@@ -42,17 +42,17 @@ export function ThemeToggle() {
         background: "transparent",
         border: "1px solid rgba(196,133,42,0.20)",
         cursor: "pointer",
-        color: "rgba(28,23,16,0.50)",
+        color: "var(--cedar-muted)",
         transition: "all 0.3s cubic-bezier(.16,1,.3,1)",
         flexShrink: 0,
       }}
       onMouseEnter={(e) => {
         (e.currentTarget as HTMLElement).style.borderColor = "rgba(196,133,42,0.40)";
-        (e.currentTarget as HTMLElement).style.color = "rgba(28,23,16,0.80)";
+        (e.currentTarget as HTMLElement).style.color = "var(--cedar-text)";
       }}
       onMouseLeave={(e) => {
         (e.currentTarget as HTMLElement).style.borderColor = "rgba(196,133,42,0.20)";
-        (e.currentTarget as HTMLElement).style.color = "rgba(28,23,16,0.50)";
+        (e.currentTarget as HTMLElement).style.color = "var(--cedar-muted)";
       }}
     >
       {theme === "light" ? <Moon size={14} /> : <Sun size={14} />}

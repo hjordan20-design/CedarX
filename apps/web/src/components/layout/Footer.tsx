@@ -32,7 +32,7 @@ export function Footer() {
               The real-world asset marketplace. Peer-to-peer trading of tokenized real estate, luxury goods, and collectibles.
             </p>
 
-            <p style={{ fontFamily: "Cormorant Garamond, Georgia, serif", fontStyle: "italic", fontWeight: 400, fontSize: "15px", color: "#C4852A" }}>
+            <p style={{ fontFamily: "Cormorant Garamond, Georgia, serif", fontStyle: "italic", fontWeight: 400, fontSize: "20px", color: "#C4852A" }}>
               Real assets. Onchain.
             </p>
 
@@ -95,6 +95,7 @@ export function Footer() {
                 { href: "https://fabrica.land",       label: "Fabrica" },
                 { href: "https://courtyard.io",       label: "Courtyard" },
                 { href: "https://opensea.io/collection/4kprotocol", label: "4K Protocol" },
+                { href: "https://arianee.org",        label: "Arianee" },
               ].map(({ href, label }) => (
                 <a
                   key={href}

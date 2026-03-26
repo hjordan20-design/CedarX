@@ -246,8 +246,11 @@ export function normalizeOpenSeaNFT(nft: OpenSeaNFT, config: ContractConfig): As
     const attr = (key: string): string | number | undefined =>
         nft.traits.find((t) => t.trait_type.toLowerCase() === key.toLowerCase())?.value;
 
-    // Resolve IPFS image URIs to public HTTP URLs
-    const rawImage = nft.display_image_url ?? nft.image_url ?? null;
+    // Resolve IPFS image URIs to public HTTP URLs.
+    // Prefer image_url (original IPFS URI, more durable) over display_image_url
+    // (OpenSea CDN, may expire). For Fabrica specifically, display_image_url is
+    // often a CDN-cached copy that becomes stale; the raw IPFS URI never does.
+    const rawImage = nft.image_url ?? nft.display_image_url ?? null;
     const imageUrl = rawImage ? resolveImageUrl(rawImage) : null;
 
     let category: AssetInsert["category"];

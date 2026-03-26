@@ -12,7 +12,7 @@
  * CedarX earns a 1.5% fee, encoded into the Seaport order's consideration items.
  */
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   AlertCircle,
@@ -199,6 +199,10 @@ function ListingForm({
       feeWallet:            FEE_WALLET,
     });
   }
+
+  useEffect(() => {
+    if (step === "success") window.scrollTo(0, 0);
+  }, [step]);
 
   if (step === "success") {
     return (
