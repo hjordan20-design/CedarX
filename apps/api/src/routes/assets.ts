@@ -2,6 +2,7 @@ import { Router, type Request, type Response } from "express";
 import { z } from "zod";
 import { getAsset, getAssets, getAssetHistory, getSeaportPriceMap, getTrendingAssets, type AssetFilters } from "../db/queries";
 import { cache } from "../lib/cache";
+import { formatAsset, type SeaportPriceMap } from "../lib/formatAsset";
 
 export const assetsRouter = Router();
 
@@ -127,50 +128,4 @@ assetsRouter.get("/:id/history", async (req: Request, res: Response) => {
     return res.json({ data: history });
 });
 
-// ─── Formatter ────────────────────────────────────────────────────────────────
-
-// Maps DB column_names → camelCase for the API response,
-// matching the CedarXAsset interface the spec defines.
-type SeaportPriceMap = Map<string, { price: string; symbol: string; decimals: number }>;
-
-function formatAsset(row: any, seaportPrices?: SeaportPriceMap) {
-    // Supabase can return PostgreSQL `numeric` columns as strings; always coerce
-    // to number explicitly so the field is never silently dropped or mistyped.
-    let currentListingPrice: number | undefined;
-    if (row.current_listing_price != null) {
-        const n = Number(row.current_listing_price);
-        if (!isNaN(n)) currentListingPrice = n;
-    }
-    let currentListingPaymentTokenSymbol: string | undefined =
-        row.current_listing_payment_token_symbol ?? undefined;
-
-    // Seaport-order fallback: covers assets whose sync job hasn't run yet.
-    if (currentListingPrice == null && seaportPrices) {
-        const sp = seaportPrices.get(row.id);
-        if (sp) {
-            currentListingPrice = Number(sp.price) / Math.pow(10, sp.decimals);
-            currentListingPaymentTokenSymbol = sp.symbol;
-        }
-    }
-
-    return {
-        id: row.id,
-        protocol: row.protocol,
-        contractAddress: row.contract_address,
-        tokenId: row.token_id ?? undefined,
-        tokenStandard: row.token_standard,
-        chain: row.chain,
-        name: row.name,
-        description: row.description ?? undefined,
-        category: row.category,
-        imageUrl: row.image_url ?? undefined,
-        details: row.details ?? {},
-        lastSalePrice: row.last_sale_price ?? undefined,
-        currentListingPrice,
-        currentListingPaymentTokenSymbol,
-        hasActiveListing: row.has_active_listing ?? false,
-        totalVolume: row.total_volume ?? 0,
-        externalUrl: row.external_url ?? undefined,
-        lastUpdated: row.last_updated,
-    };
-}
+// formatAsset is defined in ../lib/formatAsset (imported above)

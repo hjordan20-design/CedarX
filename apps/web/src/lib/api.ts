@@ -221,6 +221,18 @@ export async function cancelUserOffer(offerId: string): Promise<void> {
   if (!res.ok) throw new Error(`Cancel offer failed: ${res.status}`);
 }
 
+// ─── Homepage (combined) ──────────────────────────────────────────────────────
+
+export interface HomepageData {
+  stats:    MarketStats;
+  listings: Paginated<Asset>;
+  trending: Asset[];
+}
+
+export function fetchHomepage(): Promise<HomepageData> {
+  return get("/api/homepage");
+}
+
 // ─── Stats ───────────────────────────────────────────────────────────────────
 
 export function fetchStats(): Promise<MarketStats> {

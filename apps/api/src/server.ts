@@ -13,6 +13,7 @@ import { CORS_ORIGINS } from "./config";
 import { assetsRouter }    from "./routes/assets";
 import { listingsRouter }  from "./routes/listings";
 import { statsRouter }     from "./routes/stats";
+import { homepageRouter }  from "./routes/homepage";
 import { seaportRouter }   from "./routes/seaport";
 import { subscribeRouter } from "./routes/subscribe";
 import { openApiSpec }   from "./openapi";
@@ -40,6 +41,7 @@ export function createServer() {
     app.use("/api/assets",    assetsRouter);
     app.use("/api/listings",  listingsRouter);
     app.use("/api/stats",     statsRouter);
+    app.use("/api/homepage",  homepageRouter);
     app.use("/api/seaport",   seaportRouter);
     app.use("/api/subscribe", subscribeRouter);
     // Note: /api/protocols is mounted under statsRouter at /api/stats/protocols

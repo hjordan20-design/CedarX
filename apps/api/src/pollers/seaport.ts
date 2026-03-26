@@ -443,7 +443,7 @@ export class SeaportPoller {
             // await this.backfillMissingSignatures();
 
             // Bust server-side response cache so next request reflects fresh listings.
-            const evicted = cache.deleteByPrefix("assets:") + cache.deleteByPrefix("stats:");
+            const evicted = cache.deleteByPrefix("assets:") + cache.deleteByPrefix("stats:") + cache.deleteByPrefix("homepage:");
             if (evicted > 0) this.log(`cache invalidated — ${evicted} entr${evicted === 1 ? "y" : "ies"} cleared`);
         } catch (err) {
             this.logError("tick failed", err);

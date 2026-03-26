@@ -13,6 +13,12 @@
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://cedarx.io" />
 
+    <!-- Preconnect to API and image CDNs to reduce DNS + TLS latency -->
+    <link rel="preconnect" href="https://api.cedarx.io" />
+    <link rel="preconnect" href="https://i2c.seadn.io" />
+    <link rel="preconnect" href="https://openseauserdata.com" />
+    <link rel="dns-prefetch" href="https://ipfs.io" />
+
     <!-- Fonts — Cormorant Garamond (display), DM Sans (body), JetBrains Mono (mono) -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
