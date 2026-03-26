@@ -228,7 +228,14 @@ function SeaportBuyContent({ assetName, order, onClose }: SeaportBuyContentProps
         {step === "error" && error && (
           <div className="flex items-start gap-3 p-3 bg-cedar-red/10 border border-cedar-red/30 text-cedar-red text-sm">
             <AlertCircle size={14} className="shrink-0 mt-0.5" />
-            <p>{error}</p>
+            <div className="space-y-1">
+              <p>{error}</p>
+              {error.startsWith("Auto-swap unavailable") && (
+                <p className="text-cedar-red/70 text-xs mt-1">
+                  After swapping, click <strong>Retry</strong> — your balance will be re-checked automatically.
+                </p>
+              )}
+            </div>
           </div>
         )}
 
@@ -268,7 +275,8 @@ function SeaportBuyContent({ assetName, order, onClose }: SeaportBuyContentProps
           <>
             <button onClick={onClose} className="btn-ghost flex-1 justify-center text-sm py-2.5">Close</button>
             <button onClick={() => { reset(); void execute(); }} className="btn-primary flex-1 justify-center text-sm py-2.5">
-              Retry <ArrowRight size={13} />
+              {error?.startsWith("Auto-swap unavailable") ? "I've swapped — Retry" : "Retry"}
+              <ArrowRight size={13} />
             </button>
           </>
         )}
