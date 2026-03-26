@@ -40,7 +40,12 @@ export interface ListingFilters {
 
 export interface PaginatedResult<T> {
     data: T[];
-    total: number;
+    /**
+     * Total matching row count, or `null` when the query is expected to be
+     * large (listingFilter !== "listed") and counting is skipped for performance.
+     * The frontend shows "Many results" and falls back to prev/next pagination.
+     */
+    total: number | null;
     page: number;
     limit: number;
     hasMore: boolean;
@@ -54,7 +59,15 @@ export async function getAssets(filters: AssetFilters = {}): Promise<PaginatedRe
     const limit = Math.min(200, Math.max(1, filters.limit ?? 20));
     const offset = (page - 1) * limit;
 
-    let query = db.from("assets").select("*", { count: "exact" });
+    // Skip the COUNT(*) query for non-listed filters (could scan 260K–293K rows).
+    // "listed" is always fast (<5 K rows); everything else returns total: null.
+    const effectiveFilterForCount = filters.listingFilter
+        ?? (filters.listedOnly === false ? "all" : "listed");
+    const doCount = effectiveFilterForCount === "listed";
+
+    let query = doCount
+        ? db.from("assets").select("*", { count: "exact" })
+        : db.from("assets").select("*");
 
     // Exclude placeholder / no-metadata assets:
     //   1. Name matches "^#\d" — raw token-ID strings like "#425122922..."
@@ -126,13 +139,15 @@ export async function getAssets(filters: AssetFilters = {}): Promise<PaginatedRe
     const { data, error, count } = await query;
     if (error) throw error;
 
-    const total = count ?? 0;
+    const rows = data ?? [];
+    const total: number | null = doCount ? (count ?? 0) : null;
     return {
-        data: data ?? [],
+        data: rows,
         total,
         page,
         limit,
-        hasMore: offset + limit < total,
+        // When total is null, infer hasMore from whether we got a full page.
+        hasMore: total !== null ? offset + limit < total : rows.length >= limit,
     };
 }
 

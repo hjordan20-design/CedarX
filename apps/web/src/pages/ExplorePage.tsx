@@ -173,14 +173,15 @@ export function ExplorePage() {
         isError={isError}
         error={error as Error | null}
         isFetching={isFetching && !isLoading}
-        total={data?.pagination.total}
+        total={data?.pagination.total ?? undefined}
       />
 
-      {/* Pagination */}
-      {data && (
+      {/* Pagination — supports both exact-count and unknown-count modes */}
+      {data && (data.pagination.total !== null ? data.pagination.total > pageSize : data.pagination.hasMore || (filters.page ?? 1) > 1) && (
         <Pagination
           page={filters.page ?? 1}
           total={data.pagination.total}
+          hasMore={data.pagination.hasMore}
           limit={pageSize}
           onChange={handlePageChange}
         />

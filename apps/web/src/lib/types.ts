@@ -101,7 +101,8 @@ export interface ProtocolInfo {
 export interface Paginated<T> {
   data: T[];
   pagination: {
-    total: number;
+    /** null when the query is large (non-listed filter) and counting was skipped. */
+    total: number | null;
     page: number;
     limit: number;
     hasMore: boolean;

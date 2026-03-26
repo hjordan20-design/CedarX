@@ -46,7 +46,7 @@ const LISTING_FILTER_OPTIONS: {
 interface FilterBarProps {
   filters: AssetFilters;
   onChange: (next: AssetFilters) => void;
-  total?: number;
+  total?: number | null;
 }
 
 function PillGroup<T extends string>({
@@ -159,9 +159,14 @@ export function FilterBar({ filters, onChange, total }: FilterBarProps) {
 
         {/* Results count + clear — hidden on mobile, right-aligned on sm+ */}
         <div className="hidden sm:flex items-center gap-3 sm:ml-auto">
-          {total !== undefined && (
+          {total !== undefined && total !== null && (
             <span className="text-cedar-muted text-xs font-mono tabular-nums whitespace-nowrap">
               {total.toLocaleString("en-US")} results
+            </span>
+          )}
+          {total === null && (
+            <span className="text-cedar-muted text-xs font-mono whitespace-nowrap">
+              Many results
             </span>
           )}
           {hasActiveFilters && (
