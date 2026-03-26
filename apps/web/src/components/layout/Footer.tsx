@@ -13,7 +13,7 @@ export function Footer() {
       <div
         className="px-6 pt-16 pb-10 lg:pl-[80px] lg:pr-[52px] lg:pt-[80px] lg:pb-[60px]"
       >
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
           {/* Brand */}
           <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
@@ -28,36 +28,13 @@ export function Footer() {
               </span>
             </div>
 
-            <p style={{ fontSize: "15px", fontWeight: 300, lineHeight: 1.7, color: "var(--cedar-muted)", maxWidth: "240px" }}>
+            <p style={{ fontSize: "15px", fontWeight: 300, lineHeight: 1.7, color: "var(--cedar-muted)", maxWidth: "220px" }}>
               The real-world asset marketplace. Peer-to-peer trading of tokenized real estate, luxury goods, and collectibles.
             </p>
 
             <p style={{ fontFamily: "Cormorant Garamond, Georgia, serif", fontStyle: "italic", fontWeight: 400, fontSize: "20px", color: "#C4852A" }}>
               Real assets. Onchain.
             </p>
-
-            <a
-              href="mailto:hello@cedarx.io"
-              style={{ fontSize: "13px", fontWeight: 300, color: "var(--cedar-muted)", textDecoration: "none", transition: "color 0.3s ease" }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "var(--cedar-text)"; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "var(--cedar-muted)"; }}
-            >
-              Questions? hello@cedarx.io
-            </a>
-
-            <a
-              href="https://x.com/cedarxio"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ display: "inline-flex", alignItems: "center", gap: "8px", fontSize: "15px", color: "var(--cedar-muted)", textDecoration: "none", transition: "color 0.3s ease" }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "var(--cedar-text)"; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "var(--cedar-muted)"; }}
-            >
-              <svg viewBox="0 0 24 24" style={{ width: "13px", height: "13px", fill: "currentColor" }} aria-hidden="true">
-                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.253 5.622 5.912-5.622Zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-              </svg>
-              @cedarxio
-            </a>
           </div>
 
           {/* Navigation */}
@@ -109,6 +86,36 @@ export function Footer() {
                   {label}
                 </a>
               ))}
+            </nav>
+          </div>
+
+          {/* Contact */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+            <h3 style={{ fontFamily: "DM Sans, system-ui, sans-serif", fontSize: "11px", letterSpacing: "0.18em", textTransform: "uppercase", color: "var(--cedar-muted)" }}>
+              Contact
+            </h3>
+            <nav style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+              <a
+                href="mailto:hello@cedarx.io"
+                style={{ fontSize: "15px", fontWeight: 300, color: "var(--cedar-muted)", textDecoration: "none", transition: "color 0.3s ease" }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "var(--cedar-text)"; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "var(--cedar-muted)"; }}
+              >
+                hello@cedarx.io
+              </a>
+              <a
+                href="https://x.com/cedarxio"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ display: "inline-flex", alignItems: "center", gap: "8px", fontSize: "15px", fontWeight: 300, color: "var(--cedar-muted)", textDecoration: "none", transition: "color 0.3s ease" }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "var(--cedar-text)"; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "var(--cedar-muted)"; }}
+              >
+                <svg viewBox="0 0 24 24" style={{ width: "13px", height: "13px", fill: "currentColor" }} aria-hidden="true">
+                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.253 5.622 5.912-5.622Zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                </svg>
+                @cedarxio
+              </a>
             </nav>
           </div>
         </div>
