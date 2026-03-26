@@ -229,6 +229,41 @@ input, select, textarea {
 /* ── Dark mode structural overrides ─────────────────────────────────────── */
 /* These handle inline-styled components that can't read Tailwind dark: vars. */
 
+/* Headings — all use color:#1C1710 inline; override to light text */
+[data-theme="dark"] h1,
+[data-theme="dark"] h2,
+[data-theme="dark"] h3,
+[data-theme="dark"] h4 {
+  color: var(--cedar-text) !important;
+}
+/* Preserve amber italic inside headings (e.g. "Onchain." in hero) */
+[data-theme="dark"] h1 em,
+[data-theme="dark"] h2 em {
+  color: #C4852A !important;
+}
+
+/* Header nav links */
+[data-theme="dark"] header nav a {
+  color: var(--cedar-muted) !important;
+}
+
+/* Search input */
+[data-theme="dark"] .search-input {
+  color: var(--cedar-text) !important;
+  background: rgba(26,26,26,0.85) !important;
+  border-color: rgba(196,133,42,0.22) !important;
+  border-bottom-color: rgba(196,133,42,0.40) !important;
+}
+
+/* Mobile menu drawer */
+[data-theme="dark"] .mobile-menu-backdrop {
+  background: rgba(13,13,13,0.70) !important;
+}
+[data-theme="dark"] .mobile-menu-drawer {
+  background: rgba(26,26,26,0.97) !important;
+  border-bottom-color: rgba(196,133,42,0.15) !important;
+}
+
 [data-theme="dark"] header {
   background-color: rgba(13,13,13,0.88) !important;
   border-bottom-color: rgba(196,133,42,0.12) !important;

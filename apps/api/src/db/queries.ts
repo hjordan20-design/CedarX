@@ -210,8 +210,10 @@ export async function getStats() {
         // Total indexed assets
         db.from("assets").select("id", { count: "exact", head: true }),
 
-        // Active listing count
-        db.from("listings").select("listing_id", { count: "exact", head: true }).eq("status", "active"),
+        // Active listing count — use assets.has_active_listing (Seaport listings)
+        db.from("assets").select("id", { count: "exact", head: true })
+            .eq("has_active_listing", true)
+            .not("current_listing_price", "is", null),
 
         // Total volume and trade count
         db.from("trades").select("sale_price"),

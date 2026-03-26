@@ -8,20 +8,24 @@ interface AssetGridProps {
   assets: Asset[] | undefined;
   isLoading: boolean;
   isError: boolean;
+  error?: Error | null;
   isFetching?: boolean;
   total?: number;
 }
 
-export function AssetGrid({ assets, isLoading, isError, isFetching, total }: AssetGridProps) {
+export function AssetGrid({ assets, isLoading, isError, error, isFetching, total }: AssetGridProps) {
   if (isError) {
+    const isTimeout = error?.name === "AbortError";
     return (
       <div className="py-24 flex flex-col items-center gap-4 text-center">
         <div className="w-8 h-px bg-cedar-amber mb-2" />
         <p className="text-cedar-text font-sans text-base">
-          Assets loading soon.
+          {isTimeout ? "Query timed out." : "Assets loading soon."}
         </p>
         <p className="text-cedar-muted font-sans text-sm max-w-sm leading-relaxed">
-          CedarX is currently indexing protocols. Check back shortly — listings will appear here once the indexer syncs.
+          {isTimeout
+            ? "This category has too many assets to load at once. Try filtering to \"For Sale\" to see listed assets only."
+            : "CedarX is currently indexing protocols. Check back shortly — listings will appear here once the indexer syncs."}
         </p>
       </div>
     );

@@ -16,6 +16,12 @@ const IPFS_GATEWAYS = [
 ];
 
 function extractIpfsCid(url: string): string | null {
+  // Handle ipfs:// URI scheme
+  if (url.startsWith("ipfs://")) return url.slice(7);
+  // Match any /ipfs/<cid> path pattern (covers any gateway URL)
+  const match = url.match(/\/ipfs\/(.+)$/);
+  if (match) return match[1];
+  // Fallback: known gateway prefixes
   for (const gw of IPFS_GATEWAYS) {
     if (url.startsWith(gw)) return url.slice(gw.length);
   }
@@ -134,7 +140,7 @@ export function AssetCard({ asset }: { asset: Asset }) {
       to={`/assets/${encodeURIComponent(asset.id)}`}
       className="group card flex flex-col overflow-hidden hover:border-cedar-muted transition-colors duration-200"
     >
-      <div className="relative aspect-video overflow-hidden bg-cedar-surface-alt">
+      <div className="relative aspect-video overflow-hidden bg-cedar-surface-alt max-h-[220px]">
         {asset.imageUrl ? (
           <AssetCardImage
             imageUrl={asset.imageUrl}

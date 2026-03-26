@@ -19,7 +19,7 @@ function DiamondMark({ className }: { className?: string }) {
 function CedarXWordmark() {
   return (
     <span style={{ fontFamily: "DM Sans, system-ui, sans-serif", fontSize: "20px", fontWeight: 500, letterSpacing: "0.04em" }}>
-      <span style={{ color: "#1C1710" }}>Cedar</span>
+      <span style={{ color: "var(--cedar-text)" }}>Cedar</span>
       <span style={{ color: "#C4852A" }}>X</span>
     </span>
   );
@@ -49,7 +49,7 @@ function NavLink({
         fontFamily: "DM Sans, system-ui, sans-serif",
         fontWeight: mobile ? 300 : 400,
         transition: "color 0.3s cubic-bezier(.16,1,.3,1)",
-        color: active ? "rgba(28,23,16,0.80)" : "rgba(28,23,16,0.45)",
+        color: active ? "var(--cedar-text)" : "var(--cedar-muted)",
         textDecoration: "none",
         display: "block",
       }}
@@ -251,11 +251,13 @@ export function Header() {
         <div className="lg:hidden fixed inset-0 z-40">
           {/* Backdrop */}
           <div
+            className="mobile-menu-backdrop"
             style={{ position: "absolute", inset: 0, background: "rgba(249,246,240,0.70)", backdropFilter: "blur(4px)", WebkitBackdropFilter: "blur(4px)" }}
             onClick={() => setMobileOpen(false)}
           />
           {/* Drawer */}
           <div
+            className="mobile-menu-drawer"
             style={{
               position: "absolute", top: "66px", left: 0, right: 0,
               background: "rgba(249,246,240,0.97)",
@@ -272,7 +274,7 @@ export function Header() {
             </nav>
             <div style={{ padding: "16px 24px 24px", display: "flex", flexDirection: "column", gap: "12px" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <span style={{ fontSize: "10px", letterSpacing: "0.18em", textTransform: "uppercase", color: "rgba(28,23,16,0.35)" }}>Network</span>
+                <span style={{ fontSize: "10px", letterSpacing: "0.18em", textTransform: "uppercase", color: "var(--cedar-muted)" }}>Network</span>
                 <ChainSwitcher />
               </div>
               <WalletButton fullWidth />

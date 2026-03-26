@@ -67,7 +67,7 @@ export function ExplorePage() {
     search: searchParams.get("search") ?? undefined,
   };
 
-  const { data, isLoading, isError, isFetching } = useAssets(filters);
+  const { data, isLoading, isError, error, isFetching } = useAssets(filters);
 
   const handleFilterChange = useCallback((next: AssetFilters) => {
     const prevCategory = categoryFromParam(searchParams.get("category"));
@@ -123,13 +123,13 @@ export function ExplorePage() {
                 fontWeight: 300,
                 fontSize: "clamp(2rem, 4vw, 3.5rem)",
                 letterSpacing: "-0.02em",
-                color: "#1C1710",
+                color: "var(--cedar-text)",
                 marginBottom: "8px",
               }}
             >
               {CATEGORY_INFO[filters.category].title}
             </h1>
-            <p className="hidden sm:block" style={{ fontFamily: "DM Sans, system-ui, sans-serif", fontWeight: 300, fontSize: "17px", color: "rgba(28,23,16,0.50)" }}>
+            <p className="hidden sm:block" style={{ fontFamily: "DM Sans, system-ui, sans-serif", fontWeight: 300, fontSize: "17px", color: "var(--cedar-muted)" }}>
               {CATEGORY_INFO[filters.category].description}
             </p>
           </>
@@ -141,13 +141,13 @@ export function ExplorePage() {
                 fontWeight: 300,
                 fontSize: "clamp(2rem, 4vw, 3.5rem)",
                 letterSpacing: "-0.02em",
-                color: "#1C1710",
+                color: "var(--cedar-text)",
                 marginBottom: "8px",
               }}
             >
               Explore assets
             </h1>
-            <p className="hidden sm:block" style={{ fontFamily: "DM Sans, system-ui, sans-serif", fontWeight: 300, fontSize: "17px", color: "rgba(28,23,16,0.50)" }}>
+            <p className="hidden sm:block" style={{ fontFamily: "DM Sans, system-ui, sans-serif", fontWeight: 300, fontSize: "17px", color: "var(--cedar-muted)" }}>
               Browse tokenized real-world assets across real estate, collectibles, and luxury goods.
             </p>
           </>
@@ -171,6 +171,7 @@ export function ExplorePage() {
         assets={data?.data}
         isLoading={isLoading}
         isError={isError}
+        error={error as Error | null}
         isFetching={isFetching && !isLoading}
         total={data?.pagination.total}
       />

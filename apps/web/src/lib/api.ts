@@ -17,9 +17,17 @@ async function get<T>(path: string, params?: Record<string, string | number | bo
       if (val !== undefined) url.searchParams.set(key, String(val));
     }
   }
-  const res = await fetch(url.toString());
-  if (!res.ok) throw new Error(`API error ${res.status}: ${path}`);
-  return res.json() as Promise<T>;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 8000);
+  try {
+    const res = await fetch(url.toString(), { signal: controller.signal });
+    clearTimeout(timeoutId);
+    if (!res.ok) throw new Error(`API error ${res.status}: ${path}`);
+    return res.json() as Promise<T>;
+  } catch (e) {
+    clearTimeout(timeoutId);
+    throw e;
+  }
 }
 
 // ─── Assets ──────────────────────────────────────────────────────────────────

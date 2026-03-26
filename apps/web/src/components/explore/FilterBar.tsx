@@ -101,7 +101,7 @@ export function FilterBar({ filters, onChange, total }: FilterBarProps) {
           <select
             value={filters.sort ?? "newest"}
             onChange={(e) => set({ sort: e.target.value as AssetFilters["sort"] })}
-            className="shrink-0 bg-cedar-surface border border-cedar-border px-3 py-2 text-xs font-sans text-cedar-muted
+            className="shrink-0 bg-cedar-surface border border-cedar-border pl-3 pr-1.5 py-2 text-xs font-sans text-cedar-muted
                        focus:outline-none focus:border-cedar-muted cursor-pointer transition-colors duration-150"
           >
             {SORT_OPTIONS.map((o) => (
@@ -112,7 +112,7 @@ export function FilterBar({ filters, onChange, total }: FilterBarProps) {
           <select
             value={filters.limit ?? 24}
             onChange={(e) => set({ limit: Number(e.target.value) })}
-            className="shrink-0 bg-cedar-surface border border-cedar-border px-3 py-2 text-xs font-sans text-cedar-muted
+            className="shrink-0 bg-cedar-surface border border-cedar-border pl-3 pr-1.5 py-2 text-xs font-sans text-cedar-muted
                        focus:outline-none focus:border-cedar-muted cursor-pointer transition-colors duration-150"
             aria-label="Results per page"
           >

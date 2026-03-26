@@ -8,7 +8,6 @@ export function StatsBar() {
     staleTime: 120_000,
   });
 
-  const collections = stats ? Object.keys(stats.byProtocol).length : 0;
   const volume = stats ? Number(stats.totalVolume) : 0;
 
   const items = [
@@ -19,10 +18,6 @@ export function StatsBar() {
     {
       value: stats ? stats.activeListings.toLocaleString("en-US") : "—",
       label: "Listed now",
-    },
-    {
-      value: stats ? String(collections) : "—",
-      label: "Collections",
     },
     {
       value:

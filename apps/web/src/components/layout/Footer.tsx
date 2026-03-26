@@ -23,12 +23,12 @@ export function Footer() {
                 <polygon points="12,6 18,12 12,18 6,12" stroke="#C4852A" strokeWidth="1.0" strokeOpacity="0.65" fill="none" />
                 <circle cx="12" cy="12" r="1.8" fill="#C4852A" opacity="0.7" />
               </svg>
-              <span style={{ fontFamily: "DM Sans, system-ui, sans-serif", fontSize: "17px", fontWeight: 500, letterSpacing: "0.04em", color: "#1C1710" }}>
+              <span style={{ fontFamily: "DM Sans, system-ui, sans-serif", fontSize: "17px", fontWeight: 500, letterSpacing: "0.04em", color: "var(--cedar-text)" }}>
                 Cedar<span style={{ color: "#C4852A" }}>X</span>
               </span>
             </div>
 
-            <p style={{ fontSize: "15px", fontWeight: 300, lineHeight: 1.7, color: "rgba(28,23,16,0.55)", maxWidth: "240px" }}>
+            <p style={{ fontSize: "15px", fontWeight: 300, lineHeight: 1.7, color: "var(--cedar-muted)", maxWidth: "240px" }}>
               The real-world asset marketplace. Peer-to-peer trading of tokenized real estate, luxury goods, and collectibles.
             </p>
 
@@ -37,12 +37,21 @@ export function Footer() {
             </p>
 
             <a
+              href="mailto:hello@cedarx.io"
+              style={{ fontSize: "13px", fontWeight: 300, color: "var(--cedar-muted)", textDecoration: "none", transition: "color 0.3s ease" }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "var(--cedar-text)"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "var(--cedar-muted)"; }}
+            >
+              Questions? hello@cedarx.io
+            </a>
+
+            <a
               href="https://x.com/cedarxio"
               target="_blank"
               rel="noopener noreferrer"
-              style={{ display: "inline-flex", alignItems: "center", gap: "8px", fontSize: "15px", color: "rgba(28,23,16,0.55)", textDecoration: "none", transition: "color 0.3s ease" }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "rgba(28,23,16,0.80)"; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "rgba(28,23,16,0.55)"; }}
+              style={{ display: "inline-flex", alignItems: "center", gap: "8px", fontSize: "15px", color: "var(--cedar-muted)", textDecoration: "none", transition: "color 0.3s ease" }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "var(--cedar-text)"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "var(--cedar-muted)"; }}
             >
               <svg viewBox="0 0 24 24" style={{ width: "13px", height: "13px", fill: "currentColor" }} aria-hidden="true">
                 <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.253 5.622 5.912-5.622Zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
@@ -53,7 +62,7 @@ export function Footer() {
 
           {/* Navigation */}
           <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-            <h3 style={{ fontFamily: "DM Sans, system-ui, sans-serif", fontSize: "11px", letterSpacing: "0.18em", textTransform: "uppercase", color: "rgba(28,23,16,0.28)" }}>
+            <h3 style={{ fontFamily: "DM Sans, system-ui, sans-serif", fontSize: "11px", letterSpacing: "0.18em", textTransform: "uppercase", color: "var(--cedar-muted)" }}>
               Navigate
             </h3>
             <nav style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
@@ -66,9 +75,9 @@ export function Footer() {
                 <Link
                   key={to}
                   to={to}
-                  style={{ fontSize: "15px", fontWeight: 300, color: "rgba(28,23,16,0.55)", textDecoration: "none", transition: "color 0.3s ease" }}
-                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "rgba(28,23,16,0.80)"; }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "rgba(28,23,16,0.55)"; }}
+                  style={{ fontSize: "15px", fontWeight: 300, color: "var(--cedar-muted)", textDecoration: "none", transition: "color 0.3s ease" }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "var(--cedar-text)"; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "var(--cedar-muted)"; }}
                 >
                   {label}
                 </Link>
@@ -78,7 +87,7 @@ export function Footer() {
 
           {/* Protocols */}
           <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-            <h3 style={{ fontFamily: "DM Sans, system-ui, sans-serif", fontSize: "11px", letterSpacing: "0.18em", textTransform: "uppercase", color: "rgba(28,23,16,0.28)" }}>
+            <h3 style={{ fontFamily: "DM Sans, system-ui, sans-serif", fontSize: "11px", letterSpacing: "0.18em", textTransform: "uppercase", color: "var(--cedar-muted)" }}>
               Indexed protocols
             </h3>
             <nav style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
@@ -92,9 +101,9 @@ export function Footer() {
                   href={href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  style={{ fontSize: "15px", fontWeight: 300, color: "rgba(28,23,16,0.55)", textDecoration: "none", transition: "color 0.3s ease" }}
+                  style={{ fontSize: "15px", fontWeight: 300, color: "var(--cedar-muted)", textDecoration: "none", transition: "color 0.3s ease" }}
                   onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#C4852A"; }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "rgba(28,23,16,0.55)"; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "var(--cedar-muted)"; }}
                 >
                   {label}
                 </a>
@@ -113,7 +122,7 @@ export function Footer() {
           }}
           className="sm:flex-row sm:items-center sm:justify-between"
         >
-          <p style={{ fontSize: "12px", color: "rgba(28,23,16,0.28)" }}>
+          <p style={{ fontSize: "12px", color: "var(--cedar-muted)" }}>
             © {new Date().getFullYear()} CedarX. All rights reserved.
           </p>
           <p style={{ fontSize: "12px", color: "rgba(28,23,16,0.28)", maxWidth: "360px" }} className="sm:text-right">
