@@ -34,6 +34,7 @@ import {
     COURTYARD_CONTRACT,
     ARIANEE_CONTRACT,
 } from "../config";
+import { cache } from "../lib/cache";
 import {
     getAsset,
     upsertAsset,
@@ -440,6 +441,10 @@ export class SeaportPoller {
             // are not required.  The backfill made 1,000+ individual API calls per
             // tick without ever returning usable signatures.
             // await this.backfillMissingSignatures();
+
+            // Bust server-side response cache so next request reflects fresh listings.
+            const evicted = cache.deleteByPrefix("assets:") + cache.deleteByPrefix("stats:");
+            if (evicted > 0) this.log(`cache invalidated — ${evicted} entr${evicted === 1 ? "y" : "ies"} cleared`);
         } catch (err) {
             this.logError("tick failed", err);
         }

@@ -1,8 +1,13 @@
 import { Router, type Request, type Response } from "express";
 import { z } from "zod";
 import { getAsset, getAssets, getAssetHistory, getSeaportPriceMap, getTrendingAssets, type AssetFilters } from "../db/queries";
+import { cache } from "../lib/cache";
 
 export const assetsRouter = Router();
+
+// Cache TTLs
+const ASSETS_LIST_TTL  = 60_000;  //  1 minute
+const TRENDING_TTL     = 300_000; //  5 minutes
 
 // ─── GET /api/assets ─────────────────────────────────────────────────────────
 
@@ -42,6 +47,15 @@ assetsRouter.get("/", async (req: Request, res: Response) => {
         listingFilter   = legacyOff ? "all" : legacyOn ? "listed" : "listed";
     }
 
+    // ── Cache check ──────────────────────────────────────────────────────────
+    const cacheKey = `assets:list:${req.url}`;
+    const hit = cache.get<object>(cacheKey);
+    if (hit) {
+        res.setHeader("Cache-Control", "public, max-age=60");
+        res.setHeader("X-Cache", "HIT");
+        return res.json(hit);
+    }
+
     const filters: AssetFilters = {
         ...parsed.data,
         listingFilter,
@@ -55,7 +69,7 @@ assetsRouter.get("/", async (req: Request, res: Response) => {
         .map(r => r.id);
     const seaportPrices = await getSeaportPriceMap(needsPrice);
 
-    return res.json({
+    const body = {
         data: result.data.map(row => formatAsset(row, seaportPrices)),
         pagination: {
             total: result.total,
@@ -63,17 +77,32 @@ assetsRouter.get("/", async (req: Request, res: Response) => {
             limit: result.limit,
             hasMore: result.hasMore,
         },
-    });
+    };
+    cache.set(cacheKey, body, ASSETS_LIST_TTL);
+    res.setHeader("Cache-Control", "public, max-age=60");
+    res.setHeader("X-Cache", "MISS");
+    return res.json(body);
 });
 
 // ─── GET /api/assets/trending ────────────────────────────────────────────────
 
 assetsRouter.get("/trending", async (_req: Request, res: Response) => {
+    const hit = cache.get<object>("assets:trending");
+    if (hit) {
+        res.setHeader("Cache-Control", "public, max-age=300");
+        res.setHeader("X-Cache", "HIT");
+        return res.json(hit);
+    }
+
     const assets = await getTrendingAssets(8);
     const seaportPrices = await getSeaportPriceMap(
         assets.filter(a => a.has_active_listing && a.current_listing_price == null).map(a => a.id)
     );
-    return res.json({ data: assets.map(row => formatAsset(row, seaportPrices)) });
+    const body = { data: assets.map(row => formatAsset(row, seaportPrices)) };
+    cache.set("assets:trending", body, TRENDING_TTL);
+    res.setHeader("Cache-Control", "public, max-age=300");
+    res.setHeader("X-Cache", "MISS");
+    return res.json(body);
 });
 
 // ─── GET /api/assets/:id ─────────────────────────────────────────────────────
