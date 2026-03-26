@@ -12,10 +12,34 @@ export function TrendingSection() {
     staleTime: 60_000,
   });
 
-  const assets = data?.data ?? [];
+  const all = data?.data ?? [];
+
+  // Prefer collectibles — they dominate volume (260K+ Courtyard assets).
+  // Fall back to real-estate if collectibles are sparse, then mixed.
+  const collectibles = all.filter(
+    a => a.category === "collectibles" || a.category === "art",
+  );
+  const realEstate = all.filter(
+    a => a.category === "real-estate",
+  );
+
+  const displayed =
+    collectibles.length >= 4 ? collectibles
+    : realEstate.length  >= 4 ? realEstate
+    : all;
+
+  const isCollectibles = displayed.length > 0 && displayed === collectibles;
+  const isRealEstate   = displayed.length > 0 && displayed === realEstate;
+
+  const title    = isCollectibles ? "Trending Collectibles"
+                 : isRealEstate   ? "Trending Real Estate"
+                 : "Most wanted";
+  const viewHref = isCollectibles ? "/explore?category=collectibles"
+                 : isRealEstate   ? "/explore?category=real-estate"
+                 : "/explore?listingFilter=all";
 
   // Don't render section if no data and not loading
-  if (!isLoading && assets.length === 0) return null;
+  if (!isLoading && all.length === 0) return null;
 
   return (
     <section className="max-w-7xl mx-auto px-6" style={{ paddingBottom: "48px" }}>
@@ -39,11 +63,11 @@ export function TrendingSection() {
               color: "var(--cedar-text, #1C1710)",
             }}
           >
-            Most wanted
+            {title}
           </h2>
         </div>
         <Link
-          to="/explore?listingFilter=all"
+          to={viewHref}
           style={{
             display: "inline-flex",
             alignItems: "center",
@@ -80,7 +104,7 @@ export function TrendingSection() {
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-          {assets.slice(0, 8).map((asset) => (
+          {displayed.slice(0, 8).map((asset) => (
             <div key={asset.id}>
               <AssetCard asset={asset} />
             </div>

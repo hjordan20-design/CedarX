@@ -1,6 +1,7 @@
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Search } from "lucide-react";
-import { Link } from "react-router-dom";
-import type { AssetFilters, Category } from "@/lib/types";
+import type { Category } from "@/lib/types";
 
 // ─── Category pills ───────────────────────────────────────────────────────────
 const CATEGORY_PILLS: { value: Category | ""; label: string }[] = [
@@ -12,16 +13,15 @@ const CATEGORY_PILLS: { value: Category | ""; label: string }[] = [
   { value: "art",          label: "Art" },
 ];
 
-// ─── Props ────────────────────────────────────────────────────────────────────
-interface HeroProps {
-  filters: AssetFilters;
-  onFilterChange: (next: AssetFilters) => void;
-}
-
 // ─── Hero ─────────────────────────────────────────────────────────────────────
-export function Hero({ filters, onFilterChange }: HeroProps) {
-  function set(partial: Partial<AssetFilters>) {
-    onFilterChange({ ...filters, ...partial, page: 1 });
+export function Hero() {
+  const [search, setSearch] = useState("");
+  const navigate = useNavigate();
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    const q = search.trim();
+    navigate(q ? `/explore?search=${encodeURIComponent(q)}` : "/explore");
   }
 
   return (
@@ -65,8 +65,9 @@ export function Hero({ filters, onFilterChange }: HeroProps) {
           Connect your wallet. Settle in USDC.
         </p>
 
-        {/* Search bar */}
-        <div
+        {/* Search bar — submits to /explore */}
+        <form
+          onSubmit={handleSubmit}
           className="animate-fade-up"
           style={{
             position: "relative",
@@ -84,8 +85,8 @@ export function Hero({ filters, onFilterChange }: HeroProps) {
           <input
             type="text"
             placeholder="Search by name, location, brand…"
-            value={filters.search ?? ""}
-            onChange={(e) => set({ search: e.target.value || undefined })}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
             className="search-input"
             style={{
               width: "100%",
@@ -103,7 +104,7 @@ export function Hero({ filters, onFilterChange }: HeroProps) {
               transition: "all 0.3s cubic-bezier(.16,1,.3,1)",
             }}
           />
-        </div>
+        </form>
 
         {/* Category pills */}
         <div

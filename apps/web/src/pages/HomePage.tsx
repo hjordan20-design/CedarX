@@ -1,16 +1,15 @@
-import { useState, useCallback, useEffect } from "react";
+import { useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Hero } from "@/components/home/Hero";
 import { StatsBar } from "@/components/home/StatsBar";
-import { HomeAssetGrid } from "@/components/home/HomeAssetGrid";
+import { CategoryLanes } from "@/components/home/CategoryLanes";
 import { TrendingSection } from "@/components/home/TrendingSection";
 import { CategoryCards } from "@/components/home/CategoryCards";
 import { HowItWorks } from "@/components/home/HowItWorks";
 import { EmailCapture } from "@/components/home/EmailCapture";
 import { fetchHomepage } from "@/lib/api";
-import type { AssetFilters, Paginated, Asset, MarketStats } from "@/lib/types";
+import type { Asset, MarketStats } from "@/lib/types";
 
-const DEFAULT_FILTERS: AssetFilters = { sort: "newest", listingFilter: "listed" };
 const HOMEPAGE_CACHE_KEY = "cedar-homepage-cache";
 
 function readCachedHomepage() {
@@ -25,10 +24,9 @@ function writeCachedHomepage(data: unknown) {
 }
 
 export function HomePage() {
-  const [filters, setFilters] = useState<AssetFilters>(DEFAULT_FILTERS);
   const queryClient = useQueryClient();
 
-  // Single combined request — replaces fetchStats + fetchAssets + fetchTrending
+  // Single combined request — feeds StatsBar and TrendingSection from one call
   const { data: homepage } = useQuery({
     queryKey: ["homepage"],
     queryFn: async () => {
@@ -40,26 +38,19 @@ export function HomePage() {
     placeholderData: readCachedHomepage,
   });
 
-  // Pre-populate the TanStack Query cache for child components so they don't
-  // fire separate network requests (stats, trending, assets are already loaded).
+  // Pre-populate child component caches so they render instantly without
+  // firing separate network requests.
   useEffect(() => {
     if (!homepage) return;
     queryClient.setQueryData<MarketStats>(["stats"], homepage.stats);
     queryClient.setQueryData<{ data: Asset[] }>(["trending-assets"], { data: homepage.trending });
-    // Pre-populate the default home listing query (newest listed, limit 8)
-    const defaultKey = { sort: "newest", listingFilter: "listed", limit: 8 };
-    queryClient.setQueryData<Paginated<Asset>>(["assets", defaultKey], homepage.listings);
   }, [homepage, queryClient]);
-
-  const handleFilterChange = useCallback((next: AssetFilters) => {
-    setFilters(next);
-  }, []);
 
   return (
     <>
-      <Hero filters={filters} onFilterChange={handleFilterChange} />
+      <Hero />
       <StatsBar />
-      <HomeAssetGrid filters={filters} />
+      <CategoryLanes />
       <TrendingSection />
       <CategoryCards />
       <HowItWorks />
