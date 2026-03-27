@@ -30,9 +30,6 @@ import {
     OPENSEA_API_BASE_URL,
     SEAPORT_POLL_INTERVAL_MS,
     FABRICA_TOKEN_V2,
-    FOURTK_CONTRACT,
-    COURTYARD_CONTRACT,
-    ARIANEE_CONTRACT,
 } from "../config";
 import { cache } from "../lib/cache";
 import { refreshCrossTabCounts } from "../lib/countCache";
@@ -86,53 +83,44 @@ export function buildContracts(): ContractConfig[] {
         });
     }
 
-    if (FOURTK_CONTRACT) {
-        contracts.push({
-            chain: "ethereum",
-            openSeaChain: "ethereum",
-            openSeaSlug: "4kprotocol",
-            contractAddress: FOURTK_CONTRACT.toLowerCase(),
-            protocol: "4k",
-            tokenStandard: "ERC-1155",
-            chainId: 1,
-        });
-    }
-
-    if (COURTYARD_CONTRACT) {
-        contracts.push({
-            chain: "polygon",
-            openSeaChain: "matic",
-            openSeaSlug: "courtyard-nft",
-            contractAddress: COURTYARD_CONTRACT.toLowerCase(),
-            protocol: "courtyard",
-            tokenStandard: "ERC-721",
-            chainId: 137,
-        });
-    }
-
-    if (ARIANEE_CONTRACT) {
-        // Shared Arianee Protocol contract used by all Arianee member brands
-        // including Breitling, Panerai, Moncler, IWC, Lacoste, Yves Saint Laurent,
-        // and Audemars Piguet. All DPPs are minted on a single ERC-721 contract.
-        //
-        // Verified via OpenSea:
-        //   Primary slug: opensea.io/collection/arianee
-        //   Alternate slug: opensea.io/collection/arianee-smart-asset
-        //   Contract on Polygon: 0xc14cc4d89116ec88ebb63fdf497aace6ff3745da
-        //   Confirmed: Moncler items visible at opensea.io/assets/matic/{contract}/{tokenId}
-        //
-        // Note: "arianee-smart-asset" is an alternate OpenSea collection slug for
-        // the same contract. We poll "arianee" (primary slug) to avoid duplicates.
-        contracts.push({
-            chain: "polygon",
-            openSeaChain: "matic",
-            openSeaSlug: "arianee",
-            contractAddress: ARIANEE_CONTRACT.toLowerCase(),
-            protocol: "arianee",
-            tokenStandard: "ERC-721",
-            chainId: 137,
-        });
-    }
+    // Non-Fabrica collections disabled — land-only marketplace.
+    // Data remains in the DB; re-enable by uncommenting when needed.
+    //
+    // if (FOURTK_CONTRACT) {
+    //     contracts.push({
+    //         chain: "ethereum",
+    //         openSeaChain: "ethereum",
+    //         openSeaSlug: "4kprotocol",
+    //         contractAddress: FOURTK_CONTRACT.toLowerCase(),
+    //         protocol: "4k",
+    //         tokenStandard: "ERC-1155",
+    //         chainId: 1,
+    //     });
+    // }
+    //
+    // if (COURTYARD_CONTRACT) {
+    //     contracts.push({
+    //         chain: "polygon",
+    //         openSeaChain: "matic",
+    //         openSeaSlug: "courtyard-nft",
+    //         contractAddress: COURTYARD_CONTRACT.toLowerCase(),
+    //         protocol: "courtyard",
+    //         tokenStandard: "ERC-721",
+    //         chainId: 137,
+    //     });
+    // }
+    //
+    // if (ARIANEE_CONTRACT) {
+    //     contracts.push({
+    //         chain: "polygon",
+    //         openSeaChain: "matic",
+    //         openSeaSlug: "arianee",
+    //         contractAddress: ARIANEE_CONTRACT.toLowerCase(),
+    //         protocol: "arianee",
+    //         tokenStandard: "ERC-721",
+    //         chainId: 137,
+    //     });
+    // }
 
     return contracts;
 }
