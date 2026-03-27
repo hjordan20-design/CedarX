@@ -125,7 +125,7 @@ const sections: Section[] = [
     content: (
       <>
         <p>
-          CedarX charges a marketplace fee of 1% on the gross sale price of each
+          CedarX charges a marketplace fee of 1.5% on the gross sale price of each
           completed transaction. This fee is deducted automatically from the USDC
           payment at the time of settlement.
         </p>
