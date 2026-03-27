@@ -29,12 +29,14 @@ export function StatsBar() {
     placeholderData: readCachedStats,
   });
 
-  const fabricaCount = stats?.byProtocol?.fabrica ?? 0;
-  const listedCount  = stats?.activeListings ?? 0;
+  // getStats() now filters both counts to protocol=fabrica, so totalAssets is
+  // the Fabrica-only asset count and activeListings is Fabrica-only listing count.
+  const totalCount  = stats?.totalAssets    ?? 0;
+  const listedCount = stats?.activeListings ?? 0;
 
   const items = [
     {
-      value: fabricaCount > 0 ? fabricaCount.toLocaleString("en-US") : "—",
+      value: totalCount > 0 ? totalCount.toLocaleString("en-US") : "—",
       label: "Properties indexed",
     },
     {

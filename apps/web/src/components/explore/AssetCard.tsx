@@ -100,16 +100,28 @@ const CATEGORY_BG: Record<string, string> = {
   "collectibles": "bg-cedar-surface-alt",
 };
 
-function AssetImageFallback({ asset }: { asset: Asset }) {
+function AssetImageFallback() {
   return (
-    <div className={`w-full h-full flex flex-col items-center justify-center gap-1.5 ${CATEGORY_BG[asset.category] ?? "bg-cedar-surface-alt"}`}>
-      <span className="text-cedar-muted/50 font-mono text-xs tracking-widest uppercase">{asset.protocol}</span>
-      <span className="text-cedar-muted/30 font-sans text-[10px]">Image unavailable</span>
+    <div
+      className="w-full h-full flex items-center justify-center"
+      style={{ background: "linear-gradient(135deg, #2C1F0A 0%, #1A1408 55%, #0D0B07 100%)" }}
+    >
+      <span
+        style={{
+          fontFamily: "JetBrains Mono, monospace",
+          fontSize: "9px",
+          letterSpacing: "0.18em",
+          textTransform: "uppercase",
+          color: "rgba(196,133,42,0.30)",
+        }}
+      >
+        No image
+      </span>
     </div>
   );
 }
 
-function AssetCardImage({ imageUrl, alt, fallback, satUrl }: { imageUrl: string; alt: string; fallback: React.ReactNode; satUrl?: string | null }) {
+function AssetCardImage({ imageUrl, alt, satUrl }: { imageUrl: string; alt: string; satUrl?: string | null }) {
   const [src, setSrc] = useState(imageUrl);
   const [failed, setFailed] = useState(false);
   const tried = useRef(new Set<string>([imageUrl]));
@@ -129,15 +141,29 @@ function AssetCardImage({ imageUrl, alt, fallback, satUrl }: { imageUrl: string;
     setFailed(true);
   }
 
-  if (failed) return <>{fallback}</>;
+  if (failed) return <AssetImageFallback />;
   return (
-    <img
-      src={src}
-      alt={alt}
-      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-      loading="lazy"
-      onError={handleError}
-    />
+    <>
+      {/* Zero-size hidden img so onError fires without showing a yellow triangle */}
+      <img
+        src={src}
+        alt=""
+        onError={handleError}
+        aria-hidden="true"
+        style={{ position: "absolute", width: 0, height: 0, opacity: 0, pointerEvents: "none" }}
+      />
+      {/* Visible layer — CSS backgroundImage never shows the browser broken-image icon */}
+      <div
+        className="w-full h-full transition-transform duration-500 group-hover:scale-[1.03]"
+        style={{
+          backgroundImage: `url(${src})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
+        role="img"
+        aria-label={alt}
+      />
+    </>
   );
 }
 
@@ -150,16 +176,16 @@ export function AssetCard({ asset }: { asset: Asset }) {
       to={`/assets/${encodeURIComponent(asset.id)}`}
       className="group card flex flex-col overflow-hidden hover:border-cedar-muted transition-colors duration-200"
     >
-      <div className="relative aspect-video overflow-hidden bg-cedar-surface-alt max-h-[180px]">
+      <div className="relative aspect-video overflow-hidden max-h-[180px]"
+        style={{ background: "linear-gradient(135deg, #2C1F0A 0%, #1A1408 55%, #0D0B07 100%)" }}>
         {effectiveImageUrl ? (
           <AssetCardImage
             imageUrl={effectiveImageUrl}
             alt={displayName}
-            fallback={<AssetImageFallback asset={asset} />}
             satUrl={satUrl}
           />
         ) : (
-          <AssetImageFallback asset={asset} />
+          <AssetImageFallback />
         )}
       </div>
 

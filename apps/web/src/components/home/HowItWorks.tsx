@@ -50,7 +50,7 @@ export function HowItWorks() {
 
   return (
     <section style={{ borderTop: "1px solid rgba(196,133,42,0.08)" }}>
-      <div className="max-w-7xl mx-auto px-6" style={{ paddingTop: "100px", paddingBottom: "80px" }}>
+      <div className="max-w-7xl mx-auto px-6" style={{ paddingTop: "100px", paddingBottom: "40px" }}>
         <div
           ref={headingRef as React.Ref<HTMLDivElement>}
           className={`scroll-fade${headingInView ? " in-view" : ""}`}

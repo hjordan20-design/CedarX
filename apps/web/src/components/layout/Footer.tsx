@@ -100,14 +100,15 @@ export function Footer() {
             borderTop: "1px solid rgba(196,133,42,0.08)",
             display: "flex",
             flexDirection: "column",
-            gap: "12px",
+            gap: "8px",
+            alignItems: "center",
+            textAlign: "center",
           }}
-          className="sm:flex-row sm:items-center sm:justify-between"
         >
           <p style={{ fontSize: "12px", color: "var(--cedar-muted)" }}>
             © {new Date().getFullYear()} CedarX. All rights reserved.
           </p>
-          <p style={{ fontSize: "12px", color: "rgba(28,23,16,0.28)", maxWidth: "360px" }} className="sm:text-right">
+          <p style={{ fontSize: "12px", color: "rgba(28,23,16,0.28)" }}>
             Transactions are peer-to-peer and irreversible. CedarX takes no custody of funds or tokens.
           </p>
         </div>

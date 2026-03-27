@@ -84,7 +84,10 @@ assetsRouter.get("/", async (req: Request, res: Response) => {
     let effectiveTotal = result.total;
     let effectiveHasMore = result.hasMore;
     if (result.total === null && !filters.search) {
-        const catKey = (filters.category ?? "") as string;
+        // When filtering by protocol with no category, use the protocol-specific cross-tab key
+        const catKey = (filters.protocol && !filters.category)
+            ? `protocol:${filters.protocol}`
+            : (filters.category ?? "") as string;
         const statusKey = listingFilter as StatusKey;
         const precomputed = lookupCrossTab(catKey, statusKey);
         if (precomputed !== undefined) {

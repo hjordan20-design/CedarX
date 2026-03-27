@@ -27,23 +27,35 @@ function Thumb({ asset }: { asset: Asset }) {
         height: "58px",
         flexShrink: 0,
         border: "1px solid rgba(196,133,42,0.28)",
-        background: "rgba(28,23,16,0.60)",
+        background: "linear-gradient(135deg, #2C1F0A 0%, #1A1408 50%, #0D0B07 100%)",
         overflow: "hidden",
+        position: "relative",
       }}
     >
-      {src ? (
-        <img
-          src={src}
-          alt={asset.name ?? ""}
-          loading="lazy"
-          style={{ width: "100%", height: "100%", objectFit: "cover" }}
-          onError={() => {
-            if (src !== sat && sat) setSrc(sat);
-            else setSrc(null);
-          }}
-        />
-      ) : (
-        <div style={{ width: "100%", height: "100%", background: "linear-gradient(135deg, #2C1F0A 0%, #1A1408 50%, #0D0B07 100%)" }} />
+      {src && (
+        <>
+          {/* Hidden img for error detection — prevents yellow triangle */}
+          <img
+            src={src}
+            alt=""
+            aria-hidden="true"
+            style={{ position: "absolute", width: 0, height: 0, opacity: 0 }}
+            onError={() => {
+              if (src !== sat && sat) setSrc(sat);
+              else setSrc(null);
+            }}
+          />
+          {/* CSS background never shows broken-image icon */}
+          <div
+            style={{
+              width: "100%",
+              height: "100%",
+              backgroundImage: `url(${src})`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+            }}
+          />
+        </>
       )}
     </div>
   );
@@ -94,13 +106,24 @@ function LaneBgImage({ asset }: { asset: Asset }) {
         pointerEvents: "none",
       }}
     >
+      {/* Hidden img for error detection — CSS background never shows broken-image icon */}
       <img
         src={src}
         alt=""
-        style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }}
+        aria-hidden="true"
+        style={{ position: "absolute", width: 0, height: 0, opacity: 0 }}
         onError={() => {
           if (src !== sat && sat) setSrc(sat);
           else setSrc(null);
+        }}
+      />
+      <div
+        style={{
+          width: "100%",
+          height: "100%",
+          backgroundImage: `url(${src})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center top",
         }}
       />
     </div>
