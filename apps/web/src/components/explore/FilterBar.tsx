@@ -41,39 +41,89 @@ function SelectField({ label, value, options, onSelect, placeholder }: {
   );
 }
 
-function NumberRangeField({ label, min, max, onChangeMin, onChangeMax, unit }: {
-  label: string;
-  min: number | undefined;
-  max: number | undefined;
-  onChangeMin: (v: number | undefined) => void;
-  onChangeMax: (v: number | undefined) => void;
-  unit?: string;
+// ─── Acreage range dropdown ────────────────────────────────────────────────────
+
+const ACREAGE_OPTIONS: { label: string; min?: number; max?: number }[] = [
+  { label: "Any" },
+  { label: "0–1 acre",      min: 0,   max: 1 },
+  { label: "1–5 acres",     min: 1,   max: 5 },
+  { label: "5–20 acres",    min: 5,   max: 20 },
+  { label: "20–100 acres",  min: 20,  max: 100 },
+  { label: "100+ acres",    min: 100 },
+];
+
+function acreageKey(min?: number, max?: number): string {
+  const opt = ACREAGE_OPTIONS.find(o => o.min === min && o.max === max);
+  return opt?.label ?? "Any";
+}
+
+function AcreageDropdown({ minAcreage, maxAcreage, onChange }: {
+  minAcreage?: number;
+  maxAcreage?: number;
+  onChange: (min?: number, max?: number) => void;
 }) {
+  const value = acreageKey(minAcreage, maxAcreage);
   return (
     <div className="flex flex-col gap-1">
-      <label className="text-cedar-muted text-[10px] font-sans tracking-widest uppercase">{label}{unit ? ` (${unit})` : ""}</label>
-      <div className="flex items-center gap-1">
-        <input
-          type="number"
-          min={0}
-          placeholder="Min"
-          value={min ?? ""}
-          onChange={e => onChangeMin(e.target.value ? Number(e.target.value) : undefined)}
-          className="w-20 bg-cedar-surface border border-cedar-border px-2 py-2 text-xs font-sans text-cedar-text focus:outline-none focus:border-cedar-muted transition-colors duration-150"
-        />
-        <span className="text-cedar-muted text-xs">–</span>
-        <input
-          type="number"
-          min={0}
-          placeholder="Max"
-          value={max ?? ""}
-          onChange={e => onChangeMax(e.target.value ? Number(e.target.value) : undefined)}
-          className="w-20 bg-cedar-surface border border-cedar-border px-2 py-2 text-xs font-sans text-cedar-text focus:outline-none focus:border-cedar-muted transition-colors duration-150"
-        />
-      </div>
+      <label className="text-cedar-muted text-[10px] font-sans tracking-widest uppercase">Acreage</label>
+      <select
+        value={value}
+        onChange={e => {
+          const opt = ACREAGE_OPTIONS.find(o => o.label === e.target.value);
+          onChange(opt?.min, opt?.max);
+        }}
+        className="bg-cedar-surface border border-cedar-border pl-3 pr-2 py-2 text-xs font-sans text-cedar-text focus:outline-none focus:border-cedar-muted cursor-pointer transition-colors duration-150 min-w-[140px]"
+      >
+        {ACREAGE_OPTIONS.map(o => (
+          <option key={o.label} value={o.label}>{o.label}</option>
+        ))}
+      </select>
     </div>
   );
 }
+
+// ─── Price range dropdown ──────────────────────────────────────────────────────
+
+const PRICE_OPTIONS: { label: string; min?: number; max?: number }[] = [
+  { label: "Any" },
+  { label: "Under $1,000",        max: 1_000 },
+  { label: "$1,000–$5,000",       min: 1_000,   max: 5_000 },
+  { label: "$5,000–$25,000",      min: 5_000,   max: 25_000 },
+  { label: "$25,000–$100,000",    min: 25_000,  max: 100_000 },
+  { label: "$100,000+",           min: 100_000 },
+];
+
+function priceKey(min?: number, max?: number): string {
+  const opt = PRICE_OPTIONS.find(o => o.min === min && o.max === max);
+  return opt?.label ?? "Any";
+}
+
+function PriceDropdown({ minPrice, maxPrice, onChange }: {
+  minPrice?: number;
+  maxPrice?: number;
+  onChange: (min?: number, max?: number) => void;
+}) {
+  const value = priceKey(minPrice, maxPrice);
+  return (
+    <div className="flex flex-col gap-1">
+      <label className="text-cedar-muted text-[10px] font-sans tracking-widest uppercase">Price (USDC)</label>
+      <select
+        value={value}
+        onChange={e => {
+          const opt = PRICE_OPTIONS.find(o => o.label === e.target.value);
+          onChange(opt?.min, opt?.max);
+        }}
+        className="bg-cedar-surface border border-cedar-border pl-3 pr-2 py-2 text-xs font-sans text-cedar-text focus:outline-none focus:border-cedar-muted cursor-pointer transition-colors duration-150 min-w-[160px]"
+      >
+        {PRICE_OPTIONS.map(o => (
+          <option key={o.label} value={o.label}>{o.label}</option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
+// ─── FilterBar ────────────────────────────────────────────────────────────────
 
 export function FilterBar({ filters, onChange, total }: FilterBarProps) {
   const { data: statesData } = useQuery({
@@ -220,23 +270,17 @@ export function FilterBar({ filters, onChange, total }: FilterBarProps) {
         />
 
         {/* Acreage range */}
-        <NumberRangeField
-          label="Acreage"
-          min={filters.minAcreage}
-          max={filters.maxAcreage}
-          onChangeMin={v => set({ minAcreage: v })}
-          onChangeMax={v => set({ maxAcreage: v })}
-          unit="acres"
+        <AcreageDropdown
+          minAcreage={filters.minAcreage}
+          maxAcreage={filters.maxAcreage}
+          onChange={(min, max) => set({ minAcreage: min, maxAcreage: max })}
         />
 
         {/* Price range */}
-        <NumberRangeField
-          label="Price"
-          min={filters.minPrice}
-          max={filters.maxPrice}
-          onChangeMin={v => set({ minPrice: v })}
-          onChangeMax={v => set({ maxPrice: v })}
-          unit="USDC"
+        <PriceDropdown
+          minPrice={filters.minPrice}
+          maxPrice={filters.maxPrice}
+          onChange={(min, max) => set({ minPrice: min, maxPrice: max })}
         />
       </div>
     </div>

@@ -19,7 +19,7 @@ const STEPS = [
     number: "03",
     icon: <Zap size={18} strokeWidth={1.5} />,
     title: "Buy with USDC",
-    body: "Approve once, then execute. The swap contract transfers the deed token to you and USDC to the seller — atomically, in one transaction.",
+    body: "Approve once, then execute. Seaport protocol on Ethereum transfers the deed token to you and USDC to the seller — atomically, in one transaction.",
   },
 ];
 
@@ -92,8 +92,8 @@ export function HowItWorks() {
           className="sm:flex-row sm:items-center sm:justify-between"
         >
           <p style={{ fontSize: "14px", fontWeight: 300, color: "rgba(28,23,16,0.55)", maxWidth: "420px", lineHeight: 1.7 }}>
-            Every swap is executed by a{" "}
-            <span style={{ color: "#1C1710", fontWeight: 400 }}>non-custodial smart contract</span>{" "}
+            Every purchase is settled through{" "}
+            <span style={{ color: "#1C1710", fontWeight: 400 }}>Seaport protocol</span>{" "}
             on Ethereum. CedarX never holds your tokens or funds.
           </p>
           <Link to="/about" className="btn-ghost shrink-0">

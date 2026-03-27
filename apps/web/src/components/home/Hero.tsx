@@ -33,7 +33,7 @@ export function Hero() {
             animationDelay: "0.1s",
           }}
         >
-          Buy land. <em style={{ fontStyle: "italic", color: "#C4852A" }}>Onchain.</em>
+          Real land. <em style={{ fontStyle: "italic", color: "#C4852A" }}>Onchain.</em>
         </h1>
 
         {/* Subtitle */}
@@ -50,8 +50,7 @@ export function Hero() {
             animationDelay: "0.22s",
           }}
         >
-          Browse tokenized land parcels across the United States.
-          Connect your wallet. Settle in USDC.
+          The marketplace for tokenized land. Browse. Buy. Sell. All in USDC.
         </p>
 
         {/* Search bar — submits to /explore */}

@@ -108,8 +108,7 @@ export function TokenizePage() {
             Request received.
           </p>
           <p style={{ fontSize: "14px", fontWeight: 300, color: "var(--cedar-muted)", lineHeight: 1.7 }}>
-            We'll review your submission and follow up at {form.email}.
-            Typical response time is 1–3 business days.
+            We'll be in touch within 48 hours to help tokenize your property.
           </p>
         </div>
       ) : (

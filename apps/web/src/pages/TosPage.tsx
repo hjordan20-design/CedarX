@@ -33,21 +33,19 @@ const sections: Section[] = [
     content: (
       <>
         <p>
-          CedarX is a non-custodial, decentralized marketplace that allows users to
-          discover, buy, and sell non-fungible tokens (NFTs) representing verified
-          real-world assets ("RWA NFTs"), including but not limited to real estate parcels,
-          luxury goods, artwork, and collectibles.
+          CedarX is a non-custodial marketplace that allows users to discover, buy, and
+          sell tokenized land — non-fungible tokens (NFTs) representing ownership of real
+          US property parcels.
         </p>
         <p>
           CedarX does not hold, transfer, or custody any assets on behalf of users.
           All transactions are executed directly by users through their own self-custody
-          wallets on the Ethereum blockchain.
+          wallets on the Ethereum blockchain via Seaport protocol.
         </p>
         <p>
-          CedarX indexes and displays on-chain data from third-party RWA protocols
-          including Fabrica, Propy, and Roofstock onChain. We are not affiliated with
-          these protocols and do not represent, warrant, or guarantee the accuracy of
-          information provided by them.
+          CedarX indexes and displays on-chain data from the Fabrica tokenization protocol.
+          We are not affiliated with Fabrica and do not represent, warrant, or guarantee
+          the accuracy of information provided by third-party protocols.
         </p>
       </>
     ),
@@ -98,24 +96,25 @@ const sections: Section[] = [
     content: (
       <>
         <p>
-          When you purchase an RWA NFT through CedarX, you are acquiring the NFT token
-          itself. Legal title to the underlying physical asset is governed entirely by the
-          issuing protocol's legal framework, the applicable jurisdiction's property law,
-          and any associated legal agreements between you and the relevant parties.
+          When you purchase a tokenized land parcel through CedarX, you are acquiring a
+          Fabrica ERC-721 token. Legal ownership of the underlying real property is
+          governed by Fabrica's legal framework, applicable state property law, and any
+          associated legal agreements between you and the relevant parties.
         </p>
         <p>
           CedarX makes no representation that:
         </p>
         <ul>
-          <li>The NFT confers legal title to any physical asset.</li>
-          <li>The asset description, images, or metadata are accurate or complete.</li>
-          <li>The issuing protocol has completed all required legal steps to tokenize the asset.</li>
-          <li>The asset is free from liens, encumbrances, or third-party claims.</li>
+          <li>The token confers clear or marketable legal title to any real property.</li>
+          <li>Property descriptions, images, acreage, or metadata are accurate or complete.</li>
+          <li>The tokenization process has satisfied all applicable legal requirements.</li>
+          <li>The property is free from liens, encumbrances, or third-party claims.</li>
+          <li>The property is suitable for any particular use or development.</li>
         </ul>
         <p>
           Buyers are solely responsible for conducting due diligence before purchasing any
-          RWA NFT, including reviewing the issuing protocol's documentation and consulting
-          independent legal counsel where appropriate.
+          tokenized land parcel, including consulting independent legal counsel, reviewing
+          public property records, and physically inspecting the parcel where appropriate.
         </p>
       </>
     ),
@@ -169,25 +168,31 @@ const sections: Section[] = [
         </p>
         <ul>
           <li>
-            <strong>Smart contract risk.</strong> The CedarX swap contract has not yet
-            been formally audited. Bugs or vulnerabilities could result in loss of funds.
+            <strong>Smart contract risk.</strong> Transactions are executed through
+            Seaport protocol on Ethereum. Bugs or vulnerabilities in any smart contract
+            could result in loss of funds or tokens.
           </li>
           <li>
-            <strong>Price volatility.</strong> The value of RWA NFTs may fluctuate
+            <strong>Price volatility.</strong> The value of tokenized land may fluctuate
             significantly. Past transaction prices are not indicative of future value.
           </li>
           <li>
-            <strong>Liquidity risk.</strong> RWA NFT markets may be illiquid. You may
-            not be able to sell an asset at your desired price or at all.
+            <strong>Liquidity risk.</strong> Secondary markets for tokenized land are thin.
+            You may not be able to sell a parcel at your desired price or at all.
           </li>
           <li>
-            <strong>Regulatory risk.</strong> Laws governing tokenized real-world assets
-            are evolving. Future regulations may affect the legality or value of RWA NFTs.
+            <strong>Regulatory risk.</strong> Laws governing tokenized real property
+            are evolving. Future regulations may affect the legality, transferability,
+            or value of tokenized land.
           </li>
           <li>
-            <strong>Protocol risk.</strong> Third-party protocols may change, pause, or
-            discontinue their services, affecting the legal rights associated with
-            their NFTs.
+            <strong>Protocol risk.</strong> The Fabrica protocol may change, pause, or
+            discontinue its services, affecting the legal rights associated with
+            Fabrica tokens.
+          </li>
+          <li>
+            <strong>Title risk.</strong> Underlying parcels may be subject to title
+            disputes, encumbrances, or claims not reflected in on-chain data.
           </li>
           <li>
             <strong>Network risk.</strong> Ethereum network congestion, forks, or outages
@@ -206,10 +211,10 @@ const sections: Section[] = [
     title: "9. No Investment Advice",
     content: (
       <p>
-        Nothing on CedarX constitutes investment, financial, legal, or tax advice.
-        All information is provided for informational purposes only. You should consult
-        qualified professionals before making any investment or purchasing decision
-        involving tokenized assets.
+        Nothing on CedarX constitutes investment, financial, legal, real estate, or tax
+        advice. All information is provided for informational purposes only. You should
+        consult qualified professionals — including a licensed real estate attorney —
+        before purchasing any tokenized land parcel.
       </p>
     ),
   },

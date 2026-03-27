@@ -20,7 +20,7 @@ const FAQ_SECTIONS: { heading: string; items: FAQItem[] }[] = [
       },
       {
         q: "Is CedarX a broker or custodian?",
-        a: "No. CedarX never holds your tokens or your funds. All trades are peer-to-peer, executed by non-custodial smart contracts on Ethereum. The deed token stays in the seller's wallet until the moment of settlement.",
+        a: "No. CedarX never holds your tokens or your funds. All trades are peer-to-peer, settled through Seaport protocol on Ethereum. The deed token stays in the seller's wallet until the moment of settlement.",
       },
       {
         q: "Who is CedarX for?",
@@ -35,10 +35,10 @@ const FAQ_SECTIONS: { heading: string; items: FAQItem[] }[] = [
         q: "How does a purchase work?",
         a: (
           <>
-            When you click Buy, CedarX routes the order through a non-custodial swap contract. The flow is:
+            When you click Buy, CedarX submits the order through Seaport protocol on Ethereum. The flow is:
             <ol className="mt-3 space-y-2 list-decimal list-inside text-cedar-muted">
               <li>You approve a USDC transfer for the listing price.</li>
-              <li>The swap contract executes — transferring the deed token to your wallet and USDC to the seller, atomically in one transaction.</li>
+              <li>Seaport executes — transferring the deed token to your wallet and USDC to the seller, atomically in one transaction.</li>
               <li>If either side of the transfer fails, the entire transaction reverts. You never lose funds to a partial fill.</li>
             </ol>
           </>
@@ -66,17 +66,17 @@ const FAQ_SECTIONS: { heading: string; items: FAQItem[] }[] = [
     heading: "What you're buying",
     items: [
       {
-        q: "What is a Fabrica token?",
-        a: "A Fabrica token (ERC-721) represents full legal ownership of a US land parcel. The deed is held by a Wyoming LLC whose sole member is the token holder. Owning the token equals owning the land, with all legal rights that entails.",
+        q: "What do I own when I buy land on CedarX?",
+        a: "Each listing on CedarX is backed by a Fabrica token — an ERC-721 on Ethereum that represents full legal ownership of a US land parcel. The property is held in trust, and ownership of the token equals ownership of the land. Consult a licensed attorney for advice specific to your jurisdiction.",
       },
       {
-        q: "How does Fabrica ownership work legally?",
+        q: "How does ownership transfer work?",
         a: (
           <>
-            When you buy a Fabrica token:
+            When you buy a Fabrica token on CedarX:
             <ol className="mt-3 space-y-2 list-decimal list-inside text-cedar-muted">
-              <li>The seller transfers the ERC-721 token to your wallet on Ethereum.</li>
-              <li>The underlying Wyoming LLC — which holds the property deed — automatically recognizes the new token holder as its sole member.</li>
+              <li>The seller's deed token transfers to your Ethereum wallet via Seaport.</li>
+              <li>The property trust automatically recognizes the new token holder as the owner.</li>
               <li>You are now the legal owner of the land parcel.</li>
             </ol>
             <p className="mt-3">Consult a licensed attorney for advice on property ownership in your jurisdiction.</p>
@@ -114,8 +114,8 @@ const FAQ_SECTIONS: { heading: string; items: FAQItem[] }[] = [
     heading: "Risk & security",
     items: [
       {
-        q: "Is the CedarX smart contract audited?",
-        a: "The CedarX swap contract is currently in development and has not yet undergone a third-party security audit. An audit is planned prior to the full production launch.",
+        q: "Is the underlying protocol secure?",
+        a: "CedarX uses Seaport, an open-source protocol developed and audited by OpenSea. Fabrica's tokenization contracts have been reviewed independently. CedarX itself does not deploy any custom smart contracts. As with any on-chain transaction, verify all details before signing.",
       },
       {
         q: "Are transactions reversible?",
@@ -150,9 +150,7 @@ const FAQ_SECTIONS: { heading: string; items: FAQItem[] }[] = [
             <a href="https://x.com/cedarxio" target="_blank" rel="noopener noreferrer" className="text-cedar-amber hover:text-cedar-amber-lt transition-colors">
               @cedarxio on X
             </a>{" "}
-            for product updates and announcements. For protocol-specific questions, refer to the{" "}
-            <a href="https://fabrica.land" target="_blank" rel="noopener noreferrer" className="text-cedar-amber hover:text-cedar-amber-lt transition-colors">Fabrica documentation</a>.
-            Email us at{" "}
+            for product updates and announcements. Email us at{" "}
             <a href="mailto:hello@cedarx.io" className="text-cedar-amber hover:text-cedar-amber-lt transition-colors">hello@cedarx.io</a>.
           </>
         ),

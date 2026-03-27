@@ -5,15 +5,21 @@
  * Each lane fetches 3 listed/unlisted Fabrica assets for thumbnails.
  */
 
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { fetchAssets } from "@/lib/api";
 import type { Asset } from "@/lib/types";
+import { mapboxSatUrl } from "@/lib/mapbox";
 
 // ─── Thumbnail strip ──────────────────────────────────────────────────────────
 
 function Thumb({ asset }: { asset: Asset }) {
+  const sat = mapboxSatUrl(asset.details.lat, asset.details.lng);
+  const initial = asset.imageUrl ?? sat;
+  const [src, setSrc] = useState<string | null>(initial ?? null);
+
   return (
     <div
       style={{
@@ -25,15 +31,19 @@ function Thumb({ asset }: { asset: Asset }) {
         overflow: "hidden",
       }}
     >
-      {asset.imageUrl ? (
+      {src ? (
         <img
-          src={asset.imageUrl}
+          src={src}
           alt={asset.name ?? ""}
           loading="lazy"
           style={{ width: "100%", height: "100%", objectFit: "cover" }}
+          onError={() => {
+            if (src !== sat && sat) setSrc(sat);
+            else setSrc(null);
+          }}
         />
       ) : (
-        <div style={{ width: "100%", height: "100%", background: "rgba(196,133,42,0.06)" }} />
+        <div style={{ width: "100%", height: "100%", background: "linear-gradient(135deg, #2C1F0A 0%, #1A1408 50%, #0D0B07 100%)" }} />
       )}
     </div>
   );
@@ -65,9 +75,41 @@ interface LaneProps {
   isLoading: boolean;
 }
 
+function LaneBgImage({ asset }: { asset: Asset }) {
+  const sat = mapboxSatUrl(asset.details.lat, asset.details.lng);
+  const initial = asset.imageUrl ?? sat;
+  const [src, setSrc] = useState<string | null>(initial ?? null);
+
+  if (!src) return null;
+  return (
+    <div
+      className="group-hover:opacity-50"
+      style={{
+        position: "absolute",
+        inset: 0,
+        overflow: "hidden",
+        opacity: 0.32,
+        filter: "saturate(0.65)",
+        transition: "opacity 0.5s ease",
+        pointerEvents: "none",
+      }}
+    >
+      <img
+        src={src}
+        alt=""
+        style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }}
+        onError={() => {
+          if (src !== sat && sat) setSrc(sat);
+          else setSrc(null);
+        }}
+      />
+    </div>
+  );
+}
+
 function Lane({ href, heading, subtext, ctaLabel, badge, assets, isLoading }: LaneProps) {
-  const bgAsset = assets.find(a => a.imageUrl) ?? null;
-  const thumbs  = assets.filter(a => a.imageUrl).slice(0, 3);
+  const bgAsset = assets.find(a => a.imageUrl || (a.details.lat != null && a.details.lng != null)) ?? null;
+  const thumbs  = assets.slice(0, 3);
 
   return (
     <Link
@@ -91,22 +133,8 @@ function Lane({ href, heading, subtext, ctaLabel, badge, assets, isLoading }: La
         (e.currentTarget as HTMLElement).style.borderColor = "rgba(196,133,42,0.12)";
       }}
     >
-      {/* Background asset image */}
-      {bgAsset?.imageUrl && (
-        <div
-          className="group-hover:opacity-50"
-          style={{
-            position: "absolute",
-            inset: 0,
-            backgroundImage: `url(${bgAsset.imageUrl})`,
-            backgroundSize: "cover",
-            backgroundPosition: "center top",
-            opacity: 0.32,
-            filter: "saturate(0.65)",
-            transition: "opacity 0.5s ease",
-          }}
-        />
-      )}
+      {/* Background asset image with satellite fallback */}
+      {bgAsset && <LaneBgImage asset={bgAsset} />}
 
       {/* Gradient overlay */}
       <div

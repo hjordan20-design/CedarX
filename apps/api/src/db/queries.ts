@@ -124,7 +124,9 @@ export async function getAssets(filters: AssetFilters = {}): Promise<PaginatedRe
             query = query.not("current_listing_price", "is", null);
         }
     } else if (effectiveFilter === "unlisted") {
-        query = query.eq("has_active_listing", false);
+        // Match assets not actively listed: has_active_listing = false OR NULL
+        // (Fabrica land assets that have never been listed have NULL, not false)
+        query = (query as any).or("has_active_listing.eq.false,has_active_listing.is.null");
     }
     // "all" → no listing filter applied
     if (filters.minPrice != null) query = query.gte("current_listing_price", filters.minPrice);
@@ -266,11 +268,13 @@ export async function getStats() {
     const db = getDb();
 
     const [assetCount, activeListings, tradeStats, protocolBreakdown] = await Promise.all([
-        // Total indexed assets
-        db.from("assets").select("id", { count: "exact", head: true }),
-
-        // Active listing count — use assets.has_active_listing (Seaport listings)
+        // Total indexed assets — land only
         db.from("assets").select("id", { count: "exact", head: true })
+            .eq("protocol", "fabrica"),
+
+        // Active listing count — Fabrica land only
+        db.from("assets").select("id", { count: "exact", head: true })
+            .eq("protocol", "fabrica")
             .eq("has_active_listing", true)
             .not("current_listing_price", "is", null),
 
@@ -413,6 +417,7 @@ export async function getTrendingAssets(limit = 8): Promise<AssetRow[]> {
                 .from("assets")
                 .select("*")
                 .in("id", topIds)
+                .eq("protocol", "fabrica")
                 .not("name", "match", "^#[0-9]");
 
             if (!assetsErr && assets && assets.length > 0) {
@@ -423,10 +428,11 @@ export async function getTrendingAssets(limit = 8): Promise<AssetRow[]> {
         }
     }
 
-    // Fallback: most recently updated listed assets with images
+    // Fallback: most recently updated listed Fabrica assets with images
     const { data, error } = await db
         .from("assets")
         .select("*")
+        .eq("protocol", "fabrica")
         .eq("has_active_listing", true)
         .not("name", "match", "^#[0-9]")
         .not("image_url", "is", null)

@@ -6,6 +6,7 @@ import { ProtocolBadge } from "@/components/common/ProtocolBadge";
 import { CategoryTag } from "@/components/common/CategoryTag";
 import { VerifiedBadge } from "@/components/common/VerifiedBadge";
 import { formatTokenPrice, formatUSDC, formatAcreage } from "@/lib/formatters";
+import { mapboxSatUrl } from "@/lib/mapbox";
 
 // ─── IPFS gateway cycling ─────────────────────────────────────────────────────
 // When an IPFS image fails to load, retry with the next public gateway.
@@ -108,7 +109,7 @@ function AssetImageFallback({ asset }: { asset: Asset }) {
   );
 }
 
-function AssetCardImage({ imageUrl, alt, fallback }: { imageUrl: string; alt: string; fallback: React.ReactNode }) {
+function AssetCardImage({ imageUrl, alt, fallback, satUrl }: { imageUrl: string; alt: string; fallback: React.ReactNode; satUrl?: string | null }) {
   const [src, setSrc] = useState(imageUrl);
   const [failed, setFailed] = useState(false);
   const tried = useRef(new Set<string>([imageUrl]));
@@ -118,6 +119,12 @@ function AssetCardImage({ imageUrl, alt, fallback }: { imageUrl: string; alt: st
     if (cid) {
       const next = IPFS_GATEWAYS.map((gw) => `${gw}${cid}`).find((u) => !tried.current.has(u));
       if (next) { tried.current.add(next); setSrc(next); return; }
+    }
+    // Mapbox satellite fallback for land assets
+    if (satUrl && !tried.current.has(satUrl)) {
+      tried.current.add(satUrl);
+      setSrc(satUrl);
+      return;
     }
     setFailed(true);
   }
@@ -136,17 +143,20 @@ function AssetCardImage({ imageUrl, alt, fallback }: { imageUrl: string; alt: st
 
 export function AssetCard({ asset }: { asset: Asset }) {
   const displayName = cleanAssetName(asset.name);
+  const satUrl = mapboxSatUrl(asset.details.lat, asset.details.lng);
+  const effectiveImageUrl = asset.imageUrl ?? satUrl ?? undefined;
   return (
     <Link
       to={`/assets/${encodeURIComponent(asset.id)}`}
       className="group card flex flex-col overflow-hidden hover:border-cedar-muted transition-colors duration-200"
     >
       <div className="relative aspect-video overflow-hidden bg-cedar-surface-alt max-h-[180px]">
-        {asset.imageUrl ? (
+        {effectiveImageUrl ? (
           <AssetCardImage
-            imageUrl={asset.imageUrl}
+            imageUrl={effectiveImageUrl}
             alt={displayName}
             fallback={<AssetImageFallback asset={asset} />}
+            satUrl={satUrl}
           />
         ) : (
           <AssetImageFallback asset={asset} />

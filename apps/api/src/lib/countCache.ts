@@ -50,7 +50,8 @@ async function countOne(
     if (status === "listed") {
         q = q.eq("has_active_listing", true).not("current_listing_price", "is", null);
     } else if (status === "unlisted") {
-        q = q.eq("has_active_listing", false);
+        // Match assets not actively listed: false OR NULL
+        q = (q as any).or("has_active_listing.eq.false,has_active_listing.is.null");
     }
     // "all" → no listing filter
     const { count, error } = await q;
