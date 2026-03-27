@@ -13,7 +13,7 @@ export function Footer() {
       <div
         className="px-6 pt-16 pb-10 lg:pl-[80px] lg:pr-[52px] lg:pt-[80px] lg:pb-[60px]"
       >
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-16">
           {/* Brand */}
           <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
@@ -29,11 +29,11 @@ export function Footer() {
             </div>
 
             <p style={{ fontSize: "15px", fontWeight: 300, lineHeight: 1.7, color: "var(--cedar-muted)", maxWidth: "220px" }}>
-              The real-world asset marketplace. Peer-to-peer trading of tokenized real estate, luxury goods, and collectibles.
+              The marketplace for tokenized land. Buy and sell real property with USDC.
             </p>
 
             <p style={{ fontFamily: "Cormorant Garamond, Georgia, serif", fontStyle: "italic", fontWeight: 400, fontSize: "20px", color: "#C4852A" }}>
-              Real assets. Onchain.
+              Real land. Onchain.
             </p>
           </div>
 
@@ -44,10 +44,11 @@ export function Footer() {
             </h3>
             <nav style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
               {[
-                { to: "/",        label: "Home" },
-                { to: "/explore", label: "Explore assets" },
-                { to: "/about",   label: "How it works" },
-                { to: "/tos",     label: "Terms of service" },
+                { to: "/",          label: "Home" },
+                { to: "/explore",   label: "Browse properties" },
+                { to: "/tokenize",  label: "Tokenize your land" },
+                { to: "/about",     label: "How it works" },
+                { to: "/tos",       label: "Terms of service" },
               ].map(({ to, label }) => (
                 <Link
                   key={to}
@@ -58,33 +59,6 @@ export function Footer() {
                 >
                   {label}
                 </Link>
-              ))}
-            </nav>
-          </div>
-
-          {/* Protocols */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-            <h3 style={{ fontFamily: "DM Sans, system-ui, sans-serif", fontSize: "11px", letterSpacing: "0.18em", textTransform: "uppercase", color: "var(--cedar-muted)" }}>
-              Indexed protocols
-            </h3>
-            <nav style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-              {[
-                { href: "https://fabrica.land",       label: "Fabrica" },
-                { href: "https://courtyard.io",       label: "Courtyard" },
-                { href: "https://opensea.io/collection/4kprotocol", label: "4K Protocol" },
-                { href: "https://arianee.org",        label: "Arianee" },
-              ].map(({ href, label }) => (
-                <a
-                  key={href}
-                  href={href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ fontSize: "15px", fontWeight: 300, color: "var(--cedar-muted)", textDecoration: "none", transition: "color 0.3s ease" }}
-                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#C4852A"; }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "var(--cedar-muted)"; }}
-                >
-                  {label}
-                </a>
               ))}
             </nav>
           </div>

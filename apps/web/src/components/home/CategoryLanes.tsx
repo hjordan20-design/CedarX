@@ -1,12 +1,8 @@
 /**
- * CategoryLanes — two equal-weight editorial lanes on the homepage.
+ * CategoryLanes — land marketplace editorial section.
  *
- * Left:  Real Estate & Luxury  → /explore?category=real-estate
- * Right: Collectibles           → /explore?category=collectibles
- *
- * Each lane fetches 3 listed assets for the category thumbnail strip.
- * The first asset's image becomes a subtle background texture; the
- * remaining two appear as small floating cards.
+ * Shows two lanes: "For Sale" and "Make an Offer".
+ * Each lane fetches 3 listed/unlisted Fabrica assets for thumbnails.
  */
 
 import { useQuery } from "@tanstack/react-query";
@@ -64,15 +60,14 @@ interface LaneProps {
   heading: string;
   subtext: string;
   ctaLabel: string;
-  protocols: string;
+  badge: string;
   assets: Asset[];
   isLoading: boolean;
 }
 
-function Lane({ href, heading, subtext, ctaLabel, protocols, assets, isLoading }: LaneProps) {
-  // First image-bearing asset → background texture; rest → thumbnails
-  const bgAsset  = assets.find(a => a.imageUrl) ?? null;
-  const thumbs   = assets.filter(a => a.imageUrl).slice(0, 3);
+function Lane({ href, heading, subtext, ctaLabel, badge, assets, isLoading }: LaneProps) {
+  const bgAsset = assets.find(a => a.imageUrl) ?? null;
+  const thumbs  = assets.filter(a => a.imageUrl).slice(0, 3);
 
   return (
     <Link
@@ -96,7 +91,7 @@ function Lane({ href, heading, subtext, ctaLabel, protocols, assets, isLoading }
         (e.currentTarget as HTMLElement).style.borderColor = "rgba(196,133,42,0.12)";
       }}
     >
-      {/* ── Background asset image (subtle texture, 35 → 50% on hover) ── */}
+      {/* Background asset image */}
       {bgAsset?.imageUrl && (
         <div
           className="group-hover:opacity-50"
@@ -113,7 +108,7 @@ function Lane({ href, heading, subtext, ctaLabel, protocols, assets, isLoading }
         />
       )}
 
-      {/* ── Gradient overlay — heavy at base for legibility ── */}
+      {/* Gradient overlay */}
       <div
         style={{
           position: "absolute",
@@ -123,7 +118,7 @@ function Lane({ href, heading, subtext, ctaLabel, protocols, assets, isLoading }
         }}
       />
 
-      {/* ── Content ── */}
+      {/* Content */}
       <div
         style={{
           position: "relative",
@@ -134,7 +129,7 @@ function Lane({ href, heading, subtext, ctaLabel, protocols, assets, isLoading }
           padding: "clamp(24px, 4vw, 40px)",
         }}
       >
-        {/* Protocol badge — top-left */}
+        {/* Badge — top-left */}
         <p
           style={{
             fontFamily: "JetBrains Mono, monospace",
@@ -145,10 +140,9 @@ function Lane({ href, heading, subtext, ctaLabel, protocols, assets, isLoading }
             marginBottom: "auto",
           }}
         >
-          {protocols}
+          {badge}
         </p>
 
-        {/* Spacer */}
         <div style={{ flex: 1 }} />
 
         {/* Thumbnail strip */}
@@ -216,15 +210,15 @@ function Lane({ href, heading, subtext, ctaLabel, protocols, assets, isLoading }
 // ─── CategoryLanes ────────────────────────────────────────────────────────────
 
 export function CategoryLanes() {
-  const { data: reData, isLoading: reLoading } = useQuery({
-    queryKey: ["assets", { sort: "newest", listingFilter: "listed", category: "real-estate", limit: 3 }],
-    queryFn: () => fetchAssets({ sort: "newest", listingFilter: "listed", category: "real-estate", limit: 3 }),
+  const { data: listedData, isLoading: listedLoading } = useQuery({
+    queryKey: ["assets", { sort: "newest", listingFilter: "listed", protocol: "fabrica", limit: 3 }],
+    queryFn: () => fetchAssets({ sort: "newest", listingFilter: "listed", protocol: "fabrica", limit: 3 }),
     staleTime: 120_000,
   });
 
-  const { data: colData, isLoading: colLoading } = useQuery({
-    queryKey: ["assets", { sort: "newest", listingFilter: "listed", category: "collectibles", limit: 3 }],
-    queryFn: () => fetchAssets({ sort: "newest", listingFilter: "listed", category: "collectibles", limit: 3 }),
+  const { data: unlistedData, isLoading: unlistedLoading } = useQuery({
+    queryKey: ["assets", { sort: "newest", listingFilter: "unlisted", protocol: "fabrica", limit: 3 }],
+    queryFn: () => fetchAssets({ sort: "newest", listingFilter: "unlisted", protocol: "fabrica", limit: 3 }),
     staleTime: 120_000,
   });
 
@@ -245,10 +239,9 @@ export function CategoryLanes() {
           textAlign: "center",
         }}
       >
-        Browse by category
+        Browse by intent
       </p>
 
-      {/* Two-lane grid — stacks on mobile (RE&Luxury on top, Collectibles below) */}
       <div
         style={{
           display: "grid",
@@ -258,22 +251,22 @@ export function CategoryLanes() {
         className="lg:[grid-template-columns:1fr_1fr]"
       >
         <Lane
-          href="/explore?category=real-estate"
-          heading="Real Estate & Luxury"
-          subtext="Tokenized property deeds, authenticated watches, and luxury goods. Browse and make offers."
-          ctaLabel="Explore Real Estate & Luxury"
-          protocols="Fabrica · 4K Protocol · Arianee"
-          assets={reData?.data ?? []}
-          isLoading={reLoading}
+          href="/explore?listingFilter=listed"
+          heading="Land For Sale"
+          subtext="Tokenized parcels with a fixed price. Connect your wallet and buy instantly with USDC."
+          ctaLabel="Browse for-sale land"
+          badge="Fabrica · Fixed price"
+          assets={listedData?.data ?? []}
+          isLoading={listedLoading}
         />
         <Lane
-          href="/explore?category=collectibles"
-          heading="Collectibles"
-          subtext="260,000+ authenticated sports cards, Pokémon, and trading cards. Buy instantly with USDC."
-          ctaLabel="Explore Collectibles"
-          protocols="Courtyard"
-          assets={colData?.data ?? []}
-          isLoading={colLoading}
+          href="/explore?listingFilter=unlisted"
+          heading="Make an Offer"
+          subtext="Every indexed parcel accepts offers — even unlisted ones. Submit your price to the owner onchain."
+          ctaLabel="Browse off-market land"
+          badge="Fabrica · Make offer"
+          assets={unlistedData?.data ?? []}
+          isLoading={unlistedLoading}
         />
       </div>
     </section>

@@ -28,7 +28,8 @@ homepageRouter.get("/", async (_req: Request, res: Response) => {
 
     const [statsResult, listingsResult, trendingResult] = await Promise.all([
         getStats(),
-        getAssets({ sort: "newest", listingFilter: "listed", page: 1, limit: 8 }),
+        // Land pivot: show only Fabrica (real estate) assets on the homepage.
+        getAssets({ sort: "newest", listingFilter: "listed", protocol: "fabrica", page: 1, limit: 8 }),
         getTrendingAssets(8),
     ]);
 

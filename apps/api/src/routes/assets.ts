@@ -19,7 +19,7 @@ const ListQuerySchema = z.object({
     chain:            z.enum(["ethereum", "polygon"]).optional(),
     minPrice:         z.coerce.number().nonnegative().optional(),
     maxPrice:         z.coerce.number().nonnegative().optional(),
-    sort:             z.enum(["price_asc", "price_desc", "newest", "volume"]).optional(),
+    sort:             z.enum(["price_asc", "price_desc", "newest", "volume", "acreage_asc", "acreage_desc"]).optional(),
     search:           z.string().max(100).optional(),
     // Three-way listing filter (preferred)
     listingFilter:    z.enum(["listed", "unlisted", "all"]).optional(),
@@ -31,6 +31,11 @@ const ListQuerySchema = z.object({
     limit:            z.coerce.number().int().positive().max(200).default(20),
     // Cursor for O(1) deep pagination (sort=newest only); value is a created_at timestamp
     cursor:           z.string().optional(),
+    // Land-specific filters
+    state:            z.string().max(100).optional(),
+    county:           z.string().max(100).optional(),
+    minAcreage:       z.coerce.number().nonnegative().optional(),
+    maxAcreage:       z.coerce.number().nonnegative().optional(),
 });
 
 assetsRouter.get("/", async (req: Request, res: Response) => {

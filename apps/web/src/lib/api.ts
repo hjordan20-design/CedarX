@@ -247,6 +247,34 @@ export function fetchProtocols(): Promise<{ data: ProtocolInfo[] }> {
   return get("/api/stats/protocols");
 }
 
+export function fetchStates(): Promise<{ data: string[] }> {
+  return get("/api/stats/states");
+}
+
+export function fetchCounties(state?: string): Promise<{ data: string[] }> {
+  return get("/api/stats/counties", state ? { state } : undefined);
+}
+
+export interface TokenizeRequest {
+  address: string;
+  state: string;
+  county?: string;
+  email: string;
+  notes?: string;
+}
+
+export async function postTokenizeRequest(data: TokenizeRequest): Promise<void> {
+  const res = await fetch(`${API_BASE_URL}/api/tokenize-request`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({})) as { error?: string };
+    throw new Error(body.error ?? "Failed to submit request.");
+  }
+}
+
 // ─── Trending / price history ─────────────────────────────────────────────────
 
 export function fetchTrendingAssets(): Promise<{ data: Asset[] }> {

@@ -4,56 +4,19 @@ import { useAssets } from "@/hooks/useAssets";
 import { FilterBar } from "@/components/explore/FilterBar";
 import { AssetGrid } from "@/components/explore/AssetGrid";
 import { Pagination } from "@/components/explore/Pagination";
-import type { AssetFilters, Category } from "@/lib/types";
-
-const CATEGORY_INFO: Record<string, { title: string; description: string }> = {
-  "real-estate": {
-    title: "Real Estate",
-    description:
-      "Tokenized property deeds and fractional real estate. From raw land parcels to residential homes.",
-  },
-  collectibles: {
-    title: "Collectibles",
-    description:
-      "Authenticated physical collectibles — sports memorabilia, rare coins, and trading cards.",
-  },
-  "luxury-goods": {
-    title: "Luxury Goods",
-    description:
-      "Authenticated watches, jewelry, and handbags. Each token is backed by a physically verified item.",
-  },
-  watches: {
-    title: "Watches",
-    description: "Luxury timepieces from top brands. Authenticated and tokenized on-chain.",
-  },
-  art: {
-    title: "Art",
-    description:
-      "Tokenized physical artwork from galleries and private collections. Coming soon.",
-  },
-};
+import type { AssetFilters } from "@/lib/types";
 
 const DEFAULT_PAGE_SIZE = 24;
 const VALID_PAGE_SIZES = new Set([24, 48, 100, 200]);
-const VALID_CATEGORIES = new Set<string>(["real-estate", "luxury-goods", "art", "collectibles", "watches"]);
-
-function categoryFromParam(param: string | null): Category | undefined {
-  return param && VALID_CATEGORIES.has(param) ? (param as Category) : undefined;
-}
 
 export function ExplorePage() {
   const [searchParams, setSearchParams] = useSearchParams();
 
   // In-memory cursor map: page number → cursor for that page's starting point.
-  // Keyed by `${filterSignature}:${page}` so it auto-invalidates when filters change.
-  // Not persisted in the URL — cursor navigation is a perf optimisation, not state.
   const cursorMapRef = useRef<Map<string, string>>(new Map());
 
   // URL is the single source of truth for all filter state.
-  // Deriving filters here means back/forward navigation automatically restores them.
-  // listingFilter defaults to "listed"; only stored in URL when changed.
   const rawListingFilter = searchParams.get("listingFilter");
-  // Backward-compat: old ?listedOnly=false links map to "all"
   const legacyListedOff = searchParams.get("listedOnly") === "false";
   const listingFilter: AssetFilters["listingFilter"] =
     rawListingFilter === "unlisted" || rawListingFilter === "all" || rawListingFilter === "listed"
@@ -65,14 +28,15 @@ export function ExplorePage() {
 
   const sort = (searchParams.get("sort") as AssetFilters["sort"]) ?? "newest";
   const page = Number(searchParams.get("page")) || 1;
-  const category = categoryFromParam(searchParams.get("category"));
   const search = searchParams.get("search") ?? undefined;
+  const state  = searchParams.get("state")  ?? undefined;
+  const county = searchParams.get("county") ?? undefined;
+  const minAcreage = searchParams.get("minAcreage") ? Number(searchParams.get("minAcreage")) : undefined;
+  const maxAcreage = searchParams.get("maxAcreage") ? Number(searchParams.get("maxAcreage")) : undefined;
+  const minPrice   = searchParams.get("minPrice")   ? Number(searchParams.get("minPrice"))   : undefined;
+  const maxPrice   = searchParams.get("maxPrice")   ? Number(searchParams.get("maxPrice"))   : undefined;
 
-  // Build a stable signature for the current filter set (excluding page).
-  // Used to scope the cursor map so stale cursors don't leak across filter changes.
-  const filterSig = `${sort}|${listingFilter}|${category ?? ""}|${search ?? ""}|${pageSize}`;
-
-  // Look up the cursor for the current page (populated after user navigates forward).
+  const filterSig = `${sort}|${listingFilter}|${state ?? ""}|${county ?? ""}|${search ?? ""}|${pageSize}`;
   const cursor = cursorMapRef.current.get(`${filterSig}:${page}`);
 
   const filters: AssetFilters = {
@@ -80,34 +44,29 @@ export function ExplorePage() {
     page,
     limit: pageSize,
     listingFilter,
-    category,
+    // Land pivot: always filter to Fabrica (real estate) assets only
+    protocol: "fabrica",
     search,
+    state,
+    county,
+    minAcreage,
+    maxAcreage,
+    minPrice,
+    maxPrice,
     ...(cursor ? { cursor } : {}),
   };
 
   const { data, isLoading, isError, error, isFetching } = useAssets(filters);
 
-  // After each successful fetch, store the nextCursor for the following page.
-  // This is a ref write — no re-render needed.
   if (data?.pagination.nextCursor) {
     cursorMapRef.current.set(`${filterSig}:${page + 1}`, data.pagination.nextCursor);
   }
 
   const handleFilterChange = useCallback((next: AssetFilters) => {
-    // Clear cursor map whenever filters change — cursors belong to a specific
-    // filter combination and must not carry over.
     cursorMapRef.current.clear();
-
-    const prevCategory = categoryFromParam(searchParams.get("category"));
-    // Only push a new history entry when the category changes — that's what
-    // the back button should undo. Sort/search/page changes replace in-place.
-    const categoryChanged = next.category !== prevCategory;
 
     setSearchParams(
       (params) => {
-        if (next.category) params.set("category", next.category);
-        else params.delete("category");
-
         if (next.sort && next.sort !== "newest") params.set("sort", next.sort);
         else params.delete("sort");
 
@@ -117,19 +76,34 @@ export function ExplorePage() {
         if (next.search) params.set("search", next.search);
         else params.delete("search");
 
-        // Only store listingFilter when it differs from the default ("listed")
         if (next.listingFilter && next.listingFilter !== "listed") params.set("listingFilter", next.listingFilter);
         else params.delete("listingFilter");
-        // Clean up old listedOnly param if present
-        params.delete("listedOnly");
 
-        // Reset to page 1 whenever filters change
+        if (next.state) params.set("state", next.state);
+        else params.delete("state");
+
+        if (next.county) params.set("county", next.county);
+        else params.delete("county");
+
+        if (next.minAcreage != null) params.set("minAcreage", String(next.minAcreage));
+        else params.delete("minAcreage");
+
+        if (next.maxAcreage != null) params.set("maxAcreage", String(next.maxAcreage));
+        else params.delete("maxAcreage");
+
+        if (next.minPrice != null) params.set("minPrice", String(next.minPrice));
+        else params.delete("minPrice");
+
+        if (next.maxPrice != null) params.set("maxPrice", String(next.maxPrice));
+        else params.delete("maxPrice");
+
+        params.delete("listedOnly");
         params.delete("page");
         return params;
       },
-      { replace: !categoryChanged },
+      { replace: true },
     );
-  }, [searchParams, setSearchParams]);
+  }, [setSearchParams]);
 
   const handlePageChange = useCallback((page: number) => {
     setSearchParams(
@@ -139,53 +113,38 @@ export function ExplorePage() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [setSearchParams]);
 
+  const pageTitle = state
+    ? county ? `${county} County, ${state}` : `Land in ${state}`
+    : "Browse Properties";
+
+  const pageDescription = state
+    ? county
+      ? `Tokenized land parcels in ${county} County, ${state}. Buy with USDC.`
+      : `Tokenized land parcels across ${state}. Filter by county, acreage, and price.`
+    : "Tokenized real estate and land parcels on the blockchain. Buy and sell with USDC.";
+
   return (
     <div className="max-w-[1440px] mx-auto px-6 pb-24 pt-[82px] sm:pt-[114px]">
-      {/* Page header — switches to category info when a category is selected */}
       <div className="mb-3 sm:mb-10">
-        {filters.category && CATEGORY_INFO[filters.category] ? (
-          <>
-            <h1
-              style={{
-                fontFamily: "Cormorant Garamond, Georgia, serif",
-                fontWeight: 300,
-                fontSize: "clamp(2rem, 4vw, 3.5rem)",
-                letterSpacing: "-0.02em",
-                color: "var(--cedar-text)",
-                marginBottom: "8px",
-              }}
-            >
-              {CATEGORY_INFO[filters.category].title}
-            </h1>
-            <p className="hidden sm:block" style={{ fontFamily: "DM Sans, system-ui, sans-serif", fontWeight: 300, fontSize: "17px", color: "var(--cedar-muted)" }}>
-              {CATEGORY_INFO[filters.category].description}
-            </p>
-          </>
-        ) : (
-          <>
-            <h1
-              style={{
-                fontFamily: "Cormorant Garamond, Georgia, serif",
-                fontWeight: 300,
-                fontSize: "clamp(2rem, 4vw, 3.5rem)",
-                letterSpacing: "-0.02em",
-                color: "var(--cedar-text)",
-                marginBottom: "8px",
-              }}
-            >
-              Explore assets
-            </h1>
-            <p className="hidden sm:block" style={{ fontFamily: "DM Sans, system-ui, sans-serif", fontWeight: 300, fontSize: "17px", color: "var(--cedar-muted)" }}>
-              Browse tokenized real-world assets across real estate, collectibles, and luxury goods.
-            </p>
-          </>
-        )}
+        <h1
+          style={{
+            fontFamily: "Cormorant Garamond, Georgia, serif",
+            fontWeight: 300,
+            fontSize: "clamp(2rem, 4vw, 3.5rem)",
+            letterSpacing: "-0.02em",
+            color: "var(--cedar-text)",
+            marginBottom: "8px",
+          }}
+        >
+          {pageTitle}
+        </h1>
+        <p className="hidden sm:block" style={{ fontFamily: "DM Sans, system-ui, sans-serif", fontWeight: 300, fontSize: "17px", color: "var(--cedar-muted)" }}>
+          {pageDescription}
+        </p>
       </div>
 
-      {/* Divider — hidden on mobile */}
       <div className="divider hidden sm:block mb-8" />
 
-      {/* Filter bar */}
       <div className="mb-4 sm:mb-8">
         <FilterBar
           filters={filters}
@@ -194,7 +153,6 @@ export function ExplorePage() {
         />
       </div>
 
-      {/* Asset grid */}
       <AssetGrid
         assets={data?.data}
         isLoading={isLoading}
@@ -204,7 +162,6 @@ export function ExplorePage() {
         total={data?.pagination.total ?? undefined}
       />
 
-      {/* Pagination — supports both exact-count and unknown-count modes */}
       {data && (data.pagination.total !== null ? data.pagination.total > pageSize : data.pagination.hasMore || (filters.page ?? 1) > 1) && (
         <Pagination
           page={filters.page ?? 1}

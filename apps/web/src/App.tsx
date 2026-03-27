@@ -18,6 +18,7 @@ const AboutPage       = React.lazy(() => import("@/pages/AboutPage").then((m) =>
 const AssetDetailPage = React.lazy(() => import("@/pages/AssetDetailPage").then((m) => ({ default: m.AssetDetailPage })));
 const TosPage         = React.lazy(() => import("@/pages/TosPage").then((m) => ({ default: m.TosPage })));
 const ActivityPage    = React.lazy(() => import("@/pages/ActivityPage").then((m) => ({ default: m.ActivityPage })));
+const TokenizePage    = React.lazy(() => import("@/pages/TokenizePage").then((m) => ({ default: m.TokenizePage })));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -47,6 +48,7 @@ function AppRoutes() {
         <Route path="/assets/:id" element={<Suspense fallback={<PageSpinner />}><AssetDetailPage /></Suspense>} />
         <Route path="/tos"        element={<Suspense fallback={<PageSpinner />}><TosPage /></Suspense>} />
         <Route path="/activity"   element={<Suspense fallback={<PageSpinner />}><ActivityPage /></Suspense>} />
+        <Route path="/tokenize"   element={<Suspense fallback={<PageSpinner />}><TokenizePage /></Suspense>} />
       </Routes>
     </Layout>
   );

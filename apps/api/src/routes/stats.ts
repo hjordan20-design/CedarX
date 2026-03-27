@@ -1,5 +1,6 @@
 import { Router, type Request, type Response } from "express";
-import { getStats, getProtocols, getCategoryCounts } from "../db/queries";
+import { z } from "zod";
+import { getStats, getProtocols, getCategoryCounts, getPropertyStates, getPropertyCounties } from "../db/queries";
 import { cache } from "../lib/cache";
 import { CROSSTAB_CACHE_KEY, type CrossTabCounts } from "../lib/countCache";
 
@@ -70,4 +71,42 @@ statsRouter.get("/category-counts", async (_req: Request, res: Response) => {
     res.setHeader("Cache-Control", "public, max-age=300");
     res.setHeader("X-Cache", "MISS");
     return res.json(counts);
+});
+
+// ─── GET /api/stats/states ────────────────────────────────────────────────────
+// Returns distinct US states present in the Fabrica asset catalogue.
+
+const StatesQuerySchema = z.object({});
+
+statsRouter.get("/states", async (_req: Request, res: Response) => {
+    const hit = cache.get<string[]>("stats:states");
+    if (hit) {
+        res.setHeader("Cache-Control", "public, max-age=600");
+        res.setHeader("X-Cache", "HIT");
+        return res.json({ data: hit });
+    }
+    const states = await getPropertyStates();
+    cache.set("stats:states", states, 600_000);
+    res.setHeader("Cache-Control", "public, max-age=600");
+    res.setHeader("X-Cache", "MISS");
+    return res.json({ data: states });
+});
+
+// ─── GET /api/stats/counties ──────────────────────────────────────────────────
+// Returns distinct counties. Optional ?state= filter.
+
+statsRouter.get("/counties", async (req: Request, res: Response) => {
+    const state = typeof req.query.state === "string" ? req.query.state : undefined;
+    const cacheKey = `stats:counties:${state ?? ""}`;
+    const hit = cache.get<string[]>(cacheKey);
+    if (hit) {
+        res.setHeader("Cache-Control", "public, max-age=600");
+        res.setHeader("X-Cache", "HIT");
+        return res.json({ data: hit });
+    }
+    const counties = await getPropertyCounties(state);
+    cache.set(cacheKey, counties, 600_000);
+    res.setHeader("Cache-Control", "public, max-age=600");
+    res.setHeader("X-Cache", "MISS");
+    return res.json({ data: counties });
 });

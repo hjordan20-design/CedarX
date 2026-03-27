@@ -16,6 +16,7 @@ import { statsRouter }     from "./routes/stats";
 import { homepageRouter }  from "./routes/homepage";
 import { seaportRouter }   from "./routes/seaport";
 import { subscribeRouter } from "./routes/subscribe";
+import { tokenizeRouter }  from "./routes/tokenize";
 import { openApiSpec }   from "./openapi";
 
 export function createServer() {
@@ -38,12 +39,13 @@ export function createServer() {
 
     // ── API routes ────────────────────────────────────────────────────────────
 
-    app.use("/api/assets",    assetsRouter);
-    app.use("/api/listings",  listingsRouter);
-    app.use("/api/stats",     statsRouter);
-    app.use("/api/homepage",  homepageRouter);
-    app.use("/api/seaport",   seaportRouter);
-    app.use("/api/subscribe", subscribeRouter);
+    app.use("/api/assets",            assetsRouter);
+    app.use("/api/listings",          listingsRouter);
+    app.use("/api/stats",             statsRouter);
+    app.use("/api/homepage",          homepageRouter);
+    app.use("/api/seaport",           seaportRouter);
+    app.use("/api/subscribe",         subscribeRouter);
+    app.use("/api/tokenize-request",  tokenizeRouter);
     // Note: /api/protocols is mounted under statsRouter at /api/stats/protocols
     // to keep the route handler count minimal. The frontend calls
     // GET /api/stats/protocols — no URL change needed.

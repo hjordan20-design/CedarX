@@ -12,20 +12,24 @@ const FAQ_SECTIONS: { heading: string; items: FAQItem[] }[] = [
     items: [
       {
         q: "What is CedarX?",
-        a: "CedarX is a peer-to-peer marketplace for tokenized real-world assets on Ethereum and Polygon. We index listings from protocols like Fabrica (land), 4K Protocol (luxury goods), and Courtyard (collectibles), and let you buy and sell them in one place using USDC.",
+        a: "CedarX is a peer-to-peer marketplace for tokenized land on Ethereum. We index Fabrica land tokens — real US property deeds on-chain — and let you buy, sell, and make offers using USDC.",
+      },
+      {
+        q: "What kind of land is on CedarX?",
+        a: "CedarX lists land parcels tokenized through the Fabrica protocol. These are raw land parcels, rural properties, and agricultural land across the United States. Each token represents full legal ownership of a real property deed.",
+      },
+      {
+        q: "Is CedarX a broker or custodian?",
+        a: "No. CedarX never holds your tokens or your funds. All trades are peer-to-peer, executed by non-custodial smart contracts on Ethereum. The deed token stays in the seller's wallet until the moment of settlement.",
       },
       {
         q: "Who is CedarX for?",
-        a: "Anyone with an Ethereum or Polygon-compatible wallet who wants exposure to real-world assets onchain — without going through a broker, fund, or custodian. CedarX is a permissionless interface. There are no accounts to create and no KYC at the marketplace level, though individual asset protocols may have their own eligibility requirements.",
-      },
-      {
-        q: "Is CedarX a custodian?",
-        a: "No. CedarX never holds your tokens or your funds. All trades are peer-to-peer, executed by non-custodial smart contracts on Ethereum and Polygon. Tokens stay in sellers' wallets until the moment of settlement.",
+        a: "Anyone with an Ethereum-compatible wallet who wants to buy, sell, or make offers on tokenized land — without going through a broker, title company, or escrow. There are no accounts to create and no KYC at the marketplace level.",
       },
     ],
   },
   {
-    heading: "How trades work",
+    heading: "Buying land",
     items: [
       {
         q: "How does a purchase work?",
@@ -34,82 +38,75 @@ const FAQ_SECTIONS: { heading: string; items: FAQItem[] }[] = [
             When you click Buy, CedarX routes the order through a non-custodial swap contract. The flow is:
             <ol className="mt-3 space-y-2 list-decimal list-inside text-cedar-muted">
               <li>You approve a USDC transfer for the listing price.</li>
-              <li>The swap contract executes — atomically transferring the asset token to your wallet and USDC to the seller.</li>
+              <li>The swap contract executes — transferring the deed token to your wallet and USDC to the seller, atomically in one transaction.</li>
               <li>If either side of the transfer fails, the entire transaction reverts. You never lose funds to a partial fill.</li>
             </ol>
           </>
         ),
       },
       {
+        q: "What does 'For Sale' mean?",
+        a: "A parcel marked 'For Sale' has been listed by its owner at a fixed price via a Seaport order. Click Buy, approve the USDC payment in your wallet, and the deed token transfers to you instantly.",
+      },
+      {
+        q: "What does 'Make Offer' mean?",
+        a: "A parcel showing 'Make Offer' is not currently listed for sale. You can still submit a USDC offer directly to the owner. If the owner accepts onchain, the trade settles automatically. Your wallet signs the offer off-chain — no gas is needed until the owner accepts.",
+      },
+      {
         q: "What wallets are supported?",
-        a: "MetaMask, Coinbase Wallet, and any WalletConnect v2-compatible wallet. If your wallet can sign Ethereum and Polygon transactions, it works with CedarX. Most modern wallets support both networks out of the box — you can switch networks directly in the CedarX header.",
+        a: "MetaMask, Coinbase Wallet, and any WalletConnect v2-compatible wallet. CedarX operates on Ethereum mainnet — make sure your wallet is connected to Ethereum before browsing or buying.",
       },
       {
         q: "What is the payment token?",
-        a: "All trades settle in USDC. On Ethereum mainnet, you pay with USDC on Ethereum. On Polygon, you pay with USDC on Polygon. CedarX supports both chains — select your network in the header before browsing or buying.",
-      },
-      {
-        q: "What fees does CedarX charge?",
-        a: "CedarX charges a small protocol fee on each trade, deducted from the USDC settlement amount. The exact fee is shown in the trade confirmation screen before you approve the transaction.",
-      },
-      {
-        q: "Can I list an asset for sale?",
-        a: "Sell-side listings are coming soon. Initially CedarX surfaces inventory from indexed protocols. Native peer-to-peer listings will be available in a future release.",
+        a: "All CedarX trades settle in USDC on Ethereum mainnet.",
       },
     ],
   },
   {
-    heading: "Buying & selling",
+    heading: "What you're buying",
     items: [
       {
-        q: "What does 'For Sale' mean?",
-        a: "An asset marked 'For Sale' has been listed by its owner at a fixed price. Click Buy, approve the USDC payment in your wallet, and the asset transfers to you instantly — no negotiation required.",
+        q: "What is a Fabrica token?",
+        a: "A Fabrica token (ERC-721) represents full legal ownership of a US land parcel. The deed is held by a Wyoming LLC whose sole member is the token holder. Owning the token equals owning the land, with all legal rights that entails.",
       },
       {
-        q: "What does 'Make Offer' mean?",
-        a: "An asset showing 'Make Offer' is not currently listed for sale. You can still submit a USDC offer directly to the owner. If the owner accepts, the trade settles automatically. Your wallet signs the offer off-chain — no gas is needed until the owner accepts.",
-      },
-      {
-        q: "How does trade settlement work?",
+        q: "How does Fabrica ownership work legally?",
         a: (
           <>
-            All CedarX trades settle through a secure smart contract protocol. When a trade executes:
+            When you buy a Fabrica token:
             <ol className="mt-3 space-y-2 list-decimal list-inside text-cedar-muted">
-              <li>Your USDC payment and the seller's asset token are exchanged atomically in a single transaction.</li>
-              <li>If either side fails, the entire transaction reverts — you cannot lose funds to a partial fill.</li>
-              <li>There is no counterparty risk between signing and settlement.</li>
+              <li>The seller transfers the ERC-721 token to your wallet on Ethereum.</li>
+              <li>The underlying Wyoming LLC — which holds the property deed — automatically recognizes the new token holder as its sole member.</li>
+              <li>You are now the legal owner of the land parcel.</li>
             </ol>
+            <p className="mt-3">Consult a licensed attorney for advice on property ownership in your jurisdiction.</p>
           </>
         ),
       },
       {
-        q: "Are CedarX listings visible on other marketplaces?",
-        a: "Yes. Listings created on CedarX are simultaneously visible on OpenSea and any other Seaport-compatible marketplace. Offers you submit through CedarX are also broadcast to OpenSea so sellers can see and accept them from any compatible interface.",
+        q: "What details are shown for each parcel?",
+        a: "Each listing shows the property address, acreage, county, state, and parcel ID where available. Satellite imagery and map location are displayed when coordinates are available.",
+      },
+      {
+        q: "Can I visit or inspect the property?",
+        a: "Yes. The parcel location is public information. CedarX shows the address and map — you can visit in person or hire a surveyor before purchasing. CedarX does not guarantee the condition or suitability of any property.",
       },
     ],
   },
   {
-    heading: "The protocols",
+    heading: "Selling & tokenizing land",
     items: [
       {
-        q: "What is Fabrica?",
-        a: "Fabrica is a protocol that tokenizes real property deeds on Ethereum. Each Fabrica token (ERC-721) represents full legal ownership of a US land parcel, backed by a deed held in a Wyoming LLC. Ownership of the token equals ownership of the land.",
+        q: "Can I list my Fabrica land for sale on CedarX?",
+        a: "Yes. If you hold a Fabrica token in your wallet, visit the Sell page to create a Seaport listing. Set your price in USDC and sign the order — it will appear on CedarX immediately and be simultaneously visible on OpenSea.",
       },
       {
-        q: "What is 4K Protocol?",
-        a: "4K Protocol tokenizes authenticated luxury goods — watches, jewelry, handbags, and more — as ERC-721 NFTs on Ethereum. Each token is backed by a physically authenticated item stored with a custodian. Owning the NFT gives you the right to redeem the physical item.",
+        q: "How do I tokenize land I own?",
+        a: "If you own a land parcel and want to tokenize it through Fabrica, visit the Tokenize page on CedarX to submit a request. We will connect you with Fabrica's tokenization process.",
       },
       {
-        q: "What is Courtyard?",
-        a: "Courtyard is a platform that tokenizes collectibles — trading cards, sports memorabilia, graded coins, and more — as ERC-721 NFTs on Polygon. Items are authenticated and vaulted by Courtyard. Holders can trade the NFT or redeem for the physical item at any time.",
-      },
-      {
-        q: "What asset categories does CedarX support?",
-        a: "CedarX currently supports real estate (Fabrica land parcels on Ethereum), luxury goods (4K Protocol on Ethereum), and collectibles (Courtyard on Polygon). Additional protocols and categories will be added — follow @cedarxio for announcements.",
-      },
-      {
-        q: "Are there eligibility requirements for individual assets?",
-        a: "Each underlying protocol has its own requirements. Fabrica assets are generally available to any Ethereum wallet holder, though individual property transactions may have jurisdiction-specific restrictions. Courtyard and 4K redemptions may require identity verification. CedarX displays requirements on each listing — it is your responsibility to verify eligibility before purchasing.",
+        q: "Are CedarX listings visible on other marketplaces?",
+        a: "Yes. Listings created on CedarX use the Seaport protocol and are simultaneously visible on OpenSea and any other Seaport-compatible marketplace.",
       },
     ],
   },
@@ -118,29 +115,25 @@ const FAQ_SECTIONS: { heading: string; items: FAQItem[] }[] = [
     items: [
       {
         q: "Is the CedarX smart contract audited?",
-        a: "The CedarX swap contract is currently in development and has not yet undergone a third-party security audit. Trade amounts should reflect this. An audit is planned prior to the production launch of the swap contract.",
-      },
-      {
-        q: "What networks does CedarX use?",
-        a: "CedarX supports Ethereum mainnet (L1) and Polygon PoS. Ethereum assets (Fabrica land, 4K luxury goods) settle on Ethereum L1. Polygon assets (Courtyard collectibles) settle on Polygon. Use the network switcher in the header to select your active chain.",
+        a: "The CedarX swap contract is currently in development and has not yet undergone a third-party security audit. An audit is planned prior to the full production launch.",
       },
       {
         q: "Are transactions reversible?",
         a: "No. Ethereum transactions are irreversible once confirmed. Review all trade details carefully before approving. CedarX cannot cancel or refund a completed transaction.",
       },
       {
-        q: "What are the risks of tokenized real assets?",
+        q: "What are the risks of tokenized land?",
         a: (
           <>
-            Tokenized real-world assets carry risks including but not limited to:
+            Tokenized land carries risks including but not limited to:
             <ul className="mt-3 space-y-1.5 list-disc list-inside text-cedar-muted">
-              <li>Smart contract vulnerabilities in the underlying protocol</li>
-              <li>Legal or regulatory changes affecting asset ownership</li>
-              <li>Illiquidity — secondary markets for RWA tokens are thin</li>
-              <li>Counterparty risk with custodians and issuers</li>
-              <li>Oracle risk for protocols relying on off-chain data</li>
+              <li>Smart contract vulnerabilities in the Fabrica protocol</li>
+              <li>Legal or regulatory changes affecting tokenized property ownership</li>
+              <li>Illiquidity — secondary markets for land tokens are thin</li>
+              <li>Title disputes or encumbrances on the underlying parcel</li>
+              <li>Environmental or zoning restrictions on land use</li>
             </ul>
-            <p className="mt-3">This is not financial advice. Do your own research.</p>
+            <p className="mt-3">This is not legal or financial advice. Consult appropriate professionals before purchasing real property.</p>
           </>
         ),
       },
@@ -157,10 +150,10 @@ const FAQ_SECTIONS: { heading: string; items: FAQItem[] }[] = [
             <a href="https://x.com/cedarxio" target="_blank" rel="noopener noreferrer" className="text-cedar-amber hover:text-cedar-amber-lt transition-colors">
               @cedarxio on X
             </a>{" "}
-            for product updates and announcements. For protocol-specific questions, refer to the documentation of{" "}
-            <a href="https://fabrica.land" target="_blank" rel="noopener noreferrer" className="text-cedar-amber hover:text-cedar-amber-lt transition-colors">Fabrica</a>,{" "}
-            <a href="https://4k.io" target="_blank" rel="noopener noreferrer" className="text-cedar-amber hover:text-cedar-amber-lt transition-colors">4K Protocol</a>, or{" "}
-            <a href="https://courtyard.io" target="_blank" rel="noopener noreferrer" className="text-cedar-amber hover:text-cedar-amber-lt transition-colors">Courtyard</a>.
+            for product updates and announcements. For protocol-specific questions, refer to the{" "}
+            <a href="https://fabrica.land" target="_blank" rel="noopener noreferrer" className="text-cedar-amber hover:text-cedar-amber-lt transition-colors">Fabrica documentation</a>.
+            Email us at{" "}
+            <a href="mailto:hello@cedarx.io" className="text-cedar-amber hover:text-cedar-amber-lt transition-colors">hello@cedarx.io</a>.
           </>
         ),
       },
@@ -202,7 +195,7 @@ export function AboutPage() {
       <div className="mb-16">
         <h1 className="display text-display-md text-cedar-text mb-4">How it works</h1>
         <p className="text-cedar-muted text-sm leading-relaxed max-w-xl">
-          CedarX is a non-custodial marketplace for real-world asset NFTs on Ethereum and Polygon. Any ERC-721 or ERC-1155 token representing a verified real-world asset — real estate, luxury goods, art, collectibles — belongs here. Below are answers to common questions about how the platform works, the protocols it indexes, and the risks involved.
+          CedarX is a non-custodial marketplace for tokenized land on Ethereum. Buy and sell real US property deeds through the Fabrica protocol — no broker, no escrow, no intermediaries. Below are answers to common questions.
         </p>
       </div>
 

@@ -29,23 +29,21 @@ export function StatsBar() {
     placeholderData: readCachedStats,
   });
 
-  const volume = stats ? Number(stats.totalVolume) : 0;
+  const fabricaCount = stats?.byProtocol?.fabrica ?? 0;
+  const listedCount  = stats?.activeListings ?? 0;
 
   const items = [
     {
-      value: stats ? stats.totalAssets.toLocaleString("en-US") : "—",
-      label: "Assets indexed",
+      value: fabricaCount > 0 ? fabricaCount.toLocaleString("en-US") : "—",
+      label: "Properties indexed",
     },
     {
-      value: stats ? stats.activeListings.toLocaleString("en-US") : "—",
+      value: listedCount > 0 ? listedCount.toLocaleString("en-US") : "—",
       label: "Listed now",
     },
     {
-      value:
-        volume > 0
-          ? `$${volume.toLocaleString("en-US", { maximumFractionDigits: 0 })}`
-          : "Coming soon",
-      label: "Total volume",
+      value: "USDC",
+      label: "Settlement token",
     },
   ];
 

@@ -1,17 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Search } from "lucide-react";
-import type { Category } from "@/lib/types";
-
-// ─── Category pills ───────────────────────────────────────────────────────────
-const CATEGORY_PILLS: { value: Category | ""; label: string }[] = [
-  { value: "",             label: "All" },
-  { value: "real-estate",  label: "Real Estate" },
-  { value: "collectibles", label: "Collectibles" },
-  { value: "luxury-goods", label: "Luxury Goods" },
-  { value: "watches",      label: "Watches" },
-  { value: "art",          label: "Art" },
-];
 
 // ─── Hero ─────────────────────────────────────────────────────────────────────
 export function Hero() {
@@ -44,7 +33,7 @@ export function Hero() {
             animationDelay: "0.1s",
           }}
         >
-          Real assets. <em style={{ fontStyle: "italic", color: "#C4852A" }}>Onchain.</em>
+          Buy land. <em style={{ fontStyle: "italic", color: "#C4852A" }}>Onchain.</em>
         </h1>
 
         {/* Subtitle */}
@@ -61,7 +50,7 @@ export function Hero() {
             animationDelay: "0.22s",
           }}
         >
-          Browse and trade tokenized real estate, collectibles, and luxury goods.
+          Browse tokenized land parcels across the United States.
           Connect your wallet. Settle in USDC.
         </p>
 
@@ -84,7 +73,7 @@ export function Hero() {
           />
           <input
             type="text"
-            placeholder="Search by name, location, brand…"
+            placeholder="Search by address, county, or parcel ID…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="search-input"
@@ -106,7 +95,7 @@ export function Hero() {
           />
         </form>
 
-        {/* Category pills */}
+        {/* Quick filter links */}
         <div
           className="animate-fade-up"
           style={{
@@ -115,10 +104,15 @@ export function Hero() {
             animationDelay: "0.46s",
           }}
         >
-          {CATEGORY_PILLS.map((pill) => (
+          {[
+            { label: "All properties",   href: "/explore" },
+            { label: "For sale",         href: "/explore?listingFilter=listed" },
+            { label: "Make offer",       href: "/explore?listingFilter=unlisted" },
+            { label: "Tokenize my land", href: "/tokenize" },
+          ].map((pill) => (
             <Link
-              key={pill.value}
-              to={pill.value ? `/explore?category=${pill.value}` : "/explore"}
+              key={pill.href}
+              to={pill.href}
               style={{
                 padding: "6px 14px",
                 fontSize: "13px",

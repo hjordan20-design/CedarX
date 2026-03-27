@@ -116,7 +116,7 @@ export interface AssetFilters {
   protocol?: Protocol;
   minPrice?: number;
   maxPrice?: number;
-  sort?: "price_asc" | "price_desc" | "newest" | "volume";
+  sort?: "price_asc" | "price_desc" | "newest" | "volume" | "acreage_asc" | "acreage_desc";
   search?: string;
   /**
    * Three-way listing filter:
@@ -132,6 +132,11 @@ export interface AssetFilters {
    * Pass the `nextCursor` from the previous page's response.
    */
   cursor?: string;
+  /** Land-specific filters */
+  state?: string;
+  county?: string;
+  minAcreage?: number;
+  maxAcreage?: number;
 }
 
 // ─── Seaport ─────────────────────────────────────────────────────────────────

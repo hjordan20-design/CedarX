@@ -109,10 +109,11 @@ export function Header() {
   }, [mobileOpen]);
 
   const baseLinks = [
-    { to: "/",        label: "Home"         },
-    { to: "/explore", label: "Explore"      },
-    { to: "/sell",    label: "Sell"         },
-    { to: "/about",   label: "How it works" },
+    { to: "/",          label: "Home"         },
+    { to: "/explore",   label: "Properties"   },
+    { to: "/sell",      label: "Sell"         },
+    { to: "/tokenize",  label: "Tokenize"     },
+    { to: "/about",     label: "How it works" },
   ];
 
   return (

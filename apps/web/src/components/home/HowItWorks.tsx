@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Wallet, Search, Zap } from "lucide-react";
+import { Wallet, MapPin, Zap } from "lucide-react";
 import { useInView } from "@/hooks/useInView";
 
 const STEPS = [
@@ -7,19 +7,19 @@ const STEPS = [
     number: "01",
     icon: <Wallet size={18} strokeWidth={1.5} />,
     title: "Connect your wallet",
-    body: "Use MetaMask, Coinbase Wallet, or any WalletConnect-compatible wallet. Your assets, your keys.",
+    body: "Use MetaMask, Coinbase Wallet, or any WalletConnect-compatible wallet. Your property token, your keys.",
   },
   {
     number: "02",
-    icon: <Search size={18} strokeWidth={1.5} />,
-    title: "Browse real assets",
-    body: "Filter by category, protocol, and price. Every listing is backed by a real-world asset token on Ethereum or Polygon.",
+    icon: <MapPin size={18} strokeWidth={1.5} />,
+    title: "Find a property",
+    body: "Filter by state, county, acreage, and price. Every listing is backed by a Fabrica tokenized deed on Ethereum.",
   },
   {
     number: "03",
     icon: <Zap size={18} strokeWidth={1.5} />,
     title: "Buy with USDC",
-    body: "Approve once, then execute. The swap contract transfers the token to you and USDC to the seller — atomically, in one transaction.",
+    body: "Approve once, then execute. The swap contract transfers the deed token to you and USDC to the seller — atomically, in one transaction.",
   },
 ];
 
@@ -69,7 +69,7 @@ export function HowItWorks() {
             How it works
           </h2>
           <p style={{ fontFamily: "DM Sans, system-ui, sans-serif", fontSize: "9px", letterSpacing: "0.18em", textTransform: "uppercase", color: "rgba(28,23,16,0.35)" }}>
-            Three steps. No custody. No intermediaries.
+            Three steps. No broker. No escrow.
           </p>
         </div>
 
@@ -94,7 +94,7 @@ export function HowItWorks() {
           <p style={{ fontSize: "14px", fontWeight: 300, color: "rgba(28,23,16,0.55)", maxWidth: "420px", lineHeight: 1.7 }}>
             Every swap is executed by a{" "}
             <span style={{ color: "#1C1710", fontWeight: 400 }}>non-custodial smart contract</span>{" "}
-            on Ethereum or Polygon. CedarX never holds your tokens or funds.
+            on Ethereum. CedarX never holds your tokens or funds.
           </p>
           <Link to="/about" className="btn-ghost shrink-0">
             Read the full FAQ

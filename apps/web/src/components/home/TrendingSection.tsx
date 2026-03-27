@@ -14,29 +14,12 @@ export function TrendingSection() {
 
   const all = data?.data ?? [];
 
-  // Prefer collectibles — they dominate volume (260K+ Courtyard assets).
-  // Fall back to real-estate if collectibles are sparse, then mixed.
-  const collectibles = all.filter(
-    a => a.category === "collectibles" || a.category === "art",
-  );
-  const realEstate = all.filter(
-    a => a.category === "real-estate",
+  // Filter to land / real-estate assets only (Fabrica protocol)
+  const land = all.filter(
+    a => a.protocol === "fabrica" || a.category === "real-estate",
   );
 
-  const displayed =
-    collectibles.length >= 4 ? collectibles
-    : realEstate.length  >= 4 ? realEstate
-    : all;
-
-  const isCollectibles = displayed.length > 0 && displayed === collectibles;
-  const isRealEstate   = displayed.length > 0 && displayed === realEstate;
-
-  const title    = isCollectibles ? "Trending Collectibles"
-                 : isRealEstate   ? "Trending Real Estate"
-                 : "Most wanted";
-  const viewHref = isCollectibles ? "/explore?category=collectibles"
-                 : isRealEstate   ? "/explore?category=real-estate"
-                 : "/explore?listingFilter=all";
+  const displayed = land.length >= 4 ? land : all;
 
   // Don't render section if no data and not loading
   if (!isLoading && all.length === 0) return null;
@@ -63,11 +46,11 @@ export function TrendingSection() {
               color: "var(--cedar-text, #1C1710)",
             }}
           >
-            {title}
+            Recently active
           </h2>
         </div>
         <Link
-          to={viewHref}
+          to="/explore"
           style={{
             display: "inline-flex",
             alignItems: "center",

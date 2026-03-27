@@ -16,7 +16,7 @@ export interface AssetFilters {
     chain?: string;
     minPrice?: number;
     maxPrice?: number;
-    sort?: "price_asc" | "price_desc" | "newest" | "volume";
+    sort?: "price_asc" | "price_desc" | "newest" | "volume" | "acreage_asc" | "acreage_desc";
     search?: string;
     page?: number;
     limit?: number;
@@ -35,6 +35,11 @@ export interface AssetFilters {
      * When provided, `page` is used only for display — the cursor drives the query.
      */
     cursor?: string;
+    /** Land-specific filters — applied to the details JSONB column. */
+    state?: string;
+    county?: string;
+    minAcreage?: number;
+    maxAcreage?: number;
 }
 
 export interface ListingFilters {
@@ -128,6 +133,11 @@ export async function getAssets(filters: AssetFilters = {}): Promise<PaginatedRe
         const s = filters.search.replace(/'/g, "''");
         query = query.or(`name.ilike.%${s}%,protocol.ilike.%${s}%`);
     }
+    // Land-specific JSONB filters
+    if (filters.state)        query = (query as any).filter("details->>state", "ilike", filters.state);
+    if (filters.county)       query = (query as any).filter("details->>county", "ilike", filters.county);
+    if (filters.minAcreage != null) query = (query as any).filter("(details->>acreage)::numeric", "gte", filters.minAcreage);
+    if (filters.maxAcreage != null) query = (query as any).filter("(details->>acreage)::numeric", "lte", filters.maxAcreage);
 
     // Sorting
     switch (filters.sort) {
@@ -139,6 +149,12 @@ export async function getAssets(filters: AssetFilters = {}): Promise<PaginatedRe
             break;
         case "volume":
             query = query.order("total_volume", { ascending: false });
+            break;
+        case "acreage_asc":
+            query = (query as any).order("details->>acreage", { ascending: true, nullsFirst: false });
+            break;
+        case "acreage_desc":
+            query = (query as any).order("details->>acreage", { ascending: false, nullsFirst: false });
             break;
         case "newest":
         default:
@@ -324,6 +340,50 @@ export async function getCategoryCounts(): Promise<Record<string, number>> {
     }
 
     return counts;
+}
+
+// ─── Land property distinct values ────────────────────────────────────────────
+
+/**
+ * Returns all distinct US states present in the Fabrica asset catalogue.
+ * Filters to protocol=fabrica to stay land-focused.
+ */
+export async function getPropertyStates(): Promise<string[]> {
+    const db = getDb();
+    const { data, error } = await (db as any)
+        .from("assets")
+        .select("details")
+        .eq("protocol", "fabrica")
+        .not("details", "is", null) as { data: { details: Record<string, unknown> }[] | null; error: { message: string } | null };
+    if (error) throw error;
+    const states = new Set<string>();
+    for (const row of data ?? []) {
+        const s = row.details?.state;
+        if (typeof s === "string" && s.trim()) states.add(s.trim());
+    }
+    return Array.from(states).sort();
+}
+
+/**
+ * Returns all distinct counties present in Fabrica assets.
+ * Optionally filter by state.
+ */
+export async function getPropertyCounties(state?: string): Promise<string[]> {
+    const db = getDb();
+    let query: any = (db as any)
+        .from("assets")
+        .select("details")
+        .eq("protocol", "fabrica")
+        .not("details", "is", null);
+    if (state) query = query.filter("details->>state", "ilike", state);
+    const { data, error } = await query as { data: { details: Record<string, unknown> }[] | null; error: { message: string } | null };
+    if (error) throw error;
+    const counties = new Set<string>();
+    for (const row of data ?? []) {
+        const c = row.details?.county;
+        if (typeof c === "string" && c.trim()) counties.add(c.trim());
+    }
+    return Array.from(counties).sort();
 }
 
 // ─── Trending assets (by offer count) ────────────────────────────────────────
