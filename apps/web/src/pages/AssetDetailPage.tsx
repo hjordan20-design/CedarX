@@ -338,6 +338,7 @@ function AssetActions({ asset }: { asset: Asset }) {
 
   // Seaport order (takes priority over CedarX swap listing for the buy flow)
   const { data: seaportOrder } = useSeaportOrder(asset.id);
+  const ethUsd = useEthPrice();
 
   const tokenIdBig = asset.tokenId ? BigInt(asset.tokenId) : undefined;
 
@@ -634,7 +635,6 @@ export function AssetDetailPage() {
   // imgGwIdx tracks how many IPFS gateways we've tried (0 = original URL)
   const [imgGwIdx,  setImgGwIdx]  = useState(0);
   const [imgFailed, setImgFailed] = useState(false);
-  const ethUsd = useEthPrice();
 
   if (isLoading) return <DetailSkeleton />;
 
