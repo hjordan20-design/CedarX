@@ -506,6 +506,37 @@ export async function upsertAsset(asset: AssetInsert): Promise<void> {
     if (error) throw error;
 }
 
+/**
+ * Delist all Fabrica assets whose token_id is NOT in the provided list.
+ * Called after a full RETS feed sync so assets no longer in the feed are
+ * correctly marked as unlisted.
+ * Returns the count of rows updated.
+ */
+export async function delistFabricaAssetsNotIn(activeTokenIds: string[]): Promise<number> {
+    const db = getDb();
+
+    // Safety guard: never wipe everything if the active list is empty.
+    if (activeTokenIds.length === 0) return 0;
+
+    // Supabase JS client doesn't support NOT IN with an array parameter directly,
+    // so we use the PostgREST `not` filter with the `in` operator.
+    const { data, error } = await (db as any)
+        .from("assets")
+        .update({
+            has_active_listing: false,
+            current_listing_price: null,
+            current_listing_payment_token_symbol: null,
+            last_updated: new Date().toISOString(),
+        })
+        .eq("protocol", "fabrica")
+        .eq("has_active_listing", true)
+        .not("token_id", "in", `(${activeTokenIds.map(id => `"${id}"`).join(",")})`)
+        .select("id");
+
+    if (error) throw error;
+    return (data as unknown[])?.length ?? 0;
+}
+
 export async function updateAssetMarketData(
     id: string,
     data: { current_listing_price?: number | null; last_sale_price?: number; total_volume?: number }

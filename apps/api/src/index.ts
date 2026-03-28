@@ -17,6 +17,7 @@ import { createServer } from "./server";
 import { PORT } from "./config";
 import { SeaportPoller }         from "./pollers/seaport";
 import { CollectionSweepPoller } from "./pollers/collectionSweep";
+import { FabricaRetsPoller }     from "./pollers/fabricaRets";
 
 // ── Disabled (Alchemy cost) ───────────────────────────────────────────────────
 // import { createPublicClient, http } from "viem";
@@ -48,6 +49,7 @@ app.listen(PORT, () => {
 // api.opensea.io — no Alchemy / RPC calls, no per-request billing.
 
 const pollers = [
+    new FabricaRetsPoller(),     // Fabrica RETS feed — all 111+ listed parcels, every 15 min
     new SeaportPoller(),         // OpenSea listings API — polls active Seaport orders
     new CollectionSweepPoller(), // OpenSea collection NFTs API — full-catalog indexer
     // new FabricaPoller(),      // DISABLED — uses Alchemy (Transfer event scanning)
