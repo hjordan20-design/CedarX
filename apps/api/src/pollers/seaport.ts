@@ -71,17 +71,20 @@ export interface ContractConfig {
 export function buildContracts(): ContractConfig[] {
     const contracts: ContractConfig[] = [];
 
-    if (FABRICA_TOKEN_V2) {
-        contracts.push({
-            chain: "ethereum",
-            openSeaChain: "ethereum",
-            openSeaSlug: "fabrica-land",
-            contractAddress: FABRICA_TOKEN_V2.toLowerCase(),
-            protocol: "fabrica",
-            tokenStandard: "ERC-1155",
-            chainId: 1,
-        });
-    }
+    // Fabrica disabled — FabricaRetsPoller is the sole source of truth for all
+    // Fabrica listing data. SeaportPoller must not overwrite RETS-synced prices.
+    //
+    // if (FABRICA_TOKEN_V2) {
+    //     contracts.push({
+    //         chain: "ethereum",
+    //         openSeaChain: "ethereum",
+    //         openSeaSlug: "fabrica-land",
+    //         contractAddress: FABRICA_TOKEN_V2.toLowerCase(),
+    //         protocol: "fabrica",
+    //         tokenStandard: "ERC-1155",
+    //         chainId: 1,
+    //     });
+    // }
 
     // Non-Fabrica collections disabled — land-only marketplace.
     // Data remains in the DB; re-enable by uncommenting when needed.

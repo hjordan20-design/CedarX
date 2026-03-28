@@ -141,10 +141,16 @@ function AssetCardImage({ imageUrl, alt, satUrl }: { imageUrl: string; alt: stri
       const next = IPFS_GATEWAYS.map((gw) => `${gw}${cid}`).find((u) => !tried.current.has(u));
       if (next) { tried.current.add(next); setSrc(next); return; }
     }
-    // Mapbox satellite fallback for land assets
+    // Mapbox satellite fallback for land assets (asset-specific lat/lng)
     if (satUrl && !tried.current.has(satUrl)) {
       tried.current.add(satUrl);
       setSrc(satUrl);
+      return;
+    }
+    // Eloy AZ hardcoded sat — absolute last resort before showing gradient fallback
+    if (ELOY_FALLBACK_SAT && !tried.current.has(ELOY_FALLBACK_SAT)) {
+      tried.current.add(ELOY_FALLBACK_SAT);
+      setSrc(ELOY_FALLBACK_SAT);
       return;
     }
     setFailed(true);

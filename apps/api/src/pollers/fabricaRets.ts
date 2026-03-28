@@ -52,9 +52,11 @@ function buildAssetId(tokenId: string): string {
 // ─── RETS XML parsing ─────────────────────────────────────────────────────────
 
 interface RetsListing {
-    ListingKey: string;    // token ID
-    ListPrice: number;     // USD price (already dollars, not cents)
-    UnparsedAddress?: string;
+    ListingKey: string;       // token ID
+    ListPrice: number;        // USD price (already dollars, not cents)
+    FullStreetAddress?: string; // e.g. "243 June Lane"
+    City?: string;            // e.g. "Hartsel"
+    UnparsedAddress?: string; // full address string (fallback)
     Latitude?: number;
     Longitude?: number;
     LotSizeAcres?: number;
@@ -85,6 +87,30 @@ function parseRetsXml(xml: string): RetsListing[] {
         [];
 
     return Array.isArray(listings) ? listings : [listings].filter(Boolean);
+}
+
+/**
+ * Build a human-readable property name from RETS address fields.
+ * Preferred: "243 June Lane, Hartsel, CO"
+ * Fallback:  "Land in Chaffee County, CO"
+ */
+function buildPropertyName(listing: RetsListing): string {
+    const street = listing.FullStreetAddress?.trim();
+    const city   = listing.City?.trim();
+    const state  = listing.StateOrProvince?.trim();
+    const county = listing.CountyOrParish?.trim();
+
+    // Best case: street + city + state
+    if (street && city && state) return `${street}, ${city}, ${state}`;
+    // Street + state (no city)
+    if (street && state) return `${street}, ${state}`;
+    // UnparsedAddress if it contains useful info (not just a raw token ID)
+    const unparsed = listing.UnparsedAddress?.trim();
+    if (unparsed && !/^#?\d{10,}/.test(unparsed)) return unparsed;
+    // Fallback: county + state
+    if (county && state) return `Land in ${county}, ${state}`;
+    if (state) return `Land in ${state}`;
+    return `Land Parcel`;
 }
 
 /** Extract the first usable photo URL from a listing's Media field. */
@@ -205,7 +231,7 @@ export class FabricaRetsPoller {
             token_id: tokenId,
             token_standard: "ERC-1155",
             chain: "ethereum",
-            name: listing.UnparsedAddress ?? `Fabrica Land #${tokenId}`,
+            name: buildPropertyName(listing),
             description: listing.PublicRemarks ?? null,
             category: "real-estate",
             image_url: imageUrl,

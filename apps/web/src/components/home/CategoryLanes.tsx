@@ -92,11 +92,12 @@ interface LaneProps {
 
 function LaneBgImage({ asset }: { asset: Asset }) {
   const assetSat = mapboxSatUrl(asset.details.lat, asset.details.lng);
-  // Fallback chain: asset-specific sat → Eloy AZ hardcoded sat
+  // Fallback chain: direct CDN → asset-specific sat → Eloy AZ hardcoded sat
   const sat = assetSat ?? ELOY_FALLBACK_SAT;
-  const initial = asset.imageUrl ?? sat;
+  const initial = asset.imageUrl?.startsWith("http") ? asset.imageUrl : (sat ?? asset.imageUrl ?? null);
   const [src, setSrc] = useState<string | null>(initial ?? null);
 
+  // If no src at all (no image, no sat, no Mapbox token), let LaneBgFallback render instead
   if (!src) return null;
   return (
     <div
@@ -158,7 +159,12 @@ function LaneBgFallback() {
 }
 
 function Lane({ href, heading, subtext, ctaLabel, badge, assets, isLoading }: LaneProps) {
-  const bgAsset = assets.find(a => a.imageUrl || (a.details.lat != null && a.details.lng != null)) ?? null;
+  // Prefer assets with a direct CDN image URL (RETS feed photos start with https://)
+  // over assets that only have a sat-derivable lat/lng — CDN photos load reliably.
+  const bgAsset =
+    assets.find(a => a.imageUrl?.startsWith("http")) ??
+    assets.find(a => a.details.lat != null && a.details.lng != null) ??
+    (assets.length > 0 ? assets[0] : null);
   const thumbs  = assets.slice(0, 3);
 
   return (
@@ -183,8 +189,9 @@ function Lane({ href, heading, subtext, ctaLabel, badge, assets, isLoading }: La
         (e.currentTarget as HTMLElement).style.borderColor = "rgba(196,133,42,0.12)";
       }}
     >
-      {/* Background: asset image → satellite fallback → Eloy hardcoded sat */}
-      {bgAsset ? <LaneBgImage asset={bgAsset} /> : <LaneBgFallback />}
+      {/* Background: CDN image → satellite → Eloy hardcoded sat */}
+      {bgAsset ? <LaneBgImage asset={bgAsset} /> : null}
+      {!bgAsset && <LaneBgFallback />}
 
       {/* Gradient overlay */}
       <div
