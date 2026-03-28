@@ -11,12 +11,14 @@ import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { fetchAssets } from "@/lib/api";
 import type { Asset } from "@/lib/types";
-import { mapboxSatUrl } from "@/lib/mapbox";
+import { mapboxSatUrl, ELOY_FALLBACK_SAT } from "@/lib/mapbox";
 
 // ─── Thumbnail strip ──────────────────────────────────────────────────────────
 
 function Thumb({ asset }: { asset: Asset }) {
-  const sat = mapboxSatUrl(asset.details.lat, asset.details.lng);
+  const assetSat = mapboxSatUrl(asset.details.lat, asset.details.lng);
+  // Fallback chain: asset-specific sat → Eloy AZ hardcoded sat
+  const sat = assetSat ?? ELOY_FALLBACK_SAT;
   const initial = asset.imageUrl ?? sat;
   const [src, setSrc] = useState<string | null>(initial ?? null);
 
@@ -34,15 +36,16 @@ function Thumb({ asset }: { asset: Asset }) {
     >
       {src && (
         <>
-          {/* Hidden img for error detection — prevents yellow triangle */}
+          {/* display:none prevents any browser broken-image indicator */}
           <img
             src={src}
             alt=""
             aria-hidden="true"
-            style={{ position: "absolute", width: 0, height: 0, opacity: 0 }}
+            style={{ display: "none" }}
             onError={() => {
-              if (src !== sat && sat) setSrc(sat);
-              else setSrc(null);
+              if (assetSat && src !== assetSat) { setSrc(assetSat); return; }
+              if (ELOY_FALLBACK_SAT && src !== ELOY_FALLBACK_SAT) { setSrc(ELOY_FALLBACK_SAT); return; }
+              setSrc(null);
             }}
           />
           {/* CSS background never shows broken-image icon */}
@@ -88,7 +91,9 @@ interface LaneProps {
 }
 
 function LaneBgImage({ asset }: { asset: Asset }) {
-  const sat = mapboxSatUrl(asset.details.lat, asset.details.lng);
+  const assetSat = mapboxSatUrl(asset.details.lat, asset.details.lng);
+  // Fallback chain: asset-specific sat → Eloy AZ hardcoded sat
+  const sat = assetSat ?? ELOY_FALLBACK_SAT;
   const initial = asset.imageUrl ?? sat;
   const [src, setSrc] = useState<string | null>(initial ?? null);
 
@@ -106,15 +111,16 @@ function LaneBgImage({ asset }: { asset: Asset }) {
         pointerEvents: "none",
       }}
     >
-      {/* Hidden img for error detection — CSS background never shows broken-image icon */}
+      {/* display:none prevents any browser broken-image indicator */}
       <img
         src={src}
         alt=""
         aria-hidden="true"
-        style={{ position: "absolute", width: 0, height: 0, opacity: 0 }}
+        style={{ display: "none" }}
         onError={() => {
-          if (src !== sat && sat) setSrc(sat);
-          else setSrc(null);
+          if (assetSat && src !== assetSat) { setSrc(assetSat); return; }
+          if (ELOY_FALLBACK_SAT && src !== ELOY_FALLBACK_SAT) { setSrc(ELOY_FALLBACK_SAT); return; }
+          setSrc(null);
         }}
       />
       <div
@@ -127,6 +133,27 @@ function LaneBgImage({ asset }: { asset: Asset }) {
         }}
       />
     </div>
+  );
+}
+
+/** Shown when bgAsset is null (empty query result) but we still have a satellite fallback. */
+function LaneBgFallback() {
+  if (!ELOY_FALLBACK_SAT) return null;
+  return (
+    <div
+      className="group-hover:opacity-50"
+      style={{
+        position: "absolute",
+        inset: 0,
+        opacity: 0.32,
+        filter: "saturate(0.65)",
+        transition: "opacity 0.5s ease",
+        pointerEvents: "none",
+        backgroundImage: `url(${ELOY_FALLBACK_SAT})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center top",
+      }}
+    />
   );
 }
 
@@ -156,8 +183,8 @@ function Lane({ href, heading, subtext, ctaLabel, badge, assets, isLoading }: La
         (e.currentTarget as HTMLElement).style.borderColor = "rgba(196,133,42,0.12)";
       }}
     >
-      {/* Background asset image with satellite fallback */}
-      {bgAsset && <LaneBgImage asset={bgAsset} />}
+      {/* Background: asset image → satellite fallback → Eloy hardcoded sat */}
+      {bgAsset ? <LaneBgImage asset={bgAsset} /> : <LaneBgFallback />}
 
       {/* Gradient overlay */}
       <div

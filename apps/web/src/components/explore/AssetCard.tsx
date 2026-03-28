@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { useEthPrice } from "@/lib/useEthPrice";
 import { Link } from "react-router-dom";
 import type { Asset } from "@/lib/types";
 import { VERIFIED_CONTRACTS } from "@/lib/types";
@@ -6,7 +7,7 @@ import { ProtocolBadge } from "@/components/common/ProtocolBadge";
 import { CategoryTag } from "@/components/common/CategoryTag";
 import { VerifiedBadge } from "@/components/common/VerifiedBadge";
 import { formatTokenPrice, formatUSDC, formatAcreage } from "@/lib/formatters";
-import { mapboxSatUrl } from "@/lib/mapbox";
+import { mapboxSatUrl, ELOY_FALLBACK_SAT } from "@/lib/mapbox";
 
 // ─── IPFS gateway cycling ─────────────────────────────────────────────────────
 // When an IPFS image fails to load, retry with the next public gateway.
@@ -62,11 +63,19 @@ function AssetSubtitle({ asset }: { asset: Asset }) {
   return null;
 }
 
+/** ETH and WETH listings are converted to approximate USD for display. */
 function PriceLine({ asset }: { asset: Asset }) {
+  const ethUsd = useEthPrice();
+
   if (asset.currentListingPrice != null) {
+    const sym = asset.currentListingPaymentTokenSymbol;
+    const isEth = sym === "ETH" || sym === "WETH";
+    const displayPrice = isEth
+      ? `~${new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(asset.currentListingPrice * ethUsd)} USDC`
+      : formatTokenPrice(asset.currentListingPrice, sym);
     return (
       <div className="flex items-baseline gap-1.5">
-        <span className="text-cedar-text font-mono text-sm">{formatTokenPrice(asset.currentListingPrice, asset.currentListingPaymentTokenSymbol)}</span>
+        <span className="text-cedar-text font-mono text-sm">{displayPrice}</span>
         <span className="text-cedar-muted text-xs font-sans">listed</span>
       </div>
     );
@@ -144,13 +153,13 @@ function AssetCardImage({ imageUrl, alt, satUrl }: { imageUrl: string; alt: stri
   if (failed) return <AssetImageFallback />;
   return (
     <>
-      {/* Zero-size hidden img so onError fires without showing a yellow triangle */}
+      {/* display:none prevents all browsers from showing a broken-image indicator */}
       <img
         src={src}
         alt=""
         onError={handleError}
         aria-hidden="true"
-        style={{ position: "absolute", width: 0, height: 0, opacity: 0, pointerEvents: "none" }}
+        style={{ display: "none" }}
       />
       {/* Visible layer — CSS backgroundImage never shows the browser broken-image icon */}
       <div
@@ -169,7 +178,9 @@ function AssetCardImage({ imageUrl, alt, satUrl }: { imageUrl: string; alt: stri
 
 export function AssetCard({ asset }: { asset: Asset }) {
   const displayName = cleanAssetName(asset.name);
-  const satUrl = mapboxSatUrl(asset.details.lat, asset.details.lng);
+  // For land assets: asset-specific sat → Eloy AZ fallback sat (always shows something)
+  const satUrl = mapboxSatUrl(asset.details.lat, asset.details.lng)
+    ?? (asset.category === "real-estate" ? ELOY_FALLBACK_SAT : null);
   const effectiveImageUrl = asset.imageUrl ?? satUrl ?? undefined;
   return (
     <Link

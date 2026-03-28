@@ -25,6 +25,8 @@ import { BuyModal } from "@/components/asset/BuyModal";
 import { ListModal } from "@/components/asset/ListModal";
 import { OfferModal } from "@/components/asset/OfferModal";
 import { formatTokenPrice, formatUSDC, formatDate, truncateAddress, formatAcreage, stripMarkdown } from "@/lib/formatters";
+import { mapboxSatUrl, ELOY_FALLBACK_SAT } from "@/lib/mapbox";
+import { useEthPrice } from "@/lib/useEthPrice";
 import type { Asset } from "@/lib/types";
 import { VERIFIED_CONTRACTS } from "@/lib/types";
 import { SEAPORT_ADDRESS, SEAPORT_ABI } from "@/config/contracts";
@@ -390,13 +392,21 @@ function AssetActions({ asset }: { asset: Asset }) {
       computed: Number(seaportOrder.price) / Math.pow(10, seaportOrder.paymentTokenDecimals || 6),
     });
   }
+  // Convert ETH/WETH prices to approximate USD for display
+  function ethToUsdDisplay(amount: number, sym?: string): string {
+    if (sym === "ETH" || sym === "WETH") {
+      return `~${new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(amount * ethUsd)} USDC`;
+    }
+    return formatTokenPrice(amount, sym);
+  }
+
   const displayPrice = hasSeaport
-    ? formatTokenPrice(
+    ? ethToUsdDisplay(
         Number(seaportOrder!.price) / Math.pow(10, seaportOrder!.paymentTokenDecimals || 6),
         seaportOrder!.paymentTokenSymbol
       )
     : hasCedarX
-    ? formatTokenPrice(asset.currentListingPrice, asset.currentListingPaymentTokenSymbol ?? "USDC")
+    ? ethToUsdDisplay(asset.currentListingPrice!, asset.currentListingPaymentTokenSymbol ?? "USDC")
     : null;
 
   async function cancelListing() {
@@ -624,6 +634,7 @@ export function AssetDetailPage() {
   // imgGwIdx tracks how many IPFS gateways we've tried (0 = original URL)
   const [imgGwIdx,  setImgGwIdx]  = useState(0);
   const [imgFailed, setImgFailed] = useState(false);
+  const ethUsd = useEthPrice();
 
   if (isLoading) return <DetailSkeleton />;
 
@@ -673,28 +684,48 @@ export function AssetDetailPage() {
             }`}
           >
             {(() => {
-              // Resolve the current src: original URL on first attempt, then
-              // cycle through IPFS gateways on each onError callback.
+              // Resolve current src: original URL first, then IPFS gateway cycle.
               const src = imgGwIdx === 0
                 ? asset.imageUrl
                 : (asset.imageUrl ? nextIpfsUrl(asset.imageUrl, imgGwIdx) : null);
-              return src && !imgFailed ? (
-                <img
-                  src={src}
-                  alt={asset.name}
-                  className="w-full h-full object-cover"
-                  onError={() => {
-                    if (!asset.imageUrl) return setImgFailed(true);
-                    const next = nextIpfsUrl(asset.imageUrl, imgGwIdx + 1);
-                    if (next) setImgGwIdx(imgGwIdx + 1);
-                    else setImgFailed(true);
-                  }}
-                />
-              ) : (
-                <div className="w-full h-full flex flex-col items-center justify-center gap-2">
-                  <span className="text-cedar-muted/50 font-mono text-xs tracking-widest uppercase">{asset.protocol}</span>
-                  <span className="text-cedar-muted/30 font-sans text-[11px]">Image unavailable</span>
-                </div>
+              // Final visual fallback: asset-specific sat → Eloy AZ hardcoded sat
+              const satFallback =
+                mapboxSatUrl(asset.details.lat, asset.details.lng) ?? ELOY_FALLBACK_SAT;
+
+              if (!src || imgFailed) {
+                // No more image sources — show satellite or text placeholder
+                return satFallback ? (
+                  <div className="w-full h-full"
+                    style={{ backgroundImage: `url(${satFallback})`, backgroundSize: "cover", backgroundPosition: "center" }} />
+                ) : (
+                  <div className="w-full h-full flex flex-col items-center justify-center gap-2">
+                    <span className="text-cedar-muted/50 font-mono text-xs tracking-widest uppercase">{asset.protocol}</span>
+                    <span className="text-cedar-muted/30 font-sans text-[11px]">Image unavailable</span>
+                  </div>
+                );
+              }
+
+              return (
+                <>
+                  {/* display:none prevents all browsers showing a broken-image indicator */}
+                  <img
+                    src={src}
+                    alt=""
+                    aria-hidden="true"
+                    style={{ display: "none" }}
+                    onError={() => {
+                      if (!asset.imageUrl) return setImgFailed(true);
+                      const next = nextIpfsUrl(asset.imageUrl, imgGwIdx + 1);
+                      if (next) setImgGwIdx(imgGwIdx + 1);
+                      else setImgFailed(true);
+                    }}
+                  />
+                  {/* CSS background never shows the browser broken-image icon */}
+                  <div
+                    className="w-full h-full"
+                    style={{ backgroundImage: `url(${src})`, backgroundSize: "cover", backgroundPosition: "center" }}
+                  />
+                </>
               );
             })()}
             {/* Subtle vignette */}
