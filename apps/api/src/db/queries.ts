@@ -268,9 +268,12 @@ export async function getStats() {
     const db = getDb();
 
     const [assetCount, activeListings, tradeStats, protocolBreakdown] = await Promise.all([
-        // Total indexed assets — land only
+        // Total meaningful Fabrica assets — exclude raw-tokenId placeholder rows
+        // swept by CollectionSweepPoller (names like "#846727901194482366").
+        // Only assets with real metadata (address/name set by RETS) are counted.
         db.from("assets").select("id", { count: "exact", head: true })
-            .eq("protocol", "fabrica"),
+            .eq("protocol", "fabrica")
+            .not("name", "match", "^#[0-9]"),
 
         // Active listing count — Fabrica land only
         db.from("assets").select("id", { count: "exact", head: true })

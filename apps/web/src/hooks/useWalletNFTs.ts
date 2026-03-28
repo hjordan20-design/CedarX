@@ -1,32 +1,23 @@
 /**
  * useWalletNFTs
  *
- * Scans the connected wallet for NFTs from CedarX-whitelisted protocol contracts
- * using the Alchemy NFT API.  Returns separate lists for Ethereum (Fabrica + 4K)
- * and Polygon (Courtyard) since they require different RPC calls.
+ * Scans the connected wallet for Fabrica land NFTs on Ethereum mainnet
+ * using the Alchemy NFT API.
  *
- * Whitelisted contracts:
- *   Ethereum — Fabrica (ERC-1155), 4K Protocol (ERC-1155)
- *   Polygon  — Courtyard (ERC-721)
+ * CedarX is land-only — only the Fabrica ERC-1155 contract is whitelisted.
  */
 
 import { useQuery } from "@tanstack/react-query";
 import { useAccount } from "wagmi";
 
-// Polygon key (VITE_ALCHEMY_API_KEY) — used for Courtyard on polygon-mainnet
-// Ethereum key (VITE_ALCHEMY_ETH_API_KEY) — used for Fabrica/4K on eth-mainnet
-// Falls back to the same key if the ETH-specific one is not set.
-const ALCHEMY_POLYGON_KEY = import.meta.env.VITE_ALCHEMY_API_KEY as string | undefined;
-const ALCHEMY_ETH_KEY = (import.meta.env.VITE_ALCHEMY_ETH_API_KEY || ALCHEMY_POLYGON_KEY) as string | undefined;
+const ALCHEMY_ETH_KEY = (
+  import.meta.env.VITE_ALCHEMY_ETH_API_KEY ||
+  import.meta.env.VITE_ALCHEMY_API_KEY
+) as string | undefined;
 
-// Whitelisted contract addresses (all lowercase for comparison)
+// Fabrica Land (ERC-1155) on Ethereum mainnet — the only whitelisted contract.
 const ETH_CONTRACTS = [
   "0x5cbeb7a0df7ed85d82a472fd56d81ed550f3ea95", // Fabrica
-  "0xebf19415d94be89a1d692f82af391685dc1bff79", // 4K Protocol
-];
-
-const POLYGON_CONTRACTS = [
-  "0x251be3a17af4892035c37ebf5890f4a4d889dcad", // Courtyard
 ];
 
 export interface WalletNFT {
@@ -55,8 +46,6 @@ interface AlchemyResponse {
 
 const PROTOCOL_LABELS: Record<string, string> = {
   "0x5cbeb7a0df7ed85d82a472fd56d81ed550f3ea95": "Fabrica",
-  "0xebf19415d94be89a1d692f82af391685dc1bff79": "4K Protocol",
-  "0x251be3a17af4892035c37ebf5890f4a4d889dcad": "Courtyard",
 };
 
 async function fetchAlchemyNFTs(
@@ -113,34 +102,13 @@ export function useWalletNFTs() {
     queryFn: async () => {
       if (!address) return [];
 
-      if (!ALCHEMY_POLYGON_KEY) {
-        console.warn("[useWalletNFTs] VITE_ALCHEMY_API_KEY is not set — cannot scan NFTs");
+      if (!ALCHEMY_ETH_KEY) {
+        console.warn("[useWalletNFTs] No Alchemy API key set — cannot scan NFTs");
         return [];
       }
-      if (!ALCHEMY_ETH_KEY) {
-        console.warn("[useWalletNFTs] VITE_ALCHEMY_ETH_API_KEY is not set — falling back to polygon key for eth-mainnet");
-      }
 
-      // Use allSettled so a failure on one chain doesn't suppress the other
-      const [ethResult, polyResult] = await Promise.allSettled([
-        fetchAlchemyNFTs("eth-mainnet",     ALCHEMY_ETH_KEY!,     address, ETH_CONTRACTS),
-        fetchAlchemyNFTs("polygon-mainnet", ALCHEMY_POLYGON_KEY,  address, POLYGON_CONTRACTS),
-      ]);
-
-      if (ethResult.status === "rejected") {
-        console.error("[useWalletNFTs] eth-mainnet scan failed:", ethResult.reason);
-      }
-      if (polyResult.status === "rejected") {
-        console.error("[useWalletNFTs] polygon-mainnet scan failed:", polyResult.reason);
-      }
-
-      const ethNfts  = ethResult.status  === "fulfilled" ? ethResult.value  : [];
-      const polyNfts = polyResult.status === "fulfilled" ? polyResult.value : [];
-
-      return [
-        ...mapNFTs(ethNfts,  "ethereum"),
-        ...mapNFTs(polyNfts, "polygon"),
-      ];
+      const nfts = await fetchAlchemyNFTs("eth-mainnet", ALCHEMY_ETH_KEY, address, ETH_CONTRACTS);
+      return mapNFTs(nfts, "ethereum");
     },
     enabled: !!address,
     staleTime: 120_000,

@@ -426,8 +426,7 @@ export function SellPage() {
           <Wallet size={32} className="text-cedar-amber/60" />
           <h2 className="display text-xl text-cedar-text">Connect your wallet</h2>
           <p className="text-cedar-muted text-sm">
-            Connect a wallet containing RWA NFTs from Fabrica, 4K Protocol, or
-            Courtyard to create a listing.
+            Connect a wallet containing Fabrica land NFTs to create a listing.
           </p>
           <button
             onClick={openConnectModal}
@@ -477,10 +476,10 @@ export function SellPage() {
           {!isLoading && !isError && nfts && nfts.length === 0 && (
             <div className="py-12 text-center space-y-3">
               <p className="text-cedar-muted text-sm">
-                No verified RWA NFTs found in this wallet.
+                No Fabrica land NFTs found in this wallet.
               </p>
               <p className="text-cedar-muted/50 text-xs">
-                Only NFTs from Fabrica, 4K Protocol, and Courtyard are eligible for listing.
+                Only Fabrica land parcels (contract 0x5cbeb7…Ea95) are eligible for listing.
               </p>
             </div>
           )}
