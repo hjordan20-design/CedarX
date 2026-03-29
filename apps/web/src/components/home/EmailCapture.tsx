@@ -31,7 +31,7 @@ export function EmailCapture() {
   return (
     <section
       className="px-6 lg:px-[80px]"
-      style={{ paddingTop: "48px", paddingBottom: "64px" }}
+      style={{ paddingTop: "24px", paddingBottom: "64px" }}
     >
       <div
         style={{

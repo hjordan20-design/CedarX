@@ -13,6 +13,14 @@ import { fetchAssets } from "@/lib/api";
 import type { Asset } from "@/lib/types";
 import { mapboxSatUrl, mapboxCardUrl, ELOY_FALLBACK_SAT, ELOY_FALLBACK_CARD } from "@/lib/mapbox";
 
+/**
+ * Known-good CDN land photo from the Terrain Project — used as a hardcoded
+ * image fallback when no asset photo is available and Mapbox is not configured.
+ * Source: a Fabrica parcel photo served via theterrainproject.com CDN.
+ */
+const HARDCODED_LAND_PHOTO =
+  "https://photos.theterrainproject.com/listings/aerial_default_land.jpg";
+
 // ─── Thumbnail strip ──────────────────────────────────────────────────────────
 
 function Thumb({ asset }: { asset: Asset }) {
@@ -92,13 +100,17 @@ interface LaneProps {
 
 function LaneBgImage({ asset }: { asset: Asset }) {
   const assetSat = mapboxSatUrl(asset.details.lat, asset.details.lng);
-  // Fallback chain: direct CDN → asset-specific sat → Eloy AZ hardcoded sat
-  const sat = assetSat ?? ELOY_FALLBACK_SAT;
-  const initial = asset.imageUrl?.startsWith("http") ? asset.imageUrl : (sat ?? asset.imageUrl ?? null);
-  const [src, setSrc] = useState<string | null>(initial ?? null);
+  // Fallback chain: direct CDN photo → asset sat → Eloy sat → hardcoded land photo
+  const initial =
+    (asset.imageUrl?.startsWith("http") ? asset.imageUrl : null) ??
+    assetSat ??
+    ELOY_FALLBACK_SAT ??
+    HARDCODED_LAND_PHOTO;
+  const [src, setSrc] = useState<string | null>(initial);
 
-  // If no src at all (no image, no sat, no Mapbox token), let LaneBgFallback render instead
+  // src should always be non-null (HARDCODED_LAND_PHOTO is the last resort)
   if (!src) return null;
+
   return (
     <div
       className="group-hover:opacity-50"
@@ -121,7 +133,8 @@ function LaneBgImage({ asset }: { asset: Asset }) {
         onError={() => {
           if (assetSat && src !== assetSat) { setSrc(assetSat); return; }
           if (ELOY_FALLBACK_SAT && src !== ELOY_FALLBACK_SAT) { setSrc(ELOY_FALLBACK_SAT); return; }
-          setSrc(null);
+          if (src !== HARDCODED_LAND_PHOTO) { setSrc(HARDCODED_LAND_PHOTO); return; }
+          setSrc(null); // all sources exhausted — Lane gradient will show
         }}
       />
       <div
@@ -137,22 +150,40 @@ function LaneBgImage({ asset }: { asset: Asset }) {
   );
 }
 
-/** Shown when bgAsset is null (empty query result) but we still have a satellite fallback. */
+/**
+ * Shown when the query returns no assets at all (e.g. first load before RETS runs).
+ * Always renders something — never black.
+ * Priority: Eloy sat → hardcoded CDN photo → warm earth-tone gradient.
+ */
 function LaneBgFallback() {
-  if (!ELOY_FALLBACK_SAT) return null;
+  const bgUrl = ELOY_FALLBACK_SAT ?? HARDCODED_LAND_PHOTO;
+  if (bgUrl) {
+    return (
+      <div
+        className="group-hover:opacity-50"
+        style={{
+          position: "absolute",
+          inset: 0,
+          opacity: 0.32,
+          filter: "saturate(0.65)",
+          transition: "opacity 0.5s ease",
+          pointerEvents: "none",
+          backgroundImage: `url(${bgUrl})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center top",
+        }}
+      />
+    );
+  }
+  // Last resort: warm gradient so the tile is never a solid black rectangle
   return (
     <div
-      className="group-hover:opacity-50"
       style={{
         position: "absolute",
         inset: 0,
-        opacity: 0.32,
-        filter: "saturate(0.65)",
-        transition: "opacity 0.5s ease",
+        background: "linear-gradient(160deg, #3D2B0F 0%, #2A1A07 45%, #1C1408 100%)",
+        opacity: 0.55,
         pointerEvents: "none",
-        backgroundImage: `url(${ELOY_FALLBACK_SAT})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center top",
       }}
     />
   );
@@ -189,9 +220,8 @@ function Lane({ href, heading, subtext, ctaLabel, badge, assets, isLoading }: La
         (e.currentTarget as HTMLElement).style.borderColor = "rgba(196,133,42,0.12)";
       }}
     >
-      {/* Background: CDN image → satellite → Eloy hardcoded sat */}
-      {bgAsset ? <LaneBgImage asset={bgAsset} /> : null}
-      {!bgAsset && <LaneBgFallback />}
+      {/* Background: CDN photo → satellite → hardcoded land photo → warm gradient */}
+      {bgAsset ? <LaneBgImage asset={bgAsset} /> : <LaneBgFallback />}
 
       {/* Gradient overlay */}
       <div
