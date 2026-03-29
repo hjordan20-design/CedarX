@@ -7,7 +7,7 @@ import { ProtocolBadge } from "@/components/common/ProtocolBadge";
 import { CategoryTag } from "@/components/common/CategoryTag";
 import { VerifiedBadge } from "@/components/common/VerifiedBadge";
 import { formatTokenPrice, formatUSDC, formatAcreage } from "@/lib/formatters";
-import { mapboxSatUrl, ELOY_FALLBACK_SAT } from "@/lib/mapbox";
+import { mapboxCardUrl, ELOY_FALLBACK_CARD } from "@/lib/mapbox";
 
 // ─── IPFS gateway cycling ─────────────────────────────────────────────────────
 // When an IPFS image fails to load, retry with the next public gateway.
@@ -39,11 +39,20 @@ function cleanAssetName(name: string): string {
 function AssetSubtitle({ asset }: { asset: Asset }) {
   const { details, category } = asset;
   if (category === "real-estate") {
-    const parts: string[] = [];
-    if (details.county) parts.push(details.county);
-    if (details.state) parts.push(details.state);
-    if (details.acreage) parts.push(formatAcreage(details.acreage));
-    if (parts.length) return <p className="text-cedar-muted text-[13px] font-sans truncate">{parts.join(" · ")}</p>;
+    const location: string[] = [];
+    if (details.county) location.push(details.county);
+    if (details.state)  location.push(details.state);
+    const locationStr = location.join(", ");
+    const acreageStr  = details.acreage != null ? formatAcreage(details.acreage) : null;
+    if (locationStr || acreageStr) {
+      return (
+        <div className="space-y-0.5">
+          {locationStr && <p className="text-cedar-muted text-[13px] font-sans truncate">{locationStr}</p>}
+          {acreageStr  && <p className="text-cedar-amber/70 text-[12px] font-mono">{acreageStr}</p>}
+        </div>
+      );
+    }
+    return null;
   }
   if (category === "luxury-goods") {
     const parts: string[] = [];
@@ -141,16 +150,16 @@ function AssetCardImage({ imageUrl, alt, satUrl }: { imageUrl: string; alt: stri
       const next = IPFS_GATEWAYS.map((gw) => `${gw}${cid}`).find((u) => !tried.current.has(u));
       if (next) { tried.current.add(next); setSrc(next); return; }
     }
-    // Mapbox satellite fallback for land assets (asset-specific lat/lng)
+    // Mapbox satellite card thumbnail (400×400, plain satellite, no overlay)
     if (satUrl && !tried.current.has(satUrl)) {
       tried.current.add(satUrl);
       setSrc(satUrl);
       return;
     }
-    // Eloy AZ hardcoded sat — absolute last resort before showing gradient fallback
-    if (ELOY_FALLBACK_SAT && !tried.current.has(ELOY_FALLBACK_SAT)) {
-      tried.current.add(ELOY_FALLBACK_SAT);
-      setSrc(ELOY_FALLBACK_SAT);
+    // Eloy AZ hardcoded card sat — absolute last resort before showing gradient fallback
+    if (ELOY_FALLBACK_CARD && !tried.current.has(ELOY_FALLBACK_CARD)) {
+      tried.current.add(ELOY_FALLBACK_CARD);
+      setSrc(ELOY_FALLBACK_CARD);
       return;
     }
     setFailed(true);
@@ -184,9 +193,9 @@ function AssetCardImage({ imageUrl, alt, satUrl }: { imageUrl: string; alt: stri
 
 export function AssetCard({ asset }: { asset: Asset }) {
   const displayName = cleanAssetName(asset.name);
-  // For land assets: asset-specific sat → Eloy AZ fallback sat (always shows something)
-  const satUrl = mapboxSatUrl(asset.details.lat, asset.details.lng)
-    ?? (asset.category === "real-estate" ? ELOY_FALLBACK_SAT : null);
+  // For land assets: asset-specific card sat (400×400, plain satellite) → Eloy AZ card fallback
+  const satUrl = mapboxCardUrl(asset.details.lat, asset.details.lng)
+    ?? (asset.category === "real-estate" ? ELOY_FALLBACK_CARD : null);
   const effectiveImageUrl = asset.imageUrl ?? satUrl ?? undefined;
   return (
     <Link

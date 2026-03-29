@@ -86,8 +86,12 @@ export function formatCount(n: number | undefined): string {
 
 /** Format acreage. e.g. 1.5 → "1.5 ac" */
 export function formatAcreage(acres: number | undefined): string {
-  if (acres === undefined) return "—";
-  return `${acres.toLocaleString("en-US")} ac`;
+  if (acres == null) return "—";
+  // Show as whole number if integer, otherwise 2 decimal places
+  const formatted = Number.isInteger(acres)
+    ? acres.toLocaleString("en-US")
+    : acres.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return `${formatted} acres`;
 }
 
 // ─── Addresses ───────────────────────────────────────────────────────────────

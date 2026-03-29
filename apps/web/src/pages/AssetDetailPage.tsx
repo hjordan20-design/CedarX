@@ -62,6 +62,23 @@ function stripLowConfidence(name: string): string {
   return name.replace(/^\[Low Confidence\]\s*/i, "");
 }
 
+/**
+ * Derive the best display title for a property asset.
+ * Priority: real name from RETS → details.location → county+state → generic fallback.
+ * Avoids showing the placeholder "Land Parcel" string when richer data is available.
+ */
+function resolvePropertyTitle(asset: Asset): string {
+  const name = stripLowConfidence(asset.name ?? "");
+  // If we have a real name (not the generic fallback), use it.
+  if (name && name !== "Land Parcel") return name;
+  // Fall back through details fields
+  const d = asset.details;
+  if (d.location) return stripLowConfidence(d.location);
+  if (d.county && d.state) return `Land in ${d.county}, ${d.state}`;
+  if (d.state) return `Land in ${d.state}`;
+  return "Land Parcel";
+}
+
 // ─── Category-tinted fallback backgrounds ────────────────────────────────────
 
 const CATEGORY_BG: Record<string, string> = {
@@ -670,7 +687,7 @@ export function AssetDetailPage() {
           Explore
         </Link>
         <span className="shrink-0">/</span>
-        <span className="text-cedar-text truncate">{stripLowConfidence(asset.name)}</span>
+        <span className="text-cedar-text truncate">{resolvePropertyTitle(asset)}</span>
       </nav>
 
       {/* Two-column layout */}
@@ -751,7 +768,7 @@ export function AssetDetailPage() {
 
           {/* Name */}
           <h1 className="display text-2xl sm:text-3xl lg:text-4xl text-cedar-text leading-tight break-words">
-            {stripLowConfidence(asset.name)}
+            {resolvePropertyTitle(asset)}
           </h1>
 
           {/* Actions (price + buy/sell buttons + contract info) */}

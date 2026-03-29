@@ -138,8 +138,10 @@ export async function getAssets(filters: AssetFilters = {}): Promise<PaginatedRe
     // Land-specific JSONB filters
     if (filters.state)        query = (query as any).filter("details->>state", "ilike", filters.state);
     if (filters.county)       query = (query as any).filter("details->>county", "ilike", filters.county);
-    if (filters.minAcreage != null) query = (query as any).filter("(details->>acreage)::numeric", "gte", filters.minAcreage);
-    if (filters.maxAcreage != null) query = (query as any).filter("(details->>acreage)::numeric", "lte", filters.maxAcreage);
+    // JSONB numeric filter: use ->acreage (returns jsonb number, not text)
+    // so PostgREST can compare it numerically without a cast.
+    if (filters.minAcreage != null) query = (query as any).filter("(details->>'acreage')::numeric", "gte", String(filters.minAcreage));
+    if (filters.maxAcreage != null) query = (query as any).filter("(details->>'acreage')::numeric", "lte", String(filters.maxAcreage));
 
     // Sorting
     switch (filters.sort) {

@@ -11,14 +11,14 @@ import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { fetchAssets } from "@/lib/api";
 import type { Asset } from "@/lib/types";
-import { mapboxSatUrl, ELOY_FALLBACK_SAT } from "@/lib/mapbox";
+import { mapboxSatUrl, mapboxCardUrl, ELOY_FALLBACK_SAT, ELOY_FALLBACK_CARD } from "@/lib/mapbox";
 
 // ─── Thumbnail strip ──────────────────────────────────────────────────────────
 
 function Thumb({ asset }: { asset: Asset }) {
-  const assetSat = mapboxSatUrl(asset.details.lat, asset.details.lng);
-  // Fallback chain: asset-specific sat → Eloy AZ hardcoded sat
-  const sat = assetSat ?? ELOY_FALLBACK_SAT;
+  // Use card-specific 400×400 satellite URL for thumbnails (no parcel overlay)
+  const assetSat = mapboxCardUrl(asset.details.lat, asset.details.lng);
+  const sat = assetSat ?? ELOY_FALLBACK_CARD;
   const initial = asset.imageUrl ?? sat;
   const [src, setSrc] = useState<string | null>(initial ?? null);
 
@@ -44,7 +44,7 @@ function Thumb({ asset }: { asset: Asset }) {
             style={{ display: "none" }}
             onError={() => {
               if (assetSat && src !== assetSat) { setSrc(assetSat); return; }
-              if (ELOY_FALLBACK_SAT && src !== ELOY_FALLBACK_SAT) { setSrc(ELOY_FALLBACK_SAT); return; }
+              if (ELOY_FALLBACK_CARD && src !== ELOY_FALLBACK_CARD) { setSrc(ELOY_FALLBACK_CARD); return; }
               setSrc(null);
             }}
           />
