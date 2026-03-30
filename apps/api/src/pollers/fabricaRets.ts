@@ -169,19 +169,42 @@ function buildPropertyName(listing: RetsListing): string {
         toStr(listing.County)
     );
 
-    if (street && city && state) return `${street}, ${city}, ${state}`;
-    if (street && state)         return `${street}, ${state}`;
+    const base = (() => {
+        if (street && city && state) return `${street}, ${city}, ${state}`;
+        if (street && state)         return `${street}, ${state}`;
 
-    const unparsed = (
-        nested(addr, "commons:UnparsedAddress") ||
-        nested(addr, "UnparsedAddress")         ||
-        toStr(listing.UnparsedAddress)
+        const unparsed = (
+            nested(addr, "commons:UnparsedAddress") ||
+            nested(addr, "UnparsedAddress")         ||
+            toStr(listing.UnparsedAddress)
+        );
+        if (unparsed && !/^#?\d{10,}/.test(unparsed)) return unparsed;
+
+        if (county && state) return `Land in ${county}, ${state}`;
+        if (state)           return `Land in ${state}`;
+        return "Land Parcel";
+    })();
+
+    // Append acreage so duplicate addresses become visually distinct on cards.
+    // e.g. "588 Roby Fulk Rd, Pinnacle, NC · 10.2 acres"
+    const acresRaw = (
+        nested(listing.Parcels != null && typeof listing.Parcels === "object"
+            ? (listing.Parcels as Record<string, unknown>)["Parcel"] : undefined, "LotSizeAcres") ||
+        toStr(listing.LotSizeAcres) ||
+        toStr((listing as Record<string, unknown>)["LotSize"])
     );
-    if (unparsed && !/^#?\d{10,}/.test(unparsed)) return unparsed;
-
-    if (county && state) return `Land in ${county}, ${state}`;
-    if (state)           return `Land in ${state}`;
-    return "Land Parcel";
+    if (acresRaw) {
+        const acres = Number(acresRaw);
+        if (isFinite(acres) && acres > 0) {
+            const formatted = acres < 10
+                ? acres.toFixed(2)
+                : acres < 100
+                ? acres.toFixed(1)
+                : String(Math.round(acres));
+            return `${base} · ${formatted} acres`;
+        }
+    }
+    return base;
 }
 
 /** Extract the first usable photo URL from a listing's Media field. */
@@ -333,18 +356,27 @@ export class FabricaRetsPoller {
         const lng = lngRaw ? Number(lngRaw) : undefined;
 
         // ── Acreage ────────────────────────────────────────────────────────────
+        // Check every known location the feed might put the lot size.
+        // Debug logs showed top-level LotSize=76.16, so try that first.
         let acreage: number | undefined;
-        const acresRaw = nested(parcelObj as unknown, "LotSizeAcres") ||
-                         nested(addr as unknown, "LotSizeAcres")      ||
-                         toStr(listing.LotSizeAcres);
-        const sqftRaw  = nested(parcelObj as unknown, "LotSizeSquareFeet") ||
-                         nested(addr as unknown, "LotSizeSquareFeet")      ||
-                         toStr(listing.LotSizeSquareFeet);
+        const acresRaw = (
+            toStr((listing as Record<string, unknown>)["LotSize"])        ||  // top-level (confirmed in debug)
+            nested(parcelObj as unknown, "LotSizeAcres")                  ||
+            nested(parcelObj as unknown, "LotSize")                       ||
+            nested(addr as unknown, "LotSizeAcres")                       ||
+            toStr(listing.LotSizeAcres)
+        );
+        const sqftRaw = (
+            nested(parcelObj as unknown, "LotSizeSquareFeet")             ||
+            nested(addr as unknown, "LotSizeSquareFeet")                  ||
+            toStr(listing.LotSizeSquareFeet)
+        );
         if (acresRaw) {
             acreage = Number(acresRaw);
         } else if (sqftRaw) {
             acreage = Number(sqftRaw) / 43560;
         }
+        if (acreage != null && !isFinite(acreage)) acreage = undefined;
 
         // ── String detail fields ───────────────────────────────────────────────
         // County is in Location block; address fields use commons: namespace.

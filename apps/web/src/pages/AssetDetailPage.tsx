@@ -854,7 +854,7 @@ export function AssetDetailPage() {
           {asset.tokenId && (
             <div className="pt-2 border-t border-cedar-border">
               <a
-                href={`https://opensea.io/assets/${asset.chain === "polygon" ? "matic" : asset.chain}/${asset.contractAddress}/${asset.tokenId}`}
+                href={`https://opensea.io/assets/${asset.chain === "polygon" ? "matic" : "ethereum"}/${asset.contractAddress}/${asset.tokenId}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1 text-cedar-muted/40 hover:text-cedar-muted/60 text-[11px] transition-colors py-1"
