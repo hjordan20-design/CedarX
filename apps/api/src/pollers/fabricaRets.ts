@@ -52,28 +52,29 @@ function buildAssetId(tokenId: string): string {
 // ─── RETS XML parsing ─────────────────────────────────────────────────────────
 
 interface RetsListing {
-    ListingKey: string;         // token ID
-    ListPrice: number;          // USD price (already dollars, not cents)
-    // Address fields — Fabrica may use any of these depending on feed version
-    FullStreetAddress?: string; // e.g. "243 June Lane"
-    StreetAddress?: string;     // alternate field name
-    Address?: string;           // short-form alternate
-    City?: string;              // e.g. "Hartsel"
-    UnparsedAddress?: string;   // full address string (fallback)
-    Latitude?: number;
-    Longitude?: number;
-    LotSizeAcres?: number;
-    LotSizeSquareFeet?: number; // fallback if acres not available
-    // State/county — both RESO-standard and short-form variants
-    StateOrProvince?: string;   // standard RESO
-    State?: string;             // short-form alternate
-    CountyOrParish?: string;    // standard RESO
-    County?: string;            // short-form alternate
-    ParcelNumber?: string;
-    PublicRemarks?: string;
-    LegalDescription?: string;  // full legal description from title
-    Media?: { MediaURL?: string } | Array<{ MediaURL?: string }>;
-    // Allow any other fields from the feed without breaking the type
+    ListingKey: string;
+    ListPrice: number;
+    // Top-level flat fields (some feed versions)
+    FullStreetAddress?: unknown;
+    StreetAddress?: unknown;
+    City?: unknown;
+    UnparsedAddress?: unknown;
+    StateOrProvince?: unknown;
+    State?: unknown;
+    CountyOrParish?: unknown;
+    County?: unknown;
+    Latitude?: unknown;
+    Longitude?: unknown;
+    LotSizeAcres?: unknown;
+    LotSizeSquareFeet?: unknown;
+    ParcelNumber?: unknown;
+    PublicRemarks?: unknown;
+    LegalDescription?: unknown;
+    // Nested block fields (Fabrica RETS feed structure)
+    Address?: unknown;   // object: { FullStreetAddress, City, StateOrProvince, CountyOrParish, ... }
+    Location?: unknown;  // object: { Latitude, Longitude }
+    Parcels?: unknown;   // object: { Parcel: { ParcelNumber, LegalDescription, ... } }
+    Media?: unknown;
     [key: string]: unknown;
 }
 
@@ -101,14 +102,8 @@ function parseRetsXml(xml: string): RetsListing[] {
 
 /**
  * Safely coerce any RETS XML field value to a trimmed string.
- *
- * fast-xml-parser with parseTagValue:true can return:
- *   - string  → normal case
- *   - number  → e.g. <ListPrice>75000</ListPrice> parsed as 75000
- *   - boolean → e.g. <Active>true</Active>
- *   - object  → when the element has XML attributes:
- *               <Address type="full">123 Main St</Address>
- *               becomes { "#text": "123 Main St", "@_type": "full" }
+ * Handles string, number, boolean, and objects with "#text" (fast-xml-parser
+ * wraps text content in "#text" when an element has XML attributes).
  * Returns "" for null/undefined so callers can use || chains safely.
  */
 function toStr(v: unknown): string {
@@ -117,7 +112,6 @@ function toStr(v: unknown): string {
     if (typeof v === "number" || typeof v === "boolean") return String(v).trim();
     if (typeof v === "object") {
         const o = v as Record<string, unknown>;
-        // fast-xml-parser stores text content as "#text" when attributes exist
         if (o["#text"] != null) return toStr(o["#text"]);
         if (o["_text"] != null) return toStr(o["_text"]);
         if (o["text"]  != null) return toStr(o["text"]);
@@ -126,31 +120,57 @@ function toStr(v: unknown): string {
 }
 
 /**
+ * Safely read a field from a nested object that may itself be any type.
+ * e.g. nested(listing.Address, "FullStreetAddress")
+ * Returns "" if the parent is not an object or the key is missing.
+ */
+function nested(parent: unknown, key: string): string {
+    if (parent == null || typeof parent !== "object") return "";
+    return toStr((parent as Record<string, unknown>)[key]);
+}
+
+/**
  * Build a human-readable property name from RETS address fields.
- * Preferred: "243 June Lane, Hartsel, CO"
- * Fallback:  "Land in Chaffee County, CO"
+ * Fabrica's RETS feed uses a nested <Address> block:
+ *   listing.Address.FullStreetAddress, .City, .StateOrProvince, .CountyOrParish
+ * Some feed versions also expose these at the top level — try both.
+ * Preferred result: "243 June Lane, Hartsel, CO"
+ * Fallback:         "Land in Chaffee County, CO"
  */
 function buildPropertyName(listing: RetsListing): string {
-    // toStr() handles numbers, objects, and missing fields safely
-    const street = (
-        toStr(listing.FullStreetAddress) ||
-        toStr(listing.StreetAddress)     ||
-        toStr(listing.Address)
-    );
-    const city   = toStr(listing.City);
-    const state  = toStr(listing.StateOrProvince) || toStr(listing.State);
-    const county = toStr(listing.CountyOrParish)  || toStr(listing.County);
+    const addr = listing.Address; // nested <Address> block (object)
 
-    // Best case: street + city + state
+    const street = (
+        nested(addr, "FullStreetAddress") ||
+        nested(addr, "StreetAddress")     ||
+        nested(addr, "Address")           ||
+        toStr(listing.FullStreetAddress)  ||
+        toStr(listing.StreetAddress)
+    );
+    const city = nested(addr, "City") || toStr(listing.City);
+
+    const state = (
+        nested(addr, "StateOrProvince") ||
+        nested(addr, "State")           ||
+        toStr(listing.StateOrProvince)  ||
+        toStr(listing.State)
+    );
+    const county = (
+        nested(addr, "CountyOrParish") ||
+        nested(addr, "County")         ||
+        toStr(listing.CountyOrParish)  ||
+        toStr(listing.County)
+    );
+
     if (street && city && state) return `${street}, ${city}, ${state}`;
-    // Street + state (no city)
-    if (street && state) return `${street}, ${state}`;
-    // UnparsedAddress if it contains useful info (not just a raw token ID / number)
-    const unparsed = toStr(listing.UnparsedAddress);
+    if (street && state)         return `${street}, ${state}`;
+
+    // UnparsedAddress — skip if it looks like a raw numeric token ID
+    const unparsed = nested(addr, "UnparsedAddress") || toStr(listing.UnparsedAddress);
     if (unparsed && !/^#?\d{10,}/.test(unparsed)) return unparsed;
-    // Fallback: county + state
+
     if (county && state) return `Land in ${county}, ${state}`;
-    if (state) return `Land in ${state}`;
+    if (state)           return `Land in ${state}`;
     return "Land Parcel";
 }
 
@@ -159,7 +179,8 @@ function extractFirstPhoto(listing: RetsListing): string | null {
     if (!listing.Media) return null;
     const mediaArr = Array.isArray(listing.Media) ? listing.Media : [listing.Media];
     for (const m of mediaArr) {
-        const url = m?.MediaURL;
+        const obj = m as Record<string, unknown> | null | undefined;
+        const url = obj?.MediaURL;
         if (url && typeof url === "string" && url.startsWith("http")) return url;
     }
     return null;
@@ -262,41 +283,83 @@ export class FabricaRetsPoller {
     ): Promise<void> {
         const assetId = buildAssetId(tokenId);
 
-        // Debug: log ALL scalar fields for the first 3 listings so we can see
-        // exactly which field names the feed uses (and their raw types).
-        if (debugIdx < 3) {
-            const populated = Object.entries(listing)
-                .filter(([, v]) => v != null)
-                .map(([k, v]) => `${k}(${typeof v})=${JSON.stringify(typeof v === "object" ? "[obj]" : v)}`);
-            this.log(`DEBUG listing #${debugIdx + 1} ALL fields: ${populated.join(" | ")}`);
+        // Debug: for the first listing dump top-level keys + the keys of every
+        // nested object block so we can see the exact XML structure.
+        if (debugIdx === 0) {
+            this.log(`DEBUG listing #1 top-level keys: ${Object.keys(listing).join(", ")}`);
+            for (const key of ["Address", "Location", "Parcels", "Media"]) {
+                const val = listing[key];
+                if (val != null && typeof val === "object" && !Array.isArray(val)) {
+                    this.log(`DEBUG listing #1 ${key} keys: ${Object.keys(val as object).join(", ")}`);
+                    // Also dump one level deeper for Parcels (often has a Parcel sub-object)
+                    for (const [sk, sv] of Object.entries(val as Record<string, unknown>)) {
+                        if (sv != null && typeof sv === "object" && !Array.isArray(sv)) {
+                            this.log(`DEBUG listing #1 ${key}.${sk} keys: ${Object.keys(sv as object).join(", ")}`);
+                        }
+                    }
+                }
+            }
         }
 
-        // Image: RETS feed photo only. Fabrica CDN images are dark parcel-overlay
-        // maps that look bad at card thumbnail size — let the card fall through
-        // to the Mapbox satellite URL instead (plain imagery, no blue overlay).
-        // Pass clearImage:true so the old Fabrica CDN URL is removed from the DB.
+        // ── Nested block helpers ───────────────────────────────────────────────
+        // Fabrica RETS feed groups fields into <Address>, <Location>, <Parcels>
+        // blocks. Check those first, then fall back to top-level flat fields.
+        const addr    = listing.Address  as Record<string, unknown> | undefined;
+        const loc     = listing.Location as Record<string, unknown> | undefined;
+        // Parcels can be { Parcel: {...} } or { Parcel: [{...}] }
+        const parcels = listing.Parcels  as Record<string, unknown> | undefined;
+        const parcelObj = parcels?.Parcel != null
+            ? (Array.isArray(parcels.Parcel) ? parcels.Parcel[0] : parcels.Parcel) as Record<string, unknown>
+            : undefined;
+
+        // ── Image ──────────────────────────────────────────────────────────────
         const photoUrl = extractFirstPhoto(listing);
         const imageUrl = photoUrl ?? null;
 
-        const lat = listing.Latitude  != null ? Number(listing.Latitude)  : undefined;
-        const lng = listing.Longitude != null ? Number(listing.Longitude) : undefined;
+        // ── Coordinates ────────────────────────────────────────────────────────
+        const latRaw = nested(loc, "Latitude")  || toStr(listing.Latitude);
+        const lngRaw = nested(loc, "Longitude") || toStr(listing.Longitude);
+        const lat = latRaw ? Number(latRaw) : undefined;
+        const lng = lngRaw ? Number(lngRaw) : undefined;
 
-        // Resolve acreage: prefer LotSizeAcres, fall back to sq-ft conversion
+        // ── Acreage ────────────────────────────────────────────────────────────
         let acreage: number | undefined;
-        if (listing.LotSizeAcres != null) {
-            acreage = Number(listing.LotSizeAcres);
-        } else if (listing.LotSizeSquareFeet != null) {
-            acreage = Number(listing.LotSizeSquareFeet) / 43560;
+        const acresRaw = nested(parcelObj as unknown, "LotSizeAcres") ||
+                         nested(addr as unknown, "LotSizeAcres")      ||
+                         toStr(listing.LotSizeAcres);
+        const sqftRaw  = nested(parcelObj as unknown, "LotSizeSquareFeet") ||
+                         nested(addr as unknown, "LotSizeSquareFeet")      ||
+                         toStr(listing.LotSizeSquareFeet);
+        if (acresRaw) {
+            acreage = Number(acresRaw);
+        } else if (sqftRaw) {
+            acreage = Number(sqftRaw) / 43560;
         }
 
-        // Use toStr() for all string fields pulled from details — the XML parser
-        // may have returned numbers or attribute-wrapped objects.
-        const county    = toStr(listing.CountyOrParish) || toStr(listing.County)   || undefined;
-        const state     = toStr(listing.StateOrProvince) || toStr(listing.State)   || undefined;
-        const parcelId  = toStr(listing.ParcelNumber)                               || undefined;
-        const legalDesc = toStr(listing.LegalDescription)                           || undefined;
-        const location  = toStr(listing.UnparsedAddress)                            || undefined;
-        const remarks   = toStr(listing.PublicRemarks)                              || undefined;
+        // ── String detail fields ───────────────────────────────────────────────
+        const county = (
+            nested(addr, "CountyOrParish") || nested(addr, "County") ||
+            toStr(listing.CountyOrParish)  || toStr(listing.County)  || undefined
+        );
+        const state = (
+            nested(addr, "StateOrProvince") || nested(addr, "State") ||
+            toStr(listing.StateOrProvince)  || toStr(listing.State)  || undefined
+        );
+        const parcelId = (
+            nested(parcelObj as unknown, "ParcelNumber") ||
+            nested(addr, "ParcelNumber")                 ||
+            toStr(listing.ParcelNumber)                  || undefined
+        );
+        const legalDesc = (
+            nested(parcelObj as unknown, "LegalDescription") ||
+            nested(addr, "LegalDescription")                 ||
+            toStr(listing.LegalDescription)                  || undefined
+        );
+        const location = (
+            nested(addr, "UnparsedAddress") ||
+            toStr(listing.UnparsedAddress)  || undefined
+        );
+        const remarks = toStr(listing.PublicRemarks) || undefined;
 
         // Build name — store null instead of the generic "Land Parcel" fallback so
         // that resolveCardTitle on the frontend can fall through to county+state.
