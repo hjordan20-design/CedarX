@@ -31,9 +31,23 @@ function extractIpfsCid(url: string): string | null {
   return null;
 }
 
-/** Strip the "[Low Confidence]" AI-geocoder prefix Fabrica adds to some names. */
-function cleanAssetName(name: string): string {
+function stripLowConfidence(name: string): string {
   return name.replace(/^\[Low Confidence\]\s*/i, "").trim();
+}
+
+/**
+ * Best display title for a property card.
+ * Falls through: stored name → details.location → county+state → "Land Parcel".
+ * Matches the resolvePropertyTitle logic on the detail page.
+ */
+function resolveCardTitle(asset: Asset): string {
+  const name = stripLowConfidence(asset.name ?? "");
+  if (name && name !== "Land Parcel") return name;
+  const d = asset.details;
+  if (d.location) return stripLowConfidence(d.location);
+  if (d.county && d.state) return `Land in ${d.county}, ${d.state}`;
+  if (d.state) return `Land in ${d.state}`;
+  return "Land Parcel";
 }
 
 function AssetSubtitle({ asset }: { asset: Asset }) {
@@ -43,7 +57,9 @@ function AssetSubtitle({ asset }: { asset: Asset }) {
     if (details.county) location.push(details.county);
     if (details.state)  location.push(details.state);
     const locationStr = location.join(", ");
-    const acreageStr  = details.acreage != null ? formatAcreage(details.acreage) : null;
+    // Coerce to Number in case JSONB returns it as a string
+    const acreageNum  = details.acreage != null ? Number(details.acreage) : null;
+    const acreageStr  = acreageNum != null && !isNaN(acreageNum) ? formatAcreage(acreageNum) : null;
     if (locationStr || acreageStr) {
       return (
         <div className="space-y-0.5">
@@ -192,7 +208,7 @@ function AssetCardImage({ imageUrl, alt, satUrl }: { imageUrl: string; alt: stri
 }
 
 export function AssetCard({ asset }: { asset: Asset }) {
-  const displayName = cleanAssetName(asset.name);
+  const displayName = resolveCardTitle(asset);
   // For land assets: asset-specific card sat (400×400, plain satellite) → Eloy AZ card fallback
   const satUrl = mapboxCardUrl(asset.details.lat, asset.details.lng)
     ?? (asset.category === "real-estate" ? ELOY_FALLBACK_CARD : null);

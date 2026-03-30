@@ -426,7 +426,7 @@ export function SellPage() {
           <Wallet size={32} className="text-cedar-amber/60" />
           <h2 className="display text-xl text-cedar-text">Connect your wallet</h2>
           <p className="text-cedar-muted text-sm">
-            Connect a wallet containing Fabrica land NFTs to create a listing.
+            Connect a wallet containing tokenized land to create a listing.
           </p>
           <button
             onClick={openConnectModal}
@@ -476,10 +476,10 @@ export function SellPage() {
           {!isLoading && !isError && nfts && nfts.length === 0 && (
             <div className="py-12 text-center space-y-3">
               <p className="text-cedar-muted text-sm">
-                No Fabrica land NFTs found in this wallet.
+                No tokenized land found in this wallet.
               </p>
               <p className="text-cedar-muted/50 text-xs">
-                Only Fabrica land parcels (contract 0x5cbeb7…Ea95) are eligible for listing.
+                Only tokenized land parcels are eligible for listing.
               </p>
             </div>
           )}

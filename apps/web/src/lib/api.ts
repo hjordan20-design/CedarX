@@ -257,8 +257,13 @@ export function fetchCounties(state?: string): Promise<{ data: string[] }> {
 
 export interface TokenizeRequest {
   address: string;
+  city?: string;
   state: string;
   county?: string;
+  parcel_id?: string;
+  acreage?: number;
+  asking_price?: number;
+  owner_wallet?: string;
   email: string;
   notes?: string;
 }

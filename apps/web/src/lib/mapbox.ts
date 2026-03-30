@@ -17,7 +17,7 @@ export function mapboxSatUrl(lat?: number, lng?: number): string | null {
  */
 export function mapboxCardUrl(lat?: number, lng?: number): string | null {
   if (!MAPBOX_TOKEN || lat == null || lng == null) return null;
-  return `https://api.mapbox.com/styles/v1/mapbox/satellite-v9/static/${lng},${lat},14,0/400x400?access_token=${MAPBOX_TOKEN}`;
+  return `https://api.mapbox.com/styles/v1/mapbox/satellite-v9/static/${lng},${lat},14,0/400x400@2x?access_token=${MAPBOX_TOKEN}`;
 }
 
 /**

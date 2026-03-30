@@ -555,9 +555,9 @@ function AssetsTab() {
     return (
       <div className="py-16 text-center space-y-3">
         <Wallet size={24} className="mx-auto text-cedar-muted/40" />
-        <p className="text-cedar-muted text-sm">No supported assets found in wallet.</p>
+        <p className="text-cedar-muted text-sm">No tokenized land found in this wallet.</p>
         <p className="text-cedar-muted/60 text-xs">
-          CedarX supports NFTs from Fabrica, 4K Protocol, and Courtyard.
+          Only tokenized land parcels appear here.
         </p>
       </div>
     );

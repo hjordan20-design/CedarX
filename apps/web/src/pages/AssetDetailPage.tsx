@@ -468,6 +468,11 @@ function AssetActions({ asset }: { asset: Asset }) {
             )}
           </div>
         )}
+        {asset.details.acreage != null && (
+          <p className="text-cedar-amber/80 text-sm font-mono">
+            {formatAcreage(Number(asset.details.acreage))}
+          </p>
+        )}
         {asset.lastSalePrice != null && (
           <p className="text-cedar-muted text-xs">
             Last sale: {formatUSDC(asset.lastSalePrice)}

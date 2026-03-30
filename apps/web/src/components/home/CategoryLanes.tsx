@@ -98,18 +98,21 @@ interface LaneProps {
   isLoading: boolean;
 }
 
-function LaneBgImage({ asset }: { asset: Asset }) {
+/**
+ * Optional photo overlay for a Lane. Tries the asset's CDN photo, then
+ * Mapbox satellite, then the hardcoded land photo. If all fail the warm
+ * gradient base (set directly on the Lane container) shows through.
+ */
+function LaneBgOverlay({ asset }: { asset: Asset }) {
   const assetSat = mapboxSatUrl(asset.details.lat, asset.details.lng);
-  // Fallback chain: direct CDN photo → asset sat → Eloy sat → hardcoded land photo
   const initial =
     (asset.imageUrl?.startsWith("http") ? asset.imageUrl : null) ??
     assetSat ??
     ELOY_FALLBACK_SAT ??
     HARDCODED_LAND_PHOTO;
-  const [src, setSrc] = useState<string | null>(initial);
+  const [src, setSrc] = useState<string | null>(initial ?? null);
 
-  // src should always be non-null (HARDCODED_LAND_PHOTO is the last resort)
-  if (!src) return null;
+  if (!src) return null; // gradient base shows through
 
   return (
     <div
@@ -118,13 +121,12 @@ function LaneBgImage({ asset }: { asset: Asset }) {
         position: "absolute",
         inset: 0,
         overflow: "hidden",
-        opacity: 0.32,
-        filter: "saturate(0.65)",
+        opacity: 0.35,
+        filter: "saturate(0.60)",
         transition: "opacity 0.5s ease",
         pointerEvents: "none",
       }}
     >
-      {/* display:none prevents any browser broken-image indicator */}
       <img
         src={src}
         alt=""
@@ -134,7 +136,7 @@ function LaneBgImage({ asset }: { asset: Asset }) {
           if (assetSat && src !== assetSat) { setSrc(assetSat); return; }
           if (ELOY_FALLBACK_SAT && src !== ELOY_FALLBACK_SAT) { setSrc(ELOY_FALLBACK_SAT); return; }
           if (src !== HARDCODED_LAND_PHOTO) { setSrc(HARDCODED_LAND_PHOTO); return; }
-          setSrc(null); // all sources exhausted — Lane gradient will show
+          setSrc(null); // all sources exhausted — gradient base shows
         }}
       />
       <div
@@ -150,53 +152,12 @@ function LaneBgImage({ asset }: { asset: Asset }) {
   );
 }
 
-/**
- * Shown when the query returns no assets at all (e.g. first load before RETS runs).
- * Always renders something — never black.
- * Priority: Eloy sat → hardcoded CDN photo → warm earth-tone gradient.
- */
-function LaneBgFallback() {
-  const bgUrl = ELOY_FALLBACK_SAT ?? HARDCODED_LAND_PHOTO;
-  if (bgUrl) {
-    return (
-      <div
-        className="group-hover:opacity-50"
-        style={{
-          position: "absolute",
-          inset: 0,
-          opacity: 0.32,
-          filter: "saturate(0.65)",
-          transition: "opacity 0.5s ease",
-          pointerEvents: "none",
-          backgroundImage: `url(${bgUrl})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center top",
-        }}
-      />
-    );
-  }
-  // Last resort: warm gradient so the tile is never a solid black rectangle
-  return (
-    <div
-      style={{
-        position: "absolute",
-        inset: 0,
-        background: "linear-gradient(160deg, #3D2B0F 0%, #2A1A07 45%, #1C1408 100%)",
-        opacity: 0.55,
-        pointerEvents: "none",
-      }}
-    />
-  );
-}
-
 function Lane({ href, heading, subtext, ctaLabel, badge, assets, isLoading }: LaneProps) {
-  // Prefer assets with a direct CDN image URL (RETS feed photos start with https://)
-  // over assets that only have a sat-derivable lat/lng — CDN photos load reliably.
   const bgAsset =
     assets.find(a => a.imageUrl?.startsWith("http")) ??
     assets.find(a => a.details.lat != null && a.details.lng != null) ??
     (assets.length > 0 ? assets[0] : null);
-  const thumbs  = assets.slice(0, 3);
+  const thumbs = assets.slice(0, 3);
 
   return (
     <Link
@@ -210,7 +171,9 @@ function Lane({ href, heading, subtext, ctaLabel, badge, assets, isLoading }: La
         minHeight: "clamp(340px, 42vw, 500px)",
         textDecoration: "none",
         border: "1px solid rgba(196,133,42,0.12)",
-        background: "#0D0B07",
+        // Warm earth-tone gradient is the ALWAYS-PRESENT base layer.
+        // It renders from pure CSS — no image loading required.
+        background: "linear-gradient(135deg, #8B7355 0%, #A0926B 30%, #6B8F71 60%, #4A7C59 100%)",
         transition: "border-color 0.4s ease",
       }}
       onMouseEnter={e => {
@@ -220,16 +183,16 @@ function Lane({ href, heading, subtext, ctaLabel, badge, assets, isLoading }: La
         (e.currentTarget as HTMLElement).style.borderColor = "rgba(196,133,42,0.12)";
       }}
     >
-      {/* Background: CDN photo → satellite → hardcoded land photo → warm gradient */}
-      {bgAsset ? <LaneBgImage asset={bgAsset} /> : <LaneBgFallback />}
+      {/* Optional photo overlay — sits on top of the gradient base */}
+      {bgAsset && <LaneBgOverlay asset={bgAsset} />}
 
-      {/* Gradient overlay */}
+      {/* Dark vignette overlay — makes text readable regardless of bg */}
       <div
         style={{
           position: "absolute",
           inset: 0,
           background:
-            "linear-gradient(to top, rgba(10,8,5,0.97) 0%, rgba(10,8,5,0.78) 40%, rgba(10,8,5,0.32) 100%)",
+            "linear-gradient(to top, rgba(10,8,5,0.96) 0%, rgba(10,8,5,0.72) 40%, rgba(10,8,5,0.18) 100%)",
         }}
       />
 
@@ -370,7 +333,7 @@ export function CategoryLanes() {
           heading="Land For Sale"
           subtext="Tokenized parcels with a fixed price. Connect your wallet and buy instantly with USDC."
           ctaLabel="Browse for-sale land"
-          badge="Fabrica · Fixed price"
+          badge="Tokenized land · Fixed price"
           assets={listedData?.data ?? []}
           isLoading={listedLoading}
         />
@@ -379,7 +342,7 @@ export function CategoryLanes() {
           heading="Make an Offer"
           subtext="Every indexed parcel accepts offers — even unlisted ones. Submit your price to the owner onchain."
           ctaLabel="Browse off-market land"
-          badge="Fabrica · Make offer"
+          badge="Tokenized land · Make offer"
           assets={unlistedData?.data ?? []}
           isLoading={unlistedLoading}
         />

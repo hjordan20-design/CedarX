@@ -217,9 +217,11 @@ export class FabricaRetsPoller {
     private async upsertListing(listing: RetsListing, tokenId: string): Promise<void> {
         const assetId = buildAssetId(tokenId);
 
-        // Image: prefer feed photo, fall back to Fabrica CDN
+        // Image: RETS feed photo only. Fabrica CDN images are dark parcel-overlay
+        // maps that look bad at card thumbnail size — let the card fall through
+        // to the Mapbox satellite URL instead (plain imagery, no blue overlay).
         const photoUrl = extractFirstPhoto(listing);
-        const imageUrl = photoUrl ?? fabricaCdnImage(tokenId);
+        const imageUrl = photoUrl ?? null;
 
         const lat = listing.Latitude  != null ? Number(listing.Latitude)  : undefined;
         const lng = listing.Longitude != null ? Number(listing.Longitude) : undefined;

@@ -1,8 +1,24 @@
 /**
  * POST /api/tokenize-request
  *
- * Accepts a user's request to tokenize a land parcel via Fabrica.
- * Stores the request in the tokenize_requests Supabase table.
+ * Stores a user's land tokenization request in the tokenization_requests table.
+ *
+ * -- SQL to create the table (run once in Supabase SQL editor):
+ * CREATE TABLE IF NOT EXISTS tokenization_requests (
+ *   id           UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+ *   address      TEXT        NOT NULL,
+ *   city         TEXT,
+ *   state        TEXT        NOT NULL,
+ *   county       TEXT,
+ *   parcel_id    TEXT,
+ *   acreage      NUMERIC,
+ *   asking_price NUMERIC,
+ *   owner_wallet TEXT,
+ *   email        TEXT        NOT NULL,
+ *   notes        TEXT,
+ *   status       TEXT        NOT NULL DEFAULT 'pending',
+ *   created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
+ * );
  */
 import { Router, type Request, type Response } from "express";
 import { z } from "zod";
@@ -11,11 +27,16 @@ import { getDb } from "../db/client";
 export const tokenizeRouter = Router();
 
 const TokenizeRequestSchema = z.object({
-    address: z.string().min(1).max(500),
-    state:   z.string().min(1).max(100),
-    county:  z.string().min(1).max(100).optional(),
-    email:   z.string().email().max(200),
-    notes:   z.string().max(2000).optional(),
+    address:      z.string().min(1).max(500),
+    city:         z.string().max(200).optional(),
+    state:        z.string().min(1).max(100),
+    county:       z.string().max(100).optional(),
+    parcel_id:    z.string().max(100).optional(),
+    acreage:      z.coerce.number().positive().optional(),
+    asking_price: z.coerce.number().positive().optional(),
+    owner_wallet: z.string().max(200).optional(),
+    email:        z.string().email().max(200),
+    notes:        z.string().max(2000).optional(),
 });
 
 tokenizeRouter.post("/", async (req: Request, res: Response) => {
@@ -25,18 +46,24 @@ tokenizeRouter.post("/", async (req: Request, res: Response) => {
     }
 
     const db = getDb();
-    const { error } = await db.from("tokenize_requests").insert({
-        address: parsed.data.address,
-        state:   parsed.data.state,
-        county:  parsed.data.county ?? null,
-        email:   parsed.data.email,
-        notes:   parsed.data.notes ?? null,
+    const d = parsed.data;
+    const { error } = await db.from("tokenization_requests").insert({
+        address:      d.address,
+        city:         d.city         ?? null,
+        state:        d.state,
+        county:       d.county       ?? null,
+        parcel_id:    d.parcel_id    ?? null,
+        acreage:      d.acreage      ?? null,
+        asking_price: d.asking_price ?? null,
+        owner_wallet: d.owner_wallet ?? null,
+        email:        d.email,
+        notes:        d.notes        ?? null,
+        status:       "pending",
     });
 
     if (error) {
-        // If the table doesn't exist yet, return a graceful error rather than crashing.
         if (error.code === "42P01") {
-            console.warn("[tokenize] tokenize_requests table not found — returning 503");
+            console.warn("[tokenize] tokenization_requests table not found — returning 503");
             return res.status(503).json({ error: "Service temporarily unavailable. Please email us at hello@cedarx.io." });
         }
         console.error("[tokenize] insert error:", error);
