@@ -186,13 +186,13 @@ function Lane({ href, heading, subtext, ctaLabel, badge, assets, isLoading }: La
       {/* Optional photo overlay — sits on top of the gradient base */}
       {bgAsset && <LaneBgOverlay asset={bgAsset} />}
 
-      {/* Dark vignette overlay — makes text readable regardless of bg */}
+      {/* Subtle warm tint — just enough contrast for text without blackening the lane */}
       <div
         style={{
           position: "absolute",
           inset: 0,
           background:
-            "linear-gradient(to top, rgba(10,8,5,0.96) 0%, rgba(10,8,5,0.72) 40%, rgba(10,8,5,0.18) 100%)",
+            "linear-gradient(to top, rgba(60,40,20,0.55) 0%, rgba(60,40,20,0.18) 50%, transparent 100%)",
         }}
       />
 
