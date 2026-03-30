@@ -29,18 +29,14 @@ function DiamondMark({ className }: { className?: string }) {
 
 function CedarXWordmark() {
   return (
-    <span style={{ fontFamily: "DM Sans, system-ui, sans-serif", fontSize: "20px", fontWeight: 500, letterSpacing: "0.04em" }}>
+    <span style={{ fontFamily: "DM Sans, system-ui, sans-serif", fontSize: "20px", fontWeight: 500, letterSpacing: "0.04em", lineHeight: 1 }}>
       <span style={{ color: "var(--cedar-text)" }}>Cedar</span>
       <span style={{
         color: "#C4852A",
         fontFamily: "Cormorant Garamond, Georgia, serif",
-        fontSize: "24px",
-        fontWeight: 700,
-        letterSpacing: "0.02em",
-        lineHeight: 1,
-        verticalAlign: "middle",
-        display: "inline-block",
-        marginTop: "-1px",
+        fontSize: "20px",
+        fontWeight: 600,
+        letterSpacing: "0.04em",
       }}>X</span>
     </span>
   );
