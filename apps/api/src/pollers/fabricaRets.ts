@@ -100,32 +100,58 @@ function parseRetsXml(xml: string): RetsListing[] {
 }
 
 /**
+ * Safely coerce any RETS XML field value to a trimmed string.
+ *
+ * fast-xml-parser with parseTagValue:true can return:
+ *   - string  → normal case
+ *   - number  → e.g. <ListPrice>75000</ListPrice> parsed as 75000
+ *   - boolean → e.g. <Active>true</Active>
+ *   - object  → when the element has XML attributes:
+ *               <Address type="full">123 Main St</Address>
+ *               becomes { "#text": "123 Main St", "@_type": "full" }
+ * Returns "" for null/undefined so callers can use || chains safely.
+ */
+function toStr(v: unknown): string {
+    if (v == null) return "";
+    if (typeof v === "string") return v.trim();
+    if (typeof v === "number" || typeof v === "boolean") return String(v).trim();
+    if (typeof v === "object") {
+        const o = v as Record<string, unknown>;
+        // fast-xml-parser stores text content as "#text" when attributes exist
+        if (o["#text"] != null) return toStr(o["#text"]);
+        if (o["_text"] != null) return toStr(o["_text"]);
+        if (o["text"]  != null) return toStr(o["text"]);
+    }
+    return "";
+}
+
+/**
  * Build a human-readable property name from RETS address fields.
  * Preferred: "243 June Lane, Hartsel, CO"
  * Fallback:  "Land in Chaffee County, CO"
  */
 function buildPropertyName(listing: RetsListing): string {
-    // Accept both standard RESO names and short-form variants Fabrica may use
+    // toStr() handles numbers, objects, and missing fields safely
     const street = (
-        listing.FullStreetAddress?.trim() ||
-        listing.StreetAddress?.trim()     ||
-        listing.Address?.trim()
+        toStr(listing.FullStreetAddress) ||
+        toStr(listing.StreetAddress)     ||
+        toStr(listing.Address)
     );
-    const city   = listing.City?.trim();
-    const state  = (listing.StateOrProvince?.trim() || listing.State?.trim());
-    const county = (listing.CountyOrParish?.trim()  || listing.County?.trim());
+    const city   = toStr(listing.City);
+    const state  = toStr(listing.StateOrProvince) || toStr(listing.State);
+    const county = toStr(listing.CountyOrParish)  || toStr(listing.County);
 
     // Best case: street + city + state
     if (street && city && state) return `${street}, ${city}, ${state}`;
     // Street + state (no city)
     if (street && state) return `${street}, ${state}`;
-    // UnparsedAddress if it contains useful info (not just a raw token ID)
-    const unparsed = listing.UnparsedAddress?.trim();
+    // UnparsedAddress if it contains useful info (not just a raw token ID / number)
+    const unparsed = toStr(listing.UnparsedAddress);
     if (unparsed && !/^#?\d{10,}/.test(unparsed)) return unparsed;
     // Fallback: county + state
     if (county && state) return `Land in ${county}, ${state}`;
     if (state) return `Land in ${state}`;
-    return `Land Parcel`;
+    return "Land Parcel";
 }
 
 /** Extract the first usable photo URL from a listing's Media field. */
@@ -236,14 +262,13 @@ export class FabricaRetsPoller {
     ): Promise<void> {
         const assetId = buildAssetId(tokenId);
 
-        // Debug: log parsed fields for the first 3 listings so we can trace
-        // which RETS field names the feed actually uses (standard vs short-form).
+        // Debug: log ALL scalar fields for the first 3 listings so we can see
+        // exactly which field names the feed uses (and their raw types).
         if (debugIdx < 3) {
             const populated = Object.entries(listing)
-                .filter(([, v]) => v != null && typeof v !== "object")
-                .map(([k, v]) => `${k}=${JSON.stringify(v)}`);
-            this.log(`DEBUG listing #${debugIdx + 1} fields: ${populated.join(" | ")}`);
-            this.log(`DEBUG listing #${debugIdx + 1} → name="${buildPropertyName(listing)}" county="${listing.CountyOrParish ?? listing.County ?? "—"}" state="${listing.StateOrProvince ?? listing.State ?? "—"}"`);
+                .filter(([, v]) => v != null)
+                .map(([k, v]) => `${k}(${typeof v})=${JSON.stringify(typeof v === "object" ? "[obj]" : v)}`);
+            this.log(`DEBUG listing #${debugIdx + 1} ALL fields: ${populated.join(" | ")}`);
         }
 
         // Image: RETS feed photo only. Fabrica CDN images are dark parcel-overlay
@@ -264,12 +289,21 @@ export class FabricaRetsPoller {
             acreage = Number(listing.LotSizeSquareFeet) / 43560;
         }
 
+        // Use toStr() for all string fields pulled from details — the XML parser
+        // may have returned numbers or attribute-wrapped objects.
+        const county    = toStr(listing.CountyOrParish) || toStr(listing.County)   || undefined;
+        const state     = toStr(listing.StateOrProvince) || toStr(listing.State)   || undefined;
+        const parcelId  = toStr(listing.ParcelNumber)                               || undefined;
+        const legalDesc = toStr(listing.LegalDescription)                           || undefined;
+        const location  = toStr(listing.UnparsedAddress)                            || undefined;
+        const remarks   = toStr(listing.PublicRemarks)                              || undefined;
+
         // Build name — store null instead of the generic "Land Parcel" fallback so
         // that resolveCardTitle on the frontend can fall through to county+state.
         const builtName = buildPropertyName(listing);
         const resolvedName = builtName === "Land Parcel" ? null : builtName;
 
-        this.log(`DEBUG upsert token=${tokenId} name=${JSON.stringify(resolvedName)} county="${listing.CountyOrParish ?? listing.County ?? "—"}" state="${listing.StateOrProvince ?? listing.State ?? "—"}" acreage=${acreage ?? "—"} image=${imageUrl ?? "null"}`);
+        this.log(`DEBUG upsert token=${tokenId} name=${JSON.stringify(resolvedName)} county="${county ?? "—"}" state="${state ?? "—"}" acreage=${acreage ?? "—"} lat=${lat ?? "—"} lng=${lng ?? "—"} image=${imageUrl ?? "null"}`);
 
         const asset: AssetInsert = {
             id: assetId,
@@ -279,16 +313,16 @@ export class FabricaRetsPoller {
             token_standard: "ERC-1155",
             chain: "ethereum",
             name: resolvedName,
-            description: listing.PublicRemarks ?? null,
+            description: remarks ?? null,
             category: "real-estate",
             image_url: imageUrl,
             details: {
-                location:          listing.UnparsedAddress,
-                acreage:           acreage,
-                county:            listing.CountyOrParish ?? listing.County   ?? undefined,
-                state:             listing.StateOrProvince ?? listing.State   ?? undefined,
-                parcel_id:         listing.ParcelNumber                       ?? undefined,
-                legal_description: listing.LegalDescription                   ?? undefined,
+                location,
+                acreage,
+                county,
+                state,
+                parcel_id:         parcelId,
+                legal_description: legalDesc,
                 lat:               isFinite(lat ?? NaN) ? lat : undefined,
                 lng:               isFinite(lng ?? NaN) ? lng : undefined,
             },

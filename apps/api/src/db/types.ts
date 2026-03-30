@@ -47,7 +47,7 @@ export interface AssetRow {
     token_id: string | null;
     token_standard: "ERC-721" | "ERC-1155" | "ERC-20";
     chain: string;
-    name: string;
+    name: string | null;
     description: string | null;
     category: "real-estate" | "luxury-goods" | "art" | "collectibles";
     image_url: string | null;
