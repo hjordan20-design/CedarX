@@ -131,31 +131,38 @@ function nested(parent: unknown, key: string): string {
 
 /**
  * Build a human-readable property name from RETS address fields.
- * Fabrica's RETS feed uses a nested <Address> block:
- *   listing.Address.FullStreetAddress, .City, .StateOrProvince, .CountyOrParish
- * Some feed versions also expose these at the top level — try both.
- * Preferred result: "243 June Lane, Hartsel, CO"
- * Fallback:         "Land in Chaffee County, CO"
+ *
+ * Fabrica's feed uses a namespaced <Address> block:
+ *   commons:FullStreetAddress, commons:City, commons:StateOrProvince
+ * County lives in <Location> (not Address):
+ *   listing.Location.County
+ * Try all known variants so the code survives future feed changes.
  */
 function buildPropertyName(listing: RetsListing): string {
-    const addr = listing.Address; // nested <Address> block (object)
+    const addr = listing.Address;
+    const loc  = listing.Location;
 
     const street = (
-        nested(addr, "FullStreetAddress") ||
-        nested(addr, "StreetAddress")     ||
-        nested(addr, "Address")           ||
-        toStr(listing.FullStreetAddress)  ||
+        nested(addr, "commons:FullStreetAddress") ||
+        nested(addr, "FullStreetAddress")         ||
+        nested(addr, "StreetAddress")             ||
+        toStr(listing.FullStreetAddress)          ||
         toStr(listing.StreetAddress)
     );
-    const city = nested(addr, "City") || toStr(listing.City);
-
+    const city = (
+        nested(addr, "commons:City") ||
+        nested(addr, "City")         ||
+        toStr(listing.City)
+    );
     const state = (
-        nested(addr, "StateOrProvince") ||
-        nested(addr, "State")           ||
-        toStr(listing.StateOrProvince)  ||
+        nested(addr, "commons:StateOrProvince") ||
+        nested(addr, "StateOrProvince")         ||
+        nested(addr, "State")                   ||
+        toStr(listing.StateOrProvince)          ||
         toStr(listing.State)
     );
     const county = (
+        nested(loc,  "County")         ||
         nested(addr, "CountyOrParish") ||
         nested(addr, "County")         ||
         toStr(listing.CountyOrParish)  ||
@@ -165,8 +172,11 @@ function buildPropertyName(listing: RetsListing): string {
     if (street && city && state) return `${street}, ${city}, ${state}`;
     if (street && state)         return `${street}, ${state}`;
 
-    // UnparsedAddress — skip if it looks like a raw numeric token ID
-    const unparsed = nested(addr, "UnparsedAddress") || toStr(listing.UnparsedAddress);
+    const unparsed = (
+        nested(addr, "commons:UnparsedAddress") ||
+        nested(addr, "UnparsedAddress")         ||
+        toStr(listing.UnparsedAddress)
+    );
     if (unparsed && !/^#?\d{10,}/.test(unparsed)) return unparsed;
 
     if (county && state) return `Land in ${county}, ${state}`;
@@ -337,27 +347,35 @@ export class FabricaRetsPoller {
         }
 
         // ── String detail fields ───────────────────────────────────────────────
+        // County is in Location block; address fields use commons: namespace.
         const county = (
-            nested(addr, "CountyOrParish") || nested(addr, "County") ||
-            toStr(listing.CountyOrParish)  || toStr(listing.County)  || undefined
+            nested(loc,  "County")                          ||
+            nested(addr, "CountyOrParish")                  ||
+            nested(addr, "County")                          ||
+            toStr(listing.CountyOrParish)                   ||
+            toStr(listing.County)                           || undefined
         );
         const state = (
-            nested(addr, "StateOrProvince") || nested(addr, "State") ||
-            toStr(listing.StateOrProvince)  || toStr(listing.State)  || undefined
+            nested(addr, "commons:StateOrProvince")         ||
+            nested(addr, "StateOrProvince")                 ||
+            nested(addr, "State")                           ||
+            toStr(listing.StateOrProvince)                  ||
+            toStr(listing.State)                            || undefined
         );
         const parcelId = (
-            nested(parcelObj as unknown, "ParcelNumber") ||
-            nested(addr, "ParcelNumber")                 ||
-            toStr(listing.ParcelNumber)                  || undefined
+            nested(parcelObj as unknown, "ParcelNumber")    ||
+            nested(addr, "ParcelNumber")                    ||
+            toStr(listing.ParcelNumber)                     || undefined
         );
         const legalDesc = (
-            nested(parcelObj as unknown, "LegalDescription") ||
-            nested(addr, "LegalDescription")                 ||
-            toStr(listing.LegalDescription)                  || undefined
+            nested(parcelObj as unknown, "LegalDescription")||
+            nested(addr, "LegalDescription")                ||
+            toStr(listing.LegalDescription)                 || undefined
         );
         const location = (
-            nested(addr, "UnparsedAddress") ||
-            toStr(listing.UnparsedAddress)  || undefined
+            nested(addr, "commons:UnparsedAddress")         ||
+            nested(addr, "UnparsedAddress")                 ||
+            toStr(listing.UnparsedAddress)                  || undefined
         );
         const remarks = toStr(listing.PublicRemarks) || undefined;
 
@@ -400,7 +418,17 @@ export class FabricaRetsPoller {
 
         // clearImage: true forces removal of the old Fabrica CDN dark-overlay URL
         // even if it was previously stored; the card falls through to Mapbox sat.
-        await upsertAsset(asset, { clearImage: true });
+        try {
+            await upsertAsset(asset, { clearImage: true });
+        } catch (err: unknown) {
+            // Log the full Supabase/DB error so we can see the exact column/constraint
+            const msg   = err instanceof Error ? err.message : String(err);
+            const code  = (err as Record<string, unknown>)?.code;
+            const detail= (err as Record<string, unknown>)?.details;
+            const hint  = (err as Record<string, unknown>)?.hint;
+            this.log(`UPSERT ERROR token=${tokenId}: ${msg} | code=${code} | detail=${detail} | hint=${hint}`);
+            throw err;
+        }
     }
 
     // ── Logging ────────────────────────────────────────────────────────────────
