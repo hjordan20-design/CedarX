@@ -5,19 +5,20 @@
  *
  * -- SQL to create the table (run once in Supabase SQL editor):
  * CREATE TABLE IF NOT EXISTS tokenization_requests (
- *   id           UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
- *   address      TEXT        NOT NULL,
- *   city         TEXT,
- *   state        TEXT        NOT NULL,
- *   county       TEXT,
- *   parcel_id    TEXT,
- *   acreage      NUMERIC,
- *   asking_price NUMERIC,
- *   owner_wallet TEXT,
- *   email        TEXT        NOT NULL,
- *   notes        TEXT,
- *   status       TEXT        NOT NULL DEFAULT 'pending',
- *   created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
+ *   id                UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+ *   address           TEXT        NOT NULL,
+ *   city              TEXT,
+ *   state             TEXT        NOT NULL,
+ *   county            TEXT,
+ *   parcel_id         TEXT,
+ *   legal_description TEXT,
+ *   acreage           NUMERIC,
+ *   asking_price      NUMERIC,
+ *   owner_wallet      TEXT,
+ *   email             TEXT        NOT NULL,
+ *   notes             TEXT,
+ *   status            TEXT        NOT NULL DEFAULT 'pending',
+ *   created_at        TIMESTAMPTZ NOT NULL DEFAULT NOW()
  * );
  */
 import { Router, type Request, type Response } from "express";
@@ -31,8 +32,9 @@ const TokenizeRequestSchema = z.object({
     city:         z.string().max(200).optional(),
     state:        z.string().min(1).max(100),
     county:       z.string().max(100).optional(),
-    parcel_id:    z.string().max(100).optional(),
-    acreage:      z.coerce.number().positive().optional(),
+    parcel_id:         z.string().max(100).optional(),
+    legal_description: z.string().max(5000).optional(),
+    acreage:           z.coerce.number().positive().optional(),
     asking_price: z.coerce.number().positive().optional(),
     owner_wallet: z.string().max(200).optional(),
     email:        z.string().email().max(200),
@@ -52,8 +54,9 @@ tokenizeRouter.post("/", async (req: Request, res: Response) => {
         city:         d.city         ?? null,
         state:        d.state,
         county:       d.county       ?? null,
-        parcel_id:    d.parcel_id    ?? null,
-        acreage:      d.acreage      ?? null,
+        parcel_id:         d.parcel_id         ?? null,
+        legal_description: d.legal_description ?? null,
+        acreage:           d.acreage           ?? null,
         asking_price: d.asking_price ?? null,
         owner_wallet: d.owner_wallet ?? null,
         email:        d.email,

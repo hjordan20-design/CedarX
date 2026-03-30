@@ -239,7 +239,14 @@ function Step1({
 
 // ─── Step 2: Documents ────────────────────────────────────────────────────────
 
-function Step2({ onBack, onNext }: { onBack: () => void; onNext: () => void }) {
+function Step2({
+  form, set, onBack, onNext,
+}: {
+  form: TokenizeRequest;
+  set: (p: Partial<TokenizeRequest>) => void;
+  onBack: () => void;
+  onNext: () => void;
+}) {
   const [files, setFiles] = useState<File[]>([]);
 
   function handleFiles(e: React.ChangeEvent<HTMLInputElement>) {
@@ -258,8 +265,22 @@ function Step2({ onBack, onNext }: { onBack: () => void; onNext: () => void }) {
         request faster. All common formats accepted (PDF, JPG, PNG).
       </p>
 
+      <Field id="legal_description" label="Legal description">
+        <textarea
+          id="legal_description"
+          rows={4}
+          placeholder="e.g. Lot 1, according to Record of Survey recorded in Book 14 of Surveys, Page 63, in the office of the County Recorder of Yavapai County…"
+          value={form.legal_description ?? ""}
+          onChange={e => set({ legal_description: e.target.value })}
+          style={{ ...inputStyle, resize: "vertical" }}
+        />
+        <p style={{ fontSize: "12px", color: "rgba(28,23,16,0.40)", fontFamily: "DM Sans, system-ui, sans-serif", marginTop: "4px" }}>
+          Found on your deed or title commitment. Required for tokenization.
+        </p>
+      </Field>
+
       <div className="space-y-2">
-        <p style={{ ...labelStyle, marginBottom: "4px" }}>Recommended documents</p>
+        <p style={{ ...labelStyle, marginBottom: "4px" }}>Supporting documents</p>
         {["Recorded deed or title", "Proof of ownership (tax bill, title insurance)", "Survey or plat map (if available)"].map(doc => (
           <div key={doc} style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", color: "rgba(28,23,16,0.55)", fontFamily: "DM Sans, system-ui, sans-serif" }}>
             <span style={{ color: "rgba(196,133,42,0.50)" }}>·</span> {doc}
@@ -353,6 +374,20 @@ function Step3({
         You can update it later.
       </p>
 
+      <Field id="owner_wallet" label="Your wallet address">
+        <input
+          id="owner_wallet"
+          type="text"
+          placeholder="0x…"
+          value={form.owner_wallet ?? ""}
+          onChange={e => set({ owner_wallet: e.target.value })}
+          style={{ ...inputStyle, fontFamily: "JetBrains Mono, monospace", fontSize: "13px" }}
+        />
+        <p style={{ fontSize: "12px", color: "rgba(28,23,16,0.40)", fontFamily: "DM Sans, system-ui, sans-serif", marginTop: "4px" }}>
+          This wallet will receive the land NFT and become the beneficial owner of the property.
+        </p>
+      </Field>
+
       <Field id="asking_price" label="Asking price (USDC)">
         <div style={{ position: "relative" }}>
           <span style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: "rgba(28,23,16,0.40)", fontFamily: "JetBrains Mono, monospace", fontSize: "14px" }}>$</span>
@@ -443,9 +478,11 @@ function Step4({
   const rows: { label: string; value: string }[] = [
     { label: "Address", value: [form.address, form.city, form.state].filter(Boolean).join(", ") },
     ...(form.county    ? [{ label: "County",     value: form.county }] : []),
-    ...(form.parcel_id ? [{ label: "Parcel ID",  value: form.parcel_id }] : []),
-    ...(form.acreage   ? [{ label: "Acreage",    value: `${form.acreage} acres` }] : []),
-    ...(form.asking_price ? [{ label: "Asking price", value: `$${form.asking_price.toLocaleString("en-US")} USDC` }] : []),
+    ...(form.parcel_id         ? [{ label: "Parcel ID",         value: form.parcel_id }] : []),
+    ...(form.legal_description ? [{ label: "Legal description", value: form.legal_description.length > 120 ? form.legal_description.slice(0, 120) + "…" : form.legal_description }] : []),
+    ...(form.acreage           ? [{ label: "Acreage",          value: `${form.acreage} acres` }] : []),
+    ...(form.asking_price      ? [{ label: "Asking price",     value: `$${form.asking_price.toLocaleString("en-US")} USDC` }] : []),
+    ...(form.owner_wallet      ? [{ label: "Wallet",           value: form.owner_wallet }] : []),
     { label: "Email",   value: form.email },
     ...(form.notes     ? [{ label: "Notes",      value: form.notes }] : []),
   ];
@@ -549,10 +586,11 @@ export function TokenizePage() {
         city:         form.city?.trim()      || undefined,
         state:        form.state,
         county:       form.county?.trim()    || undefined,
-        parcel_id:    form.parcel_id?.trim() || undefined,
-        acreage:      form.acreage           || undefined,
-        asking_price: form.asking_price      || undefined,
-        owner_wallet: address               ?? undefined,
+        parcel_id:         form.parcel_id?.trim()         || undefined,
+        legal_description: form.legal_description?.trim() || undefined,
+        acreage:           form.acreage                   || undefined,
+        asking_price:      form.asking_price              || undefined,
+        owner_wallet:      form.owner_wallet?.trim()      || address  || undefined,
         email:        form.email.trim(),
         notes:        form.notes?.trim()     || undefined,
       });
@@ -595,7 +633,7 @@ export function TokenizePage() {
         <>
           <StepBar current={step} />
           {step === 0 && <Step1 form={form} set={set} states={states} onNext={() => setStep(1)} />}
-          {step === 1 && <Step2 onBack={() => setStep(0)} onNext={() => setStep(2)} />}
+          {step === 1 && <Step2 form={form} set={set} onBack={() => setStep(0)} onNext={() => setStep(2)} />}
           {step === 2 && <Step3 form={form} set={set} onBack={() => setStep(1)} onNext={() => setStep(3)} />}
           {step === 3 && (
             <Step4

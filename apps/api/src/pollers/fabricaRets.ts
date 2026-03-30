@@ -52,19 +52,29 @@ function buildAssetId(tokenId: string): string {
 // ─── RETS XML parsing ─────────────────────────────────────────────────────────
 
 interface RetsListing {
-    ListingKey: string;       // token ID
-    ListPrice: number;        // USD price (already dollars, not cents)
+    ListingKey: string;         // token ID
+    ListPrice: number;          // USD price (already dollars, not cents)
+    // Address fields — Fabrica may use any of these depending on feed version
     FullStreetAddress?: string; // e.g. "243 June Lane"
-    City?: string;            // e.g. "Hartsel"
-    UnparsedAddress?: string; // full address string (fallback)
+    StreetAddress?: string;     // alternate field name
+    Address?: string;           // short-form alternate
+    City?: string;              // e.g. "Hartsel"
+    UnparsedAddress?: string;   // full address string (fallback)
     Latitude?: number;
     Longitude?: number;
     LotSizeAcres?: number;
-    StateOrProvince?: string;
-    CountyOrParish?: string;
+    LotSizeSquareFeet?: number; // fallback if acres not available
+    // State/county — both RESO-standard and short-form variants
+    StateOrProvince?: string;   // standard RESO
+    State?: string;             // short-form alternate
+    CountyOrParish?: string;    // standard RESO
+    County?: string;            // short-form alternate
     ParcelNumber?: string;
     PublicRemarks?: string;
+    LegalDescription?: string;  // full legal description from title
     Media?: { MediaURL?: string } | Array<{ MediaURL?: string }>;
+    // Allow any other fields from the feed without breaking the type
+    [key: string]: unknown;
 }
 
 function parseRetsXml(xml: string): RetsListing[] {
@@ -95,10 +105,15 @@ function parseRetsXml(xml: string): RetsListing[] {
  * Fallback:  "Land in Chaffee County, CO"
  */
 function buildPropertyName(listing: RetsListing): string {
-    const street = listing.FullStreetAddress?.trim();
+    // Accept both standard RESO names and short-form variants Fabrica may use
+    const street = (
+        listing.FullStreetAddress?.trim() ||
+        listing.StreetAddress?.trim()     ||
+        listing.Address?.trim()
+    );
     const city   = listing.City?.trim();
-    const state  = listing.StateOrProvince?.trim();
-    const county = listing.CountyOrParish?.trim();
+    const state  = (listing.StateOrProvince?.trim() || listing.State?.trim());
+    const county = (listing.CountyOrParish?.trim()  || listing.County?.trim());
 
     // Best case: street + city + state
     if (street && city && state) return `${street}, ${city}, ${state}`;
@@ -191,7 +206,7 @@ export class FabricaRetsPoller {
             activeTokenIds.push(tokenId);
 
             try {
-                await this.upsertListing(listing, tokenId);
+                await this.upsertListing(listing, tokenId, synced);
                 synced++;
             } catch (err) {
                 errors++;
@@ -214,17 +229,40 @@ export class FabricaRetsPoller {
 
     // ── Asset upsert ───────────────────────────────────────────────────────────
 
-    private async upsertListing(listing: RetsListing, tokenId: string): Promise<void> {
+    private async upsertListing(
+        listing: RetsListing,
+        tokenId: string,
+        debugIdx: number
+    ): Promise<void> {
         const assetId = buildAssetId(tokenId);
+
+        // Debug: log parsed fields for the first 3 listings so we can trace
+        // which RETS field names the feed actually uses (standard vs short-form).
+        if (debugIdx < 3) {
+            const populated = Object.entries(listing)
+                .filter(([, v]) => v != null && typeof v !== "object")
+                .map(([k, v]) => `${k}=${JSON.stringify(v)}`);
+            this.log(`DEBUG listing #${debugIdx + 1} fields: ${populated.join(" | ")}`);
+            this.log(`DEBUG listing #${debugIdx + 1} → name="${buildPropertyName(listing)}" county="${listing.CountyOrParish ?? listing.County ?? "—"}" state="${listing.StateOrProvince ?? listing.State ?? "—"}"`);
+        }
 
         // Image: RETS feed photo only. Fabrica CDN images are dark parcel-overlay
         // maps that look bad at card thumbnail size — let the card fall through
         // to the Mapbox satellite URL instead (plain imagery, no blue overlay).
+        // Pass clearImage:true so the old Fabrica CDN URL is removed from the DB.
         const photoUrl = extractFirstPhoto(listing);
         const imageUrl = photoUrl ?? null;
 
         const lat = listing.Latitude  != null ? Number(listing.Latitude)  : undefined;
         const lng = listing.Longitude != null ? Number(listing.Longitude) : undefined;
+
+        // Resolve acreage: prefer LotSizeAcres, fall back to sq-ft conversion
+        let acreage: number | undefined;
+        if (listing.LotSizeAcres != null) {
+            acreage = Number(listing.LotSizeAcres);
+        } else if (listing.LotSizeSquareFeet != null) {
+            acreage = Number(listing.LotSizeSquareFeet) / 43560;
+        }
 
         const asset: AssetInsert = {
             id: assetId,
@@ -238,13 +276,14 @@ export class FabricaRetsPoller {
             category: "real-estate",
             image_url: imageUrl,
             details: {
-                location:  listing.UnparsedAddress,
-                acreage:   listing.LotSizeAcres   != null ? Number(listing.LotSizeAcres) : undefined,
-                county:    listing.CountyOrParish  ?? undefined,
-                state:     listing.StateOrProvince ?? undefined,
-                parcel_id: listing.ParcelNumber    ?? undefined,
-                lat: isFinite(lat ?? NaN) ? lat : undefined,
-                lng: isFinite(lng ?? NaN) ? lng : undefined,
+                location:          listing.UnparsedAddress,
+                acreage:           acreage,
+                county:            listing.CountyOrParish ?? listing.County   ?? undefined,
+                state:             listing.StateOrProvince ?? listing.State   ?? undefined,
+                parcel_id:         listing.ParcelNumber                       ?? undefined,
+                legal_description: listing.LegalDescription                   ?? undefined,
+                lat:               isFinite(lat ?? NaN) ? lat : undefined,
+                lng:               isFinite(lng ?? NaN) ? lng : undefined,
             },
             has_active_listing: true,
             current_listing_price: Number(listing.ListPrice),
@@ -255,7 +294,9 @@ export class FabricaRetsPoller {
             last_updated: new Date().toISOString(),
         };
 
-        await upsertAsset(asset);
+        // clearImage: true forces removal of the old Fabrica CDN dark-overlay URL
+        // even if it was previously stored; the card falls through to Mapbox sat.
+        await upsertAsset(asset, { clearImage: true });
     }
 
     // ── Logging ────────────────────────────────────────────────────────────────

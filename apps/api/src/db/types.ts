@@ -70,6 +70,7 @@ export interface AssetDetails {
     location?: string;
     acreage?: number;
     parcel_id?: string;
+    legal_description?: string;
     county?: string;
     state?: string;
     lat?: number;

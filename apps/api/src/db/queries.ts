@@ -490,13 +490,18 @@ export async function getProtocols() {
 
 // ─── Assets: writes (used by pollers) ────────────────────────────────────────
 
-export async function upsertAsset(asset: AssetInsert): Promise<void> {
+export async function upsertAsset(
+    asset: AssetInsert,
+    opts?: { clearImage?: boolean }
+): Promise<void> {
     const db = getDb();
 
-    // If the incoming image_url is null, preserve an existing one so a metadata
-    // re-fetch that happens to return no image doesn't clobber a previously good URL.
+    // If the incoming image_url is null AND the caller hasn't explicitly asked to
+    // clear it, preserve an existing good URL so a metadata re-fetch doesn't
+    // clobber a previously-saved image.  Pass { clearImage: true } (e.g. from
+    // FabricaRetsPoller) to force-clear a stale image when the feed has no photo.
     let imageUrl = asset.image_url ?? null;
-    if (!imageUrl) {
+    if (!imageUrl && !opts?.clearImage) {
         const { data: existing } = await db
             .from("assets")
             .select("image_url")

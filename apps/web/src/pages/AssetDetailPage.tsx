@@ -105,7 +105,7 @@ function MetadataGrid({ asset }: { asset: Asset }) {
 
   if (asset.category === "real-estate") {
     if (d.location)   rows.push({ label: "Location",   value: d.location });
-    if (d.acreage)    rows.push({ label: "Acreage",    value: formatAcreage(d.acreage) });
+    if (d.acreage != null) rows.push({ label: "Acreage", value: formatAcreage(Number(d.acreage)) });
     if (d.bedrooms)   rows.push({ label: "Bedrooms",   value: d.bedrooms });
     if (d.bathrooms)  rows.push({ label: "Bathrooms",  value: d.bathrooms });
     if (d.sqft)       rows.push({ label: "Sq ft",      value: d.sqft.toLocaleString() });
@@ -139,6 +139,49 @@ function MetadataGrid({ asset }: { asset: Asset }) {
       <div className="grid grid-cols-2 gap-px bg-cedar-border">
         {rows.map((r) => (
           <MetaRow key={r.label} label={r.label} value={r.value} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── Property Details section (real-estate only) ─────────────────────────────
+
+function PropertyDetails({ asset }: { asset: Asset }) {
+  if (asset.category !== "real-estate") return null;
+  const d = asset.details;
+
+  // Build address string from name/location
+  const address = (() => {
+    const name = stripLowConfidence(asset.name ?? "");
+    if (name && name !== "Land Parcel") return name;
+    if (d.location) return stripLowConfidence(d.location);
+    return null;
+  })();
+
+  const rows: Array<{ label: string; value: string }> = [];
+  if (address)            rows.push({ label: "Address",           value: address });
+  if (d.county && d.state) rows.push({ label: "County / State",   value: `${d.county}, ${d.state}` });
+  else if (d.state)        rows.push({ label: "State",            value: d.state });
+  if (d.acreage != null)   rows.push({ label: "Acreage",          value: formatAcreage(Number(d.acreage)) });
+  if (d.parcel_id)         rows.push({ label: "Parcel ID",        value: d.parcel_id });
+  if (d.lat != null && d.lng != null)
+    rows.push({ label: "Coordinates", value: `${d.lat.toFixed(5)}, ${d.lng.toFixed(5)}` });
+  if (d.legal_description) rows.push({ label: "Legal Description", value: d.legal_description });
+
+  if (!rows.length) return null;
+
+  return (
+    <div>
+      <h3 className="text-cedar-muted text-[10px] tracking-widest uppercase mb-3">
+        Property Details
+      </h3>
+      <div className="space-y-px">
+        {rows.map((r) => (
+          <div key={r.label} className="bg-cedar-surface px-4 py-3">
+            <p className="text-cedar-muted text-[10px] tracking-widest uppercase mb-0.5">{r.label}</p>
+            <p className="text-cedar-text text-sm break-words">{r.value}</p>
+          </div>
         ))}
       </div>
     </div>
@@ -581,18 +624,6 @@ function AssetActions({ asset }: { asset: Asset }) {
         </p>
       </div>
 
-      {/* View on OpenSea — works for all protocols */}
-      {asset.tokenId && (
-        <a
-          href={`https://opensea.io/assets/${asset.chain === "polygon" ? "matic" : asset.chain}/${asset.contractAddress}/${asset.tokenId}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 text-cedar-muted/50 hover:text-cedar-muted text-[11px] transition-colors py-2"
-        >
-          View on OpenSea <ExternalLink size={10} />
-        </a>
-      )}
-
       {/* Modals */}
       {showBuy && hasListing && (
         <BuyModal
@@ -779,6 +810,9 @@ export function AssetDetailPage() {
           {/* Actions (price + buy/sell buttons + contract info) */}
           <AssetActions asset={asset} />
 
+          {/* Property Details (real-estate only) */}
+          <PropertyDetails asset={asset} />
+
           {/* Description */}
           {asset.description && (
             <div>
@@ -815,6 +849,20 @@ export function AssetDetailPage() {
 
           {/* Transaction history */}
           <TransactionHistory assetId={asset.id} />
+
+          {/* View on OpenSea — small secondary link at the very bottom */}
+          {asset.tokenId && (
+            <div className="pt-2 border-t border-cedar-border">
+              <a
+                href={`https://opensea.io/assets/${asset.chain === "polygon" ? "matic" : asset.chain}/${asset.contractAddress}/${asset.tokenId}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-cedar-muted/40 hover:text-cedar-muted/60 text-[11px] transition-colors py-1"
+              >
+                View on OpenSea <ExternalLink size={9} />
+              </a>
+            </div>
+          )}
         </div>
       </div>
     </div>

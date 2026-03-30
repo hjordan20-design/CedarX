@@ -261,6 +261,7 @@ export interface TokenizeRequest {
   state: string;
   county?: string;
   parcel_id?: string;
+  legal_description?: string;
   acreage?: number;
   asking_price?: number;
   owner_wallet?: string;
