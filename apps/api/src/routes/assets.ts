@@ -96,8 +96,15 @@ assetsRouter.get("/", async (req: Request, res: Response) => {
         }
     }
 
+    const formatted = result.data.map(row => formatAsset(row, seaportPrices));
+    // Debug: log first asset in result so we can confirm name+details reach the API response
+    if (formatted.length > 0 && formatted[0].category === "real-estate") {
+        const f = formatted[0];
+        console.log(`[GET /assets] first real-estate asset: id=${f.id} name=${JSON.stringify(f.name)} details.county=${f.details?.county} details.state=${f.details?.state} details.acreage=${f.details?.acreage} imageUrl=${f.imageUrl ?? "null"}`);
+    }
+
     const body = {
-        data: result.data.map(row => formatAsset(row, seaportPrices)),
+        data: formatted,
         pagination: {
             total: effectiveTotal,
             page: result.page,

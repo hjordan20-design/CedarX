@@ -207,12 +207,32 @@ function AssetCardImage({ imageUrl, alt, satUrl }: { imageUrl: string; alt: stri
   );
 }
 
+/**
+ * Returns true for the Fabrica CDN dark-overlay parcel map image.
+ * These look bad at card size (dark blue polygon) — skip them and use
+ * the plain Mapbox satellite tile instead.
+ */
+function isFabricaDarkOverlay(url: string | null | undefined): boolean {
+  return !!url && url.includes("media3.fabrica.land") && url.includes("theme=dark");
+}
+
 export function AssetCard({ asset }: { asset: Asset }) {
   const displayName = resolveCardTitle(asset);
+  // Debug: trace name chain and acreage for real-estate cards (first 3 only, by checking a ref)
+  if (asset.category === "real-estate" && typeof window !== "undefined") {
+    const key = `__cedarx_debug_card_${asset.id}`;
+    const w = window as unknown as Record<string, unknown>;
+    if (!w[key]) {
+      w[key] = true;
+      console.log(`[AssetCard] id=${asset.id} raw name=${JSON.stringify(asset.name)} resolved="${displayName}" acreage=${asset.details?.acreage} county=${asset.details?.county} state=${asset.details?.state} imageUrl=${asset.imageUrl ?? "null"}`);
+    }
+  }
   // For land assets: asset-specific card sat (400×400, plain satellite) → Eloy AZ card fallback
   const satUrl = mapboxCardUrl(asset.details.lat, asset.details.lng)
     ?? (asset.category === "real-estate" ? ELOY_FALLBACK_CARD : null);
-  const effectiveImageUrl = asset.imageUrl ?? satUrl ?? undefined;
+  // Skip Fabrica CDN dark overlay images — use satellite fallback instead
+  const cleanImageUrl = isFabricaDarkOverlay(asset.imageUrl) ? null : (asset.imageUrl ?? null);
+  const effectiveImageUrl = cleanImageUrl ?? satUrl ?? undefined;
   return (
     <Link
       to={`/assets/${encodeURIComponent(asset.id)}`}

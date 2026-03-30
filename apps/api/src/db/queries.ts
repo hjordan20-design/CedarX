@@ -510,6 +510,9 @@ export async function upsertAsset(
         if (existing?.image_url) imageUrl = existing.image_url;
     }
 
+    // Debug: log what is actually being written so we can trace the name chain
+    console.log(`[upsertAsset] id=${asset.id} name=${JSON.stringify(asset.name)} image=${imageUrl ?? "null"} clearImage=${opts?.clearImage ?? false}`);
+
     const { error } = await db
         .from("assets")
         .upsert({ ...asset, image_url: imageUrl, last_updated: new Date().toISOString() }, { onConflict: "id" });

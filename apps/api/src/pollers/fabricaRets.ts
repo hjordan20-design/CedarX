@@ -264,6 +264,13 @@ export class FabricaRetsPoller {
             acreage = Number(listing.LotSizeSquareFeet) / 43560;
         }
 
+        // Build name — store null instead of the generic "Land Parcel" fallback so
+        // that resolveCardTitle on the frontend can fall through to county+state.
+        const builtName = buildPropertyName(listing);
+        const resolvedName = builtName === "Land Parcel" ? null : builtName;
+
+        this.log(`DEBUG upsert token=${tokenId} name=${JSON.stringify(resolvedName)} county="${listing.CountyOrParish ?? listing.County ?? "—"}" state="${listing.StateOrProvince ?? listing.State ?? "—"}" acreage=${acreage ?? "—"} image=${imageUrl ?? "null"}`);
+
         const asset: AssetInsert = {
             id: assetId,
             protocol: "fabrica",
@@ -271,7 +278,7 @@ export class FabricaRetsPoller {
             token_id: tokenId,
             token_standard: "ERC-1155",
             chain: "ethereum",
-            name: buildPropertyName(listing),
+            name: resolvedName,
             description: listing.PublicRemarks ?? null,
             category: "real-estate",
             image_url: imageUrl,
