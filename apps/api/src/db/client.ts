@@ -1,9 +1,7 @@
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
-import { SUPABASE_URL, SUPABASE_SERVICE_KEY } from "../config";
-import type { Database } from "./types";
+import { SUPABASE_URL, SUPABASE_SERVICE_KEY } from "../config.js";
+import type { Database } from "./types.js";
 
-// The indexer always uses the service-role key.
-// This bypasses Row Level Security — writes are server-side only.
 let _client: SupabaseClient<Database> | null = null;
 
 export function getDb(): SupabaseClient<Database> {

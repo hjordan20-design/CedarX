@@ -1,99 +1,93 @@
-// ─── Asset ────────────────────────────────────────────────────────────────────
+// ─── Property ─────────────────────────────────────────────────────────────────
 
-export type Protocol = "fabrica" | "propy" | "roofstock" | "courtyard" | "4k" | "arianee";
-export type Category = "real-estate" | "luxury-goods" | "art" | "collectibles";
-export type TokenStandard = "ERC-721" | "ERC-1155";
-
-export interface AssetDetails {
-  // Real estate (Fabrica, Propy, Roofstock onChain)
-  location?: string;
-  acreage?: number;
-  parcel_id?: string;
-  county?: string;
-  state?: string;
-  lat?: number;
-  lng?: number;
-  bedrooms?: number;
-  bathrooms?: number;
-  sqft?: number;
-  // Luxury goods (watches, jewelry, handbags)
-  brand?: string;
-  model?: string;
-  year?: number;
-  condition?: string;
-  serial?: string;
-  // Art & collectibles
-  artist?: string;
-  medium?: string;
-  dimensions?: string;
-  provenance?: string;
-  edition?: string;
-}
-
-export interface Asset {
+export interface Property {
   id: string;
-  protocol?: Protocol;
-  contractAddress: string;
-  tokenId?: string;
-  tokenStandard: TokenStandard;
-  chain: string;
-  name: string;
-  description?: string;
-  category: Category;
-  imageUrl?: string;
-  details: AssetDetails;
-  lastSalePrice?: number;
-  currentListingPrice?: number;
-  currentListingPaymentTokenSymbol?: string;
-  hasActiveListing: boolean;
-  totalVolume: number;
-  externalUrl?: string;
-  lastUpdated: string;
+  buildingName: string;
+  neighborhood: string | null;
+  city: string;
+  state: string;
+  beds: number;
+  baths: number;
+  sqft: number;
+  floor: number | null;
+  description: string | null;
+  amenities: string[];
+  photos: string[];
+  landlordWallet: string | null;
+  pmId: string | null;
+  status: "active" | "inactive";
+  createdAt: string;
+  // Computed from keys
+  keysAvailable?: number;
+  minPrice?: number;
 }
 
-// ─── Listing ─────────────────────────────────────────────────────────────────
+// ─── Key ──────────────────────────────────────────────────────────────────────
+
+export type KeyStatus = "tradeable" | "redeemed" | "active" | "expired";
+
+export interface Key {
+  id: string;
+  propertyId: string;
+  unit: string;
+  startDate: string;
+  endDate: string;
+  priceUsdc: number;
+  status: KeyStatus;
+  ownerWallet: string | null;
+  tokenId: number | null;
+  mintedAt: string | null;
+  redeemedAt: string | null;
+  expiredAt: string | null;
+  createdAt: string;
+  // Joined
+  property?: Property;
+}
+
+// ─── Listing (Secondary Market) ──────────────────────────────────────────────
 
 export type ListingStatus = "active" | "sold" | "cancelled";
 
 export interface Listing {
-  listingId: number;
-  assetId: string | null;
-  seller: string;
-  tokenContract: string;
-  tokenId?: string;
-  quantity: string;
-  askingPrice: string;
-  tokenStandard: TokenStandard;
+  id: string;
+  keyId: string;
+  sellerWallet: string;
+  askingPriceUsdc: number;
   status: ListingStatus;
-  txHash: string;
-  blockNumber: number;
+  listedAt: string;
+  soldAt: string | null;
+  // Joined
+  key?: Key;
+}
+
+// ─── Redemption ──────────────────────────────────────────────────────────────
+
+export interface Redemption {
+  id: string;
+  keyId: string;
+  wallet: string;
+  screeningStatus: "pending" | "approved" | "denied";
+  depositAmountUsdc: number | null;
+  depositStatus: "held" | "released" | "claimed" | null;
+  moveInDate: string | null;
+  moveOutDate: string | null;
   createdAt: string;
-  asset?: {
-    id: string;
-    name: string;
-    protocol?: Protocol;
-    category: Category;
-    imageUrl?: string;
-    details: AssetDetails;
-  };
 }
 
-// ─── Stats ───────────────────────────────────────────────────────────────────
+// ─── Points ──────────────────────────────────────────────────────────────────
 
-export interface MarketStats {
-  totalAssets: number;
-  activeListings: number;
-  totalVolume: string;
-  totalTrades: number;
-  byProtocol: Record<string, number>;
+export interface PointBalance {
+  wallet: string;
+  total: number;
+  events: PointEvent[];
 }
 
-export interface ProtocolInfo {
-  id: Protocol;
-  name: string;
-  category: string;
-  website: string;
-  assetCount: number;
+export interface PointEvent {
+  id: string;
+  wallet: string;
+  eventType: "mint" | "purchase" | "redeem";
+  amount: number;
+  createdAt: string;
 }
 
 // ─── API responses ───────────────────────────────────────────────────────────
@@ -108,69 +102,11 @@ export interface Paginated<T> {
   };
 }
 
-export interface AssetFilters {
-  category?: Category;
-  protocol?: Protocol;
+export interface PropertyFilters {
+  city?: string;
+  beds?: number;
   minPrice?: number;
   maxPrice?: number;
-  sort?: "price_asc" | "price_desc" | "newest" | "volume";
-  search?: string;
-  listedOnly?: boolean;
   page?: number;
   limit?: number;
 }
-
-// ─── Seaport ─────────────────────────────────────────────────────────────────
-
-export interface SeaportOfferItem {
-  itemType: number;
-  token: string;
-  identifierOrCriteria: string;
-  startAmount: string;
-  endAmount: string;
-}
-
-export interface SeaportConsiderationItem extends SeaportOfferItem {
-  recipient: string;
-}
-
-export interface SeaportOrderParameters {
-  offerer: string;
-  zone: string;
-  offer: SeaportOfferItem[];
-  consideration: SeaportConsiderationItem[];
-  orderType: number;
-  startTime: string;
-  endTime: string;
-  zoneHash: string;
-  salt: string;
-  conduitKey: string;
-  totalOriginalConsiderationItems: number;
-}
-
-export interface SeaportOrder {
-  orderHash: string;
-  assetId: string;
-  chain: string;
-  sellerAddress: string;
-  /** Raw price in payment token's smallest unit (e.g. wei for ETH) */
-  price: string;
-  paymentToken: string;       // 0x000…0 = native ETH
-  paymentTokenSymbol: string; // "ETH" | "WETH" | "USDC" | …
-  paymentTokenDecimals: number;
-  priceUsd: string | null;
-  expiration: string | null;
-  orderParameters: {
-    parameters: SeaportOrderParameters;
-    signature: string;
-  };
-  source: "opensea" | "cedarx";
-  status: "active" | "filled" | "cancelled" | "expired";
-}
-
-/** Whitelisted protocol contract addresses — used for "Verified" badge. */
-export const VERIFIED_CONTRACTS: Record<string, string> = {
-  "0x5cbeb7a0df7ed85d82a472fd56d81ed550f3ea95": "Fabrica",        // Ethereum
-  "0xebf19415d94be89a1d692f82af391685dc1bff79": "4K Protocol",    // Ethereum
-  "0x251be3a17af4892035c37ebf5890f4a4d889dcad": "Courtyard",      // Polygon
-};

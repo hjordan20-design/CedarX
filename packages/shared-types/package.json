@@ -1,8 +1,8 @@
 {
-  "name": "@cedarx/shared-types",
+  "name": "@relayx/shared-types",
   "version": "0.1.0",
   "private": true,
-  "description": "Shared TypeScript types for CedarX",
+  "description": "Shared TypeScript types for RelayX",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {

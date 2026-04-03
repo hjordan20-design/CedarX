@@ -1,34 +1,31 @@
-import type { RWAsset } from "./assets";
-import type { ChainId } from "./protocols";
+export type ListingStatus = "active" | "sold" | "cancelled";
 
-/**
- * A listing on the CedarX marketplace
- */
 export interface Listing {
   id: string;
-  asset: RWAsset;
-  seller: `0x${string}`;
-  price: string; // In payment token units
-  paymentToken: `0x${string}`;
-  chainId: ChainId;
+  keyId: string;
+  sellerWallet: string;
+  askingPriceUsdc: number;
   status: ListingStatus;
-  createdAt: number;
-  expiresAt?: number;
+  listedAt: string;
+  soldAt: string | null;
 }
 
-export type ListingStatus = "active" | "sold" | "cancelled" | "expired";
-
-/**
- * A completed trade
- */
-export interface Trade {
+export interface Redemption {
   id: string;
-  listingId: string;
-  buyer: `0x${string}`;
-  seller: `0x${string}`;
-  price: string;
-  paymentToken: `0x${string}`;
-  transactionHash: `0x${string}`;
-  blockNumber: number;
-  timestamp: number;
+  keyId: string;
+  wallet: string;
+  screeningStatus: "pending" | "approved" | "denied";
+  depositAmountUsdc: number | null;
+  depositStatus: "held" | "released" | "claimed" | null;
+  moveInDate: string | null;
+  moveOutDate: string | null;
+  createdAt: string;
+}
+
+export interface PointEvent {
+  id: string;
+  wallet: string;
+  eventType: "mint" | "purchase" | "redeem";
+  amount: number;
+  createdAt: string;
 }

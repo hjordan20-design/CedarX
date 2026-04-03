@@ -1,18 +1,19 @@
 import { useEffect } from "react";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { WagmiProvider } from "wagmi";
-import { RainbowKitProvider, lightTheme } from "@rainbow-me/rainbowkit";
+import { RainbowKitProvider, darkTheme } from "@rainbow-me/rainbowkit";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "@rainbow-me/rainbowkit/styles.css";
 
 import { wagmiConfig } from "@/config/chains";
 import { Layout } from "@/components/layout/Layout";
 import { HomePage } from "@/pages/HomePage";
-import { ExplorePage } from "@/pages/ExplorePage";
-import { AboutPage } from "@/pages/AboutPage";
-import { AssetDetailPage } from "@/pages/AssetDetailPage";
-import { TosPage } from "@/pages/TosPage";
+import { PropertyDetailPage } from "@/pages/PropertyDetailPage";
+import { MyKeysPage } from "@/pages/MyKeysPage";
+import { MarketPage } from "@/pages/MarketPage";
 import { SellPage } from "@/pages/SellPage";
+import { RedemptionPage } from "@/pages/RedemptionPage";
+import { LandlordPage } from "@/pages/LandlordPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -23,16 +24,14 @@ const queryClient = new QueryClient({
   },
 });
 
-// RainbowKit light theme — CSS custom property overrides in globals.css do the heavy lifting
-const rkTheme = lightTheme({
-  accentColor: "#C4852A",
+const rkTheme = darkTheme({
+  accentColor: "#0D9488",
   accentColorForeground: "#FFFFFF",
-  borderRadius: "none",
+  borderRadius: "medium",
   fontStack: "system",
   overlayBlur: "small",
 });
 
-// Scrolls to top on every route change
 function ScrollToTop() {
   const { pathname } = useLocation();
   useEffect(() => {
@@ -50,12 +49,13 @@ export function App() {
             <ScrollToTop />
             <Layout>
               <Routes>
-                <Route path="/"             element={<HomePage />} />
-                <Route path="/explore"      element={<ExplorePage />} />
-                <Route path="/sell"         element={<SellPage />} />
-                <Route path="/about"        element={<AboutPage />} />
-                <Route path="/assets/:id"   element={<AssetDetailPage />} />
-                <Route path="/tos"          element={<TosPage />} />
+                <Route path="/" element={<HomePage />} />
+                <Route path="/properties/:id" element={<PropertyDetailPage />} />
+                <Route path="/my-keys" element={<MyKeysPage />} />
+                <Route path="/market" element={<MarketPage />} />
+                <Route path="/sell" element={<SellPage />} />
+                <Route path="/redeem/:id" element={<RedemptionPage />} />
+                <Route path="/landlords" element={<LandlordPage />} />
               </Routes>
             </Layout>
           </BrowserRouter>

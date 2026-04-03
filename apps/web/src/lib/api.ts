@@ -1,12 +1,12 @@
 import { API_BASE_URL } from "@/config/api";
 import type {
-  Asset,
-  AssetFilters,
+  Property,
+  PropertyFilters,
+  Key,
   Listing,
-  MarketStats,
+  Redemption,
+  PointBalance,
   Paginated,
-  ProtocolInfo,
-  SeaportOrder,
 } from "./types";
 
 async function get<T>(path: string, params?: Record<string, string | number | undefined>): Promise<T> {
@@ -21,70 +21,93 @@ async function get<T>(path: string, params?: Record<string, string | number | un
   return res.json() as Promise<T>;
 }
 
-// ─── Assets ──────────────────────────────────────────────────────────────────
-
-export function fetchAssets(filters: AssetFilters = {}): Promise<Paginated<Asset>> {
-  return get("/api/assets", filters as Record<string, string | number>);
+async function post<T>(path: string, body: unknown): Promise<T> {
+  const res = await fetch(`${API_BASE_URL}${path}`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw new Error(`API error ${res.status}: ${path}`);
+  return res.json() as Promise<T>;
 }
 
-export function fetchAsset(id: string): Promise<Asset> {
-  return get(`/api/assets/${encodeURIComponent(id)}`);
+async function patch<T>(path: string, body: unknown): Promise<T> {
+  const res = await fetch(`${API_BASE_URL}${path}`, {
+    method: "PATCH",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw new Error(`API error ${res.status}: ${path}`);
+  return res.json() as Promise<T>;
 }
 
-export function fetchAssetHistory(id: string): Promise<{ data: unknown[] }> {
-  return get(`/api/assets/${encodeURIComponent(id)}/history`);
+// ─── Properties ─────────────────────────────────────────────────────────────
+
+export function fetchProperties(filters: PropertyFilters = {}): Promise<Paginated<Property>> {
+  return get("/properties", filters as Record<string, string | number>);
 }
 
-// ─── Listings ────────────────────────────────────────────────────────────────
+export function fetchProperty(id: string): Promise<Property & { keys: Key[] }> {
+  return get(`/properties/${encodeURIComponent(id)}`);
+}
+
+// ─── Keys ───────────────────────────────────────────────────────────────────
+
+export function fetchKeys(params?: {
+  propertyId?: string;
+  status?: string;
+  ownerWallet?: string;
+  page?: number;
+  limit?: number;
+}): Promise<Paginated<Key>> {
+  return get("/keys", params as Record<string, string | number>);
+}
+
+export function fetchKey(id: string): Promise<Key> {
+  return get(`/keys/${encodeURIComponent(id)}`);
+}
+
+export function updateKey(id: string, data: Partial<Key>): Promise<Key> {
+  return patch(`/keys/${encodeURIComponent(id)}`, data);
+}
+
+// ─── Listings (Secondary Market) ────────────────────────────────────────────
 
 export function fetchListings(params?: {
-  category?: string;
-  sort?: string;
+  status?: string;
   page?: number;
   limit?: number;
 }): Promise<Paginated<Listing>> {
-  return get("/api/listings", params as Record<string, string | number>);
+  return get("/listings", params as Record<string, string | number>);
 }
 
-// ─── Seaport ─────────────────────────────────────────────────────────────────
-
-export function fetchSeaportOrder(assetId: string): Promise<SeaportOrder> {
-  return get(`/api/seaport/orders/${encodeURIComponent(assetId)}`);
+export function createListing(data: {
+  keyId: string;
+  sellerWallet: string;
+  askingPriceUsdc: number;
+}): Promise<Listing> {
+  return post("/listings", data);
 }
 
-export interface CreateSeaportListingParams {
-  assetId: string;
-  chain: "ethereum" | "polygon";
-  sellerAddress: string;
-  price: string;
-  paymentToken: string;
-  paymentTokenSymbol: string;
-  paymentTokenDecimals: number;
-  expiration?: string;
-  orderParameters: {
-    parameters: Record<string, unknown>;
-    signature: string;
-  };
+export function updateListing(id: string, data: Partial<Listing>): Promise<Listing> {
+  return patch(`/listings/${encodeURIComponent(id)}`, data);
 }
 
-export async function postSeaportListing(
-  params: CreateSeaportListingParams
-): Promise<{ orderHash: string; openSeaError: string | null }> {
-  const res = await fetch(`${API_BASE_URL}/api/seaport/listings`, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify(params),
-  });
-  if (!res.ok) throw new Error(`API error ${res.status}: /api/seaport/listings`);
-  return res.json();
+// ─── Redemptions ────────────────────────────────────────────────────────────
+
+export function createRedemption(data: {
+  keyId: string;
+  wallet: string;
+}): Promise<Redemption> {
+  return post("/redemptions", data);
 }
 
-// ─── Stats ───────────────────────────────────────────────────────────────────
-
-export function fetchStats(): Promise<MarketStats> {
-  return get("/api/stats");
+export function updateRedemption(id: string, data: Partial<Redemption>): Promise<Redemption> {
+  return patch(`/redemptions/${encodeURIComponent(id)}`, data);
 }
 
-export function fetchProtocols(): Promise<{ data: ProtocolInfo[] }> {
-  return get("/api/stats/protocols");
+// ─── Points ─────────────────────────────────────────────────────────────────
+
+export function fetchPoints(wallet: string): Promise<PointBalance> {
+  return get(`/points/${encodeURIComponent(wallet)}`);
 }

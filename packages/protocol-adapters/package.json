@@ -1,26 +1,14 @@
 {
-  "name": "@cedarx/protocol-adapters",
+  "name": "@relayx/protocol-adapters",
   "version": "0.1.0",
   "private": true,
-  "description": "Protocol adapters for Fabrica, Ondo, and RealT",
+  "description": "Protocol adapters for RelayX",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "import": "./dist/index.js",
       "types": "./dist/index.d.ts"
-    },
-    "./fabrica": {
-      "import": "./dist/fabrica/index.js",
-      "types": "./dist/fabrica/index.d.ts"
-    },
-    "./ondo": {
-      "import": "./dist/ondo/index.js",
-      "types": "./dist/ondo/index.d.ts"
-    },
-    "./realt": {
-      "import": "./dist/realt/index.js",
-      "types": "./dist/realt/index.d.ts"
     }
   },
   "scripts": {
@@ -29,7 +17,7 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@cedarx/shared-types": "workspace:*"
+    "@relayx/shared-types": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.4.0"

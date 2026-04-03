@@ -1,114 +1,63 @@
-# CedarX
+# RelayX
 
-The real asset marketplace — a platform for discovering, analyzing, and trading tokenized real-world assets (RWA) across multiple protocols.
+**Keys to furnished rentals.**
 
-## Overview
+A marketplace where landlords pre-sell future occupancy periods of furnished rental properties as tradeable ERC-721 Keys. Buyers browse properties, select a specific unit and period, pay with USDC, and receive a Key. Keys can be traded on secondary market or redeemed for physical occupancy.
 
-CedarX aggregates tokenized assets from leading RWA protocols:
+## Stack
 
-| Protocol | Asset Type | Chain(s) | Token Standard |
-|----------|-----------|----------|----------------|
-| [Fabrica](https://fabrica.land) | Real Estate (Land/Property) | Ethereum | ERC-721 |
-| [Ondo Finance](https://ondo.finance) | Treasury Bonds / Money Market | Ethereum | ERC-20 |
-| [RealT](https://realt.co) | Residential Real Estate | Ethereum, Gnosis | ERC-20 (per property) |
+- **Frontend:** React + Vite + Tailwind CSS (Vercel)
+- **API:** Hono + TypeScript (DigitalOcean via PM2)
+- **Database:** Supabase (PostgreSQL + PostgREST)
+- **Smart Contract:** ERC-721 with period metadata (Ethereum / Sepolia)
+- **Wallet:** RainbowKit + wagmi
+- **Settlement:** USDC
 
-## Monorepo Structure
+## Project Structure
 
 ```
-CedarX/
-├── apps/
-│   ├── web/                  # Next.js frontend marketplace
-│   └── api/                  # Backend API server
-├── packages/
-│   ├── shared-types/         # Shared TypeScript type definitions
-│   ├── protocol-adapters/    # Adapters for Fabrica, Ondo, RealT
-│   └── ui-components/        # Shared React UI components
-├── docs/
-│   └── research/             # Protocol research documents
-│       ├── fabrica.md
-│       ├── ondo.md
-│       └── realt.md
-├── scripts/                  # Build/deployment scripts
-├── config/                   # Shared configuration
-├── turbo.json                # Turborepo pipeline configuration
-├── pnpm-workspace.yaml       # pnpm workspace definition
-└── tsconfig.base.json        # Base TypeScript config
+apps/
+  web/          # React frontend (Vite + Tailwind)
+  api/          # Hono API server
+contracts/      # Solidity smart contracts (Foundry)
+packages/
+  shared-types/ # Shared TypeScript types
 ```
 
 ## Getting Started
 
-### Prerequisites
-
-- Node.js >= 20.0.0
-- pnpm >= 9.0.0
-
-### Installation
-
 ```bash
+# Install dependencies
 pnpm install
-```
 
-### Development
-
-```bash
-# Run all packages in dev mode
+# Start frontend + API in dev mode
 pnpm dev
 
-# Run a specific app
-pnpm --filter @cedarx/api dev
-pnpm --filter @cedarx/web dev
+# Run database migrations
+# Apply apps/api/src/db/schema.sql to your Supabase project
 ```
 
-### Build
+## Environment Variables
 
-```bash
-pnpm build
+### Frontend (.env)
+```
+VITE_API_URL=http://localhost:3002
+VITE_SUPABASE_URL=
+VITE_SUPABASE_ANON_KEY=
+VITE_ALCHEMY_API_KEY=
+VITE_WALLETCONNECT_PROJECT_ID=
 ```
 
-### Type Checking
-
-```bash
-pnpm type-check
+### API (.env)
+```
+PORT=3002
+SUPABASE_URL=
+SUPABASE_SERVICE_KEY=
+ALCHEMY_API_KEY=
 ```
 
-## Architecture
+## Deploy
 
-### Package Graph
-
-```
-@cedarx/web ──────────────────────────────────┐
-                                               ▼
-@cedarx/api ──────► @cedarx/protocol-adapters ──► @cedarx/shared-types
-                                               ▲
-@cedarx/ui-components ─────────────────────────┘
-```
-
-### Protocol Adapters
-
-Each protocol adapter implements the `ProtocolAdapter` interface:
-
-```typescript
-interface ProtocolAdapter {
-  fetchAssets(): Promise<RWAsset[]>;
-  fetchAsset(tokenAddress: string, tokenId?: string): Promise<RWAsset | null>;
-  fetchValuation(tokenAddress: string, tokenId?: string): Promise<string | null>;
-}
-```
-
-## Research
-
-See [`docs/research/`](./docs/research/) for detailed protocol research:
-
-- [Fabrica](./docs/research/fabrica.md) — ERC-721 tokenized land on Ethereum
-- [Ondo Finance](./docs/research/ondo.md) — Tokenized US treasuries and money market funds
-- [RealT](./docs/research/realt.md) — Fractional real estate via ERC-20 property tokens
-
-## Sessions
-
-| Session | Focus | Status |
-|---------|-------|--------|
-| 1 | Research + Monorepo Setup | ✅ In Progress |
-| 2 | Protocol Adapters Implementation | 🔜 Planned |
-| 3 | API Development | 🔜 Planned |
-| 4 | Frontend Marketplace | 🔜 Planned |
-| 5 | Testing + Deployment | 🔜 Planned |
+- **Frontend:** Auto-deploys on push to `main` via Vercel
+- **API:** `ssh root@server && cd /home/relayx && git pull && pnpm install && pm2 restart relayx`
+- **Contract:** `forge script script/Deploy.s.sol:DeployRelayXKey --rpc-url $SEPOLIA_RPC_URL --broadcast`

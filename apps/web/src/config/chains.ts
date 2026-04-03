@@ -1,5 +1,5 @@
 import { http } from "wagmi";
-import { mainnet, sepolia, polygon } from "wagmi/chains";
+import { mainnet, sepolia } from "wagmi/chains";
 import { getDefaultConfig } from "@rainbow-me/rainbowkit";
 
 const alchemyKey = import.meta.env.VITE_ALCHEMY_API_KEY as string | undefined;
@@ -11,16 +11,15 @@ function alchemyRpc(network: string) {
 }
 
 export const wagmiConfig = getDefaultConfig({
-  appName: "CedarX",
-  appDescription: "The real-world asset marketplace.",
-  appUrl: "https://cedarx.io",
-  projectId: (import.meta.env.VITE_WALLETCONNECT_PROJECT_ID as string) || "cedarx-dev",
-  chains: [mainnet, polygon, sepolia],
+  appName: "RelayX",
+  appDescription: "Keys to furnished rentals.",
+  appUrl: "https://relayx.io",
+  projectId: (import.meta.env.VITE_WALLETCONNECT_PROJECT_ID as string) || "relayx-dev",
+  chains: [mainnet, sepolia],
   transports: {
     [mainnet.id]: http(alchemyRpc("eth-mainnet")),
-    [polygon.id]: http(alchemyRpc("polygon-mainnet")),
     [sepolia.id]: http(alchemyRpc("eth-sepolia")),
   },
 });
 
-export { mainnet, polygon, sepolia };
+export { mainnet, sepolia };

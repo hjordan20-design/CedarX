@@ -1,417 +1,187 @@
-/**
- * /sell — Seller listing flow.
- *
- * 1. Connect wallet
- * 2. Scan wallet for RWA NFTs from whitelisted contracts
- * 3. Select an NFT to list
- * 4. Set price + payment token + duration
- * 5. Sign the Seaport order (gasless, off-chain EIP-712)
- * 6. CedarX stores the order and posts it to OpenSea
- *
- * Result: the listing is live on CedarX and on OpenSea / any Seaport marketplace.
- * CedarX earns a 1.5% fee, encoded into the Seaport order's consideration items.
- */
-
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useAccount } from "wagmi";
+import { useConnectModal } from "@rainbow-me/rainbowkit";
+import { useQuery } from "@tanstack/react-query";
 import {
-  AlertCircle,
-  CheckCircle,
-  ChevronLeft,
+  Key as KeyIcon,
   DollarSign,
   Loader2,
-  ShieldCheck,
   Wallet,
+  Tag,
 } from "lucide-react";
-import { useAccount, useChainId } from "wagmi";
-import { useConnectModal } from "@rainbow-me/rainbowkit";
+import { fetchKeys, createListing } from "@/lib/api";
+import { formatUSDC, formatDateRange } from "@/lib/formatters";
+import type { Key } from "@/lib/types";
 
-import { useWalletNFTs, type WalletNFT } from "@/hooks/useWalletNFTs";
-import { useCreateSeaportListing } from "@/hooks/useCreateSeaportListing";
-import { NATIVE_TOKEN, USDC_MAINNET, USDC_POLYGON } from "@/config/contracts";
-import { VerifiedBadge } from "@/components/common/VerifiedBadge";
+export function SellPage() {
+  const { address, isConnected } = useAccount();
+  const { openConnectModal } = useConnectModal();
+  const [selectedKey, setSelectedKey] = useState<Key | null>(null);
+  const [price, setPrice] = useState("");
+  const [listing, setListing] = useState(false);
+  const [success, setSuccess] = useState(false);
 
-// ─── Payment token options ────────────────────────────────────────────────────
+  const { data, isLoading } = useQuery({
+    queryKey: ["my-tradeable-keys", address],
+    queryFn: () => fetchKeys({ ownerWallet: address, status: "tradeable" }),
+    enabled: !!address,
+  });
 
-const ETH_OPTIONS = [
-  { label: "ETH",  address: NATIVE_TOKEN, symbol: "ETH",  decimals: 18 },
-  { label: "USDC", address: USDC_MAINNET, symbol: "USDC", decimals: 6  },
-] as const;
+  const keys = data?.data ?? [];
 
-const POLYGON_OPTIONS = [
-  { label: "USDC", address: USDC_POLYGON, symbol: "USDC", decimals: 6 },
-] as const;
+  const handleList = async () => {
+    if (!selectedKey || !price || !address) return;
+    setListing(true);
+    try {
+      await createListing({
+        keyId: selectedKey.id,
+        sellerWallet: address,
+        askingPriceUsdc: parseFloat(price),
+      });
+      setSuccess(true);
+    } finally {
+      setListing(false);
+    }
+  };
 
-const DURATION_OPTIONS = [
-  { label: "7 days",  seconds: 7  * 24 * 3600 },
-  { label: "30 days", seconds: 30 * 24 * 3600 },
-  { label: "90 days", seconds: 90 * 24 * 3600 },
-];
-
-const FEE_WALLET = (import.meta.env.VITE_CEDARX_FEE_WALLET || "") as `0x${string}`;
-
-// ─── NFT grid ─────────────────────────────────────────────────────────────────
-
-function NFTCard({
-  nft,
-  selected,
-  onClick,
-}: {
-  nft: WalletNFT;
-  selected: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={`text-left card overflow-hidden transition-all duration-200 ${
-        selected
-          ? "border-cedar-amber shadow-[0_0_0_1px_#C4852A]"
-          : "hover:border-cedar-muted"
-      }`}
-    >
-      <div className="aspect-square bg-cedar-surface-alt overflow-hidden">
-        {nft.imageUrl ? (
-          <img
-            src={nft.imageUrl}
-            alt={nft.name}
-            className="w-full h-full object-cover"
-            loading="lazy"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <span className="text-cedar-muted/30 font-mono text-xs tracking-widest uppercase">
-              {nft.chain}
-            </span>
-          </div>
-        )}
+  if (!isConnected) {
+    return (
+      <div className="max-w-content mx-auto px-6 py-24 text-center">
+        <Wallet size={48} className="mx-auto text-relay-muted mb-4" />
+        <h2 className="text-section-header text-relay-text mb-2">
+          Connect your wallet
+        </h2>
+        <p className="text-relay-secondary mb-6">
+          Connect your wallet to list your Keys for sale on the secondary market.
+        </p>
+        <button onClick={openConnectModal} className="btn-primary">
+          Connect Wallet
+        </button>
       </div>
-      <div className="p-3 space-y-1.5">
-        <div className="flex items-center gap-1.5 flex-wrap">
-          <span className="text-cedar-muted text-[10px] tracking-widest uppercase">{nft.protocol}</span>
-          <VerifiedBadge label="Verified" />
-        </div>
-        <p className="text-cedar-text text-sm font-medium leading-snug line-clamp-2">{nft.name}</p>
-        <p className="text-cedar-muted/60 text-[11px] font-mono">#{nft.tokenId}</p>
-      </div>
-    </button>
-  );
-}
-
-// ─── Listing form ─────────────────────────────────────────────────────────────
-
-function ListingForm({
-  nft,
-  onBack,
-}: {
-  nft: WalletNFT;
-  onBack: () => void;
-}) {
-  const chainId = useChainId();
-  const [priceInput, setPriceInput]   = useState("");
-  const [tokenIdx, setTokenIdx]       = useState(0);
-  const [durationIdx, setDurationIdx] = useState(1); // 30 days default
-
-  const paymentOptions = nft.chain === "polygon" ? POLYGON_OPTIONS : ETH_OPTIONS;
-  const selectedToken  = paymentOptions[tokenIdx];
-  const duration       = DURATION_OPTIONS[durationIdx];
-
-  const { step, execute, reset, error, orderHash } = useCreateSeaportListing();
-
-  const priceValid = !!priceInput && parseFloat(priceInput) > 0;
-
-  const feeEstimate = priceValid
-    ? (parseFloat(priceInput) * 0.015).toLocaleString("en-US", { maximumFractionDigits: 6 })
-    : null;
-
-  async function handleSubmit() {
-    if (!priceValid || !FEE_WALLET) return;
-    await execute({
-      assetId:              `${nft.chain}::${nft.contractAddress}::${nft.tokenId}`,
-      contractAddress:      nft.contractAddress as `0x${string}`,
-      tokenId:              nft.tokenId,
-      tokenStandard:        nft.tokenStandard,
-      paymentToken:         selectedToken.address as `0x${string}`,
-      paymentTokenSymbol:   selectedToken.symbol,
-      paymentTokenDecimals: selectedToken.decimals,
-      priceHuman:           priceInput,
-      durationSeconds:      duration.seconds,
-      feeWallet:            FEE_WALLET,
-    });
+    );
   }
 
-  if (step === "success") {
+  if (success) {
     return (
-      <div className="text-center space-y-5 py-12">
-        <CheckCircle size={48} className="text-cedar-green mx-auto" />
-        <h2 className="display text-2xl text-cedar-text">Listed successfully</h2>
-        <p className="text-cedar-muted text-sm max-w-sm mx-auto">
-          Your asset is now live on CedarX and on OpenSea.
-          Buyers on any Seaport-compatible marketplace can fill your order.
+      <div className="max-w-content mx-auto px-6 py-24 text-center">
+        <Tag size={48} className="mx-auto text-relay-teal mb-4" />
+        <h2 className="text-section-header text-relay-text mb-2">
+          Listed successfully
+        </h2>
+        <p className="text-relay-secondary mb-6">
+          Your Key is now available on the secondary market.
         </p>
-        {orderHash && (
-          <p className="text-cedar-muted/60 text-xs font-mono break-all">
-            Order: {orderHash}
-          </p>
-        )}
-        <div className="flex items-center gap-3 justify-center pt-2">
-          <Link to="/explore" className="btn-ghost inline-flex text-sm py-2.5 px-5">
-            Explore
-          </Link>
-          <button onClick={() => { reset(); onBack(); }} className="btn-primary text-sm py-2.5 px-5">
-            List another
-          </button>
-        </div>
+        <button
+          onClick={() => { setSuccess(false); setSelectedKey(null); setPrice(""); }}
+          className="btn-primary"
+        >
+          List Another
+        </button>
       </div>
     );
   }
 
   return (
-    <div className="max-w-lg space-y-6">
-      {/* Back */}
-      <button
-        onClick={onBack}
-        className="inline-flex items-center gap-1.5 text-cedar-muted hover:text-cedar-text text-sm transition-colors"
-      >
-        <ChevronLeft size={14} /> Back to my NFTs
-      </button>
+    <div className="max-w-content mx-auto px-6 py-8">
+      <h1 className="text-page-title text-relay-text mb-2">List a Key</h1>
+      <p className="text-relay-secondary mb-8">
+        Select a Key from your wallet and set your asking price.
+      </p>
 
-      {/* NFT preview */}
-      <div className="flex items-center gap-4 p-4 border border-cedar-border bg-cedar-surface">
-        {nft.imageUrl ? (
-          <img src={nft.imageUrl} alt={nft.name} className="w-16 h-16 object-cover shrink-0" />
-        ) : (
-          <div className="w-16 h-16 bg-cedar-surface-alt shrink-0 flex items-center justify-center">
-            <span className="text-cedar-muted/30 text-xs">NFT</span>
-          </div>
-        )}
-        <div className="min-w-0">
-          <p className="text-cedar-text font-medium text-sm truncate">{nft.name}</p>
-          <p className="text-cedar-muted text-xs">{nft.protocol} · {nft.tokenStandard}</p>
+      {isLoading ? (
+        <div className="flex justify-center py-16">
+          <Loader2 className="animate-spin text-relay-teal" size={32} />
         </div>
-      </div>
-
-      {/* Price */}
-      <div className="space-y-2">
-        <label className="block text-cedar-muted text-[10px] tracking-widest uppercase">
-          Asking price
-        </label>
-        <div className="flex gap-2">
-          <div className="relative flex-1">
-            <DollarSign size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-cedar-muted/60" />
-            <input
-              type="number"
-              min="0"
-              step="any"
-              value={priceInput}
-              onChange={(e) => setPriceInput(e.target.value)}
-              placeholder="0.00"
-              className="w-full bg-cedar-bg border border-cedar-border pl-8 pr-4 py-2.5
-                text-cedar-text font-mono text-sm
-                focus:outline-none focus:border-cedar-amber transition-colors
-                placeholder:text-cedar-muted/40"
-            />
+      ) : selectedKey ? (
+        /* Pricing form */
+        <div className="max-w-lg space-y-6">
+          <div className="bg-relay-elevated border border-relay-border rounded-xl p-5 flex items-center gap-4">
+            {selectedKey.property?.photos?.[0] && (
+              <img
+                src={selectedKey.property.photos[0]}
+                alt=""
+                className="w-16 h-16 rounded-lg object-cover shrink-0"
+              />
+            )}
+            <div>
+              <p className="text-relay-text font-medium">
+                {selectedKey.property?.buildingName ?? "Property"} — Unit {selectedKey.unit}
+              </p>
+              <p className="text-sm text-relay-secondary">
+                {formatDateRange(selectedKey.startDate, selectedKey.endDate)}
+              </p>
+              <p className="text-sm text-relay-muted mt-1">
+                Mint price: {formatUSDC(selectedKey.priceUsdc)}
+              </p>
+            </div>
           </div>
-          <select
-            value={tokenIdx}
-            onChange={(e) => setTokenIdx(Number(e.target.value))}
-            className="bg-cedar-surface border border-cedar-border px-3 text-xs font-sans text-cedar-muted
-              focus:outline-none focus:border-cedar-muted cursor-pointer"
-          >
-            {paymentOptions.map((opt, i) => (
-              <option key={opt.label} value={i}>{opt.label}</option>
-            ))}
-          </select>
-        </div>
-        {feeEstimate && (
-          <p className="text-cedar-muted/60 text-[11px]">
-            CedarX fee (1.5%): {feeEstimate} {selectedToken.symbol} ·
-            You receive: {(parseFloat(priceInput) * 0.985).toLocaleString("en-US", { maximumFractionDigits: 6 })} {selectedToken.symbol}
-          </p>
-        )}
-      </div>
 
-      {/* Duration */}
-      <div className="space-y-2">
-        <label className="block text-cedar-muted text-[10px] tracking-widest uppercase">
-          Listing duration
-        </label>
-        <div className="flex gap-2">
-          {DURATION_OPTIONS.map((opt, i) => (
+          <div className="space-y-2">
+            <label className="text-sm text-relay-secondary">Asking Price (USDC)</label>
+            <div className="relative">
+              <DollarSign size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-relay-muted" />
+              <input
+                type="number"
+                min="0"
+                step="any"
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+                placeholder="0"
+                className="w-full bg-relay-subtle border border-relay-border rounded-lg pl-9 pr-4 py-3 font-mono text-relay-text focus:outline-none focus:border-relay-teal transition-colors"
+              />
+            </div>
+          </div>
+
+          <div className="flex gap-3">
             <button
-              key={opt.label}
-              onClick={() => setDurationIdx(i)}
-              className={`px-3 py-1.5 text-xs font-sans border transition-colors ${
-                durationIdx === i
-                  ? "bg-cedar-amber text-cedar-bg border-cedar-amber"
-                  : "border-cedar-border text-cedar-muted hover:border-cedar-muted"
-              }`}
+              onClick={() => setSelectedKey(null)}
+              className="btn-secondary flex-1"
             >
-              {opt.label}
+              Back
+            </button>
+            <button
+              onClick={handleList}
+              disabled={!price || parseFloat(price) <= 0 || listing}
+              className="btn-primary flex-1"
+            >
+              {listing ? (
+                <><Loader2 size={14} className="animate-spin" /> Listing...</>
+              ) : (
+                "List for Sale"
+              )}
+            </button>
+          </div>
+        </div>
+      ) : keys.length > 0 ? (
+        /* Key picker */
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {keys.map((key) => (
+            <button
+              key={key.id}
+              onClick={() => setSelectedKey(key)}
+              className="card text-left p-5 hover:border-relay-teal/30"
+            >
+              <h3 className="text-card-title text-relay-text">
+                {key.property?.buildingName ?? "Property"}
+              </h3>
+              <p className="text-sm text-relay-secondary">
+                Unit {key.unit}
+              </p>
+              <p className="text-sm text-relay-secondary mt-1">
+                {formatDateRange(key.startDate, key.endDate)}
+              </p>
+              <p className="price text-relay-teal mt-2">
+                {formatUSDC(key.priceUsdc)}
+              </p>
             </button>
           ))}
         </div>
-      </div>
-
-      {/* Error */}
-      {step === "error" && error && (
-        <div className="flex items-start gap-3 p-3 bg-cedar-red/10 border border-cedar-red/30 text-cedar-red text-sm">
-          <AlertCircle size={14} className="shrink-0 mt-0.5" />
-          <p>{error}</p>
-        </div>
-      )}
-
-      {/* Fee wallet warning */}
-      {!FEE_WALLET && (
-        <div className="flex items-start gap-3 p-3 bg-cedar-amber/10 border border-cedar-amber/30 text-cedar-amber/80 text-xs">
-          <AlertCircle size={13} className="shrink-0 mt-0.5" />
-          <p>VITE_CEDARX_FEE_WALLET is not configured. Listings require a fee wallet address.</p>
-        </div>
-      )}
-
-      {/* Submit */}
-      <button
-        onClick={() => void handleSubmit()}
-        disabled={!priceValid || !FEE_WALLET || step === "signing" || step === "posting"}
-        className="btn-primary w-full justify-center py-3.5 text-sm font-semibold disabled:opacity-40 disabled:cursor-not-allowed"
-      >
-        {step === "signing" ? (
-          <><Loader2 size={14} className="animate-spin" /> Sign in wallet…</>
-        ) : step === "posting" ? (
-          <><Loader2 size={14} className="animate-spin" /> Submitting listing…</>
-        ) : (
-          <>List on CedarX &amp; OpenSea</>
-        )}
-      </button>
-
-      <p className="text-cedar-muted/50 text-[11px]">
-        Gasless — your signature creates the Seaport order off-chain.
-        The listing is immediately buyable on CedarX and on OpenSea.
-      </p>
-    </div>
-  );
-}
-
-// ─── SellPage ─────────────────────────────────────────────────────────────────
-
-export function SellPage() {
-  const { isConnected } = useAccount();
-  const { openConnectModal } = useConnectModal();
-  const { data: nfts, isLoading, isError } = useWalletNFTs();
-  const [selectedNFT, setSelectedNFT] = useState<WalletNFT | null>(null);
-
-  return (
-    <div
-      className="max-w-[1440px] mx-auto px-6 pb-24"
-      style={{ paddingTop: "calc(66px + 48px)" }}
-    >
-      {/* Header */}
-      <div style={{ marginBottom: "40px" }}>
-        <h1
-          style={{
-            fontFamily: "Cormorant Garamond, Georgia, serif",
-            fontWeight: 300,
-            fontSize: "clamp(2rem, 4vw, 3.5rem)",
-            letterSpacing: "-0.02em",
-            color: "#1C1710",
-            marginBottom: "8px",
-          }}
-        >
-          List an asset
-        </h1>
-        <p
-          style={{
-            fontFamily: "DM Sans, system-ui, sans-serif",
-            fontWeight: 300,
-            fontSize: "17px",
-            color: "rgba(28,23,16,0.50)",
-          }}
-        >
-          Sign a Seaport order. Your listing goes live on CedarX, OpenSea, and
-          every Seaport-compatible marketplace — instantly, gaslessly.
-        </p>
-      </div>
-
-      <div className="divider mb-8" />
-
-      {/* Not connected */}
-      {!isConnected && (
-        <div className="max-w-md space-y-5 py-12">
-          <Wallet size={32} className="text-cedar-amber/60" />
-          <h2 className="display text-xl text-cedar-text">Connect your wallet</h2>
-          <p className="text-cedar-muted text-sm">
-            Connect a wallet containing RWA NFTs from Fabrica, 4K Protocol, or
-            Courtyard to create a listing.
+      ) : (
+        <div className="text-center py-16">
+          <KeyIcon size={48} className="mx-auto text-relay-muted mb-4" />
+          <p className="text-relay-secondary">
+            You don't have any tradeable Keys to list.
           </p>
-          <button
-            onClick={openConnectModal}
-            className="btn-primary inline-flex text-sm py-3 px-6"
-          >
-            Connect wallet
-          </button>
-        </div>
-      )}
-
-      {/* Connected — listing form */}
-      {isConnected && selectedNFT && (
-        <ListingForm nft={selectedNFT} onBack={() => setSelectedNFT(null)} />
-      )}
-
-      {/* Connected — NFT picker */}
-      {isConnected && !selectedNFT && (
-        <div className="space-y-6">
-          <div className="flex items-center gap-3">
-            <ShieldCheck size={14} className="text-cedar-amber/60" />
-            <p className="text-cedar-muted text-sm">
-              Showing verified RWA NFTs in your wallet from Fabrica, 4K Protocol,
-              and Courtyard.
-            </p>
-          </div>
-
-          {isLoading && (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-              {[...Array(5)].map((_, i) => (
-                <div key={i} className="card animate-pulse">
-                  <div className="aspect-square bg-cedar-surface" />
-                  <div className="p-3 space-y-2">
-                    <div className="h-3 bg-cedar-surface w-16" />
-                    <div className="h-4 bg-cedar-surface w-3/4" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {isError && (
-            <div className="flex items-start gap-3 p-4 border border-cedar-border text-cedar-muted text-sm">
-              <AlertCircle size={14} className="shrink-0 mt-0.5 text-cedar-red/60" />
-              Failed to load your NFTs. Make sure your Alchemy API key is configured.
-            </div>
-          )}
-
-          {!isLoading && !isError && nfts && nfts.length === 0 && (
-            <div className="py-12 text-center space-y-3">
-              <p className="text-cedar-muted text-sm">
-                No verified RWA NFTs found in this wallet.
-              </p>
-              <p className="text-cedar-muted/50 text-xs">
-                Only NFTs from Fabrica, 4K Protocol, and Courtyard are eligible for listing.
-              </p>
-            </div>
-          )}
-
-          {!isLoading && nfts && nfts.length > 0 && (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-              {nfts.map((nft) => (
-                <NFTCard
-                  key={`${nft.contractAddress}-${nft.tokenId}`}
-                  nft={nft}
-                  selected={false}
-                  onClick={() => setSelectedNFT(nft)}
-                />
-              ))}
-            </div>
-          )}
         </div>
       )}
     </div>

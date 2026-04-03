@@ -4,170 +4,167 @@
 
 @layer base {
   :root {
-    color-scheme: light;
+    color-scheme: dark;
   }
 
   html {
-    background-color: #F9F6F0;
-    color: rgba(28, 23, 16, 0.75);
-    font-family: "DM Sans", system-ui, sans-serif;
-    font-weight: 300;
+    background-color: #0A0A0A;
+    color: #F5F5F5;
+    font-family: "Inter", system-ui, sans-serif;
+    font-weight: 400;
     font-size: 16px;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
   body {
-    background:
-      radial-gradient(ellipse 900px 700px at 82% -10%, rgba(196,133,42,0.10) 0%, transparent 65%),
-      radial-gradient(ellipse 600px 500px at -5% 90%, rgba(180,152,110,0.08) 0%, transparent 60%),
-      linear-gradient(158deg, #F9F6F0 0%, #F3EDE2 35%, #EDE4D5 70%, #E8DCC8 100%);
+    background: #0A0A0A;
     min-height: 100vh;
-    color: rgba(28, 23, 16, 0.75);
+    color: #F5F5F5;
   }
 
-  /* Grain texture overlay */
+  /* Subtle dot grid background */
   body::after {
     content: '';
     position: fixed;
     inset: 0;
     pointer-events: none;
-    z-index: 9999;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C%2Fsvg%3E");
-    background-repeat: repeat;
+    z-index: 0;
+    background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.03) 1px, transparent 0);
+    background-size: 32px 32px;
   }
 
-  /* Scrollbar — minimal, warm */
+  /* Scrollbar */
   ::-webkit-scrollbar { width: 6px; }
-  ::-webkit-scrollbar-track { background: #F9F6F0; }
-  ::-webkit-scrollbar-thumb { background: rgba(196,133,42,0.25); border-radius: 3px; }
-  ::-webkit-scrollbar-thumb:hover { background: rgba(196,133,42,0.40); }
+  ::-webkit-scrollbar-track { background: #0A0A0A; }
+  ::-webkit-scrollbar-thumb { background: rgba(13,148,136,0.3); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(13,148,136,0.5); }
 
   /* Selection */
-  ::selection { background: rgba(196, 133, 42, 0.18); color: #1C1710; }
+  ::selection { background: rgba(13,148,136,0.25); color: #F5F5F5; }
 }
 
 @layer components {
-  /* ── Typography ─────────────────────────────────────────────────────────── */
-
-  .display {
-    font-family: "Cormorant Garamond", Georgia, serif;
-    font-weight: 300;
-    letter-spacing: -0.02em;
-    line-height: 1.05;
-  }
-
   /* ── Buttons ─────────────────────────────────────────────────────────────── */
 
   .btn-primary {
-    @apply inline-flex items-center gap-2 font-sans
-           px-6 py-3 text-sm
-           transition-all duration-300
-           focus-visible:outline focus-visible:outline-2 focus-visible:outline-cedar-amber focus-visible:outline-offset-2;
-    font-weight: 400;
-    letter-spacing: 0.08em;
-    color: #C4852A;
-    background: transparent;
-    border: 1px solid rgba(196,133,42,0.55);
-  }
-  .btn-primary:hover {
-    background: #C4852A;
+    @apply inline-flex items-center justify-center gap-2 font-sans
+           px-6 py-3 text-sm font-medium
+           rounded-lg
+           transition-all duration-200
+           focus-visible:outline focus-visible:outline-2 focus-visible:outline-relay-teal focus-visible:outline-offset-2;
+    background: #0D9488;
     color: #FFFFFF;
   }
-
-  .btn-ghost {
-    @apply inline-flex items-center gap-2 font-sans
-           px-6 py-3 text-sm
-           transition-all duration-300;
-    font-weight: 400;
-    color: rgba(28,23,16,0.55);
-    border: 1px solid rgba(196,133,42,0.18);
+  .btn-primary:hover {
+    background: #14B8A6;
   }
-  .btn-ghost:hover {
-    border-color: rgba(196,133,42,0.40);
-    color: rgba(28,23,16,0.80);
+  .btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 font-sans
+           px-6 py-3 text-sm font-medium
+           rounded-lg
+           transition-all duration-200;
+    background: transparent;
+    color: #A0A0A0;
+    border: 1px solid #262626;
+  }
+  .btn-secondary:hover {
+    border-color: #0D9488;
+    color: #F5F5F5;
   }
 
   /* ── Cards ───────────────────────────────────────────────────────────────── */
 
   .card {
-    background: rgba(255,255,255,0.55);
-    border: 1px solid rgba(196,133,42,0.10);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    background: #141414;
+    border-radius: 14px;
+    overflow: hidden;
+    transition: transform 200ms ease, box-shadow 200ms ease;
+  }
+  .card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
   }
 
-  /* ── Divider ─────────────────────────────────────────────────────────────── */
+  /* ── Price display (mono) ────────────────────────────────────────────────── */
 
-  .divider {
-    border-top: 1px solid rgba(196,133,42,0.10);
+  .price {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-weight: 700;
   }
-}
 
-/* ── Search input — light mode ─────────────────────────────────────────────── */
+  /* ── Status badges ───────────────────────────────────────────────────────── */
 
-.search-input:focus {
-  outline: none;
-  border-color: rgba(196,133,42,0.35) !important;
-  border-bottom-color: #C4852A !important;
-  border-bottom-width: 2px !important;
-}
-
-/* ── Mobile horizontal card scroll row ──────────────────────────────────── */
-
-.card-scroll-row {
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-}
-.card-scroll-row::-webkit-scrollbar {
-  display: none;
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 text-xs font-medium rounded-full;
+  }
+  .badge-tradeable {
+    background: rgba(13,148,136,0.15);
+    color: #14B8A6;
+  }
+  .badge-redeemed {
+    background: rgba(245,158,11,0.15);
+    color: #F59E0B;
+  }
+  .badge-active {
+    background: rgba(34,197,94,0.15);
+    color: #22C55E;
+  }
+  .badge-expired {
+    background: rgba(102,102,102,0.15);
+    color: #666666;
+  }
 }
 
 /* ── Scroll-triggered fade-in ────────────────────────────────────────────── */
 
 .scroll-fade {
   opacity: 0;
-  transform: translateY(24px);
-  transition: opacity 0.65s ease, transform 0.65s ease;
+  transform: translateY(16px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
 }
-
 .scroll-fade.in-view {
   opacity: 1;
   transform: translateY(0);
 }
 
-/* ── RainbowKit overrides — warm light palette ───────────────────────────── */
+/* ── RainbowKit overrides — dark palette ─────────────────────────────────── */
 
 [data-rk] {
-  --rk-colors-accentColor: #C4852A !important;
+  --rk-colors-accentColor: #0D9488 !important;
   --rk-colors-accentColorForeground: #FFFFFF !important;
-  --rk-colors-actionButtonBorder: rgba(196,133,42,0.20) !important;
-  --rk-colors-actionButtonBorderMobile: rgba(196,133,42,0.20) !important;
-  --rk-colors-actionButtonSecondaryBackground: #F3EDE2 !important;
-  --rk-colors-closeButton: rgba(28,23,16,0.40) !important;
-  --rk-colors-closeButtonBackground: #F3EDE2 !important;
-  --rk-colors-connectButtonBackground: #FFFFFF !important;
-  --rk-colors-connectButtonBackgroundError: #FBE9E9 !important;
-  --rk-colors-connectButtonInnerBackground: #F9F6F0 !important;
-  --rk-colors-connectButtonText: rgba(28,23,16,0.75) !important;
-  --rk-colors-connectButtonTextError: #7A3535 !important;
-  --rk-colors-connectionIndicator: #C4852A !important;
-  --rk-colors-error: #7A3535 !important;
-  --rk-colors-generalBorder: rgba(196,133,42,0.15) !important;
-  --rk-colors-generalBorderDim: #F3EDE2 !important;
-  --rk-colors-menuItemBackground: #F3EDE2 !important;
-  --rk-colors-modalBackground: #F9F6F0 !important;
-  --rk-colors-modalBorder: rgba(196,133,42,0.15) !important;
-  --rk-colors-modalText: rgba(28,23,16,0.85) !important;
-  --rk-colors-modalTextDim: rgba(28,23,16,0.42) !important;
-  --rk-colors-modalTextSecondary: rgba(28,23,16,0.42) !important;
-  --rk-colors-profileAction: #F3EDE2 !important;
-  --rk-colors-profileActionHover: #EDE4D5 !important;
-  --rk-colors-profileForeground: #F9F6F0 !important;
-  --rk-radii-actionButton: 0 !important;
-  --rk-radii-connectButton: 0 !important;
-  --rk-radii-menuButton: 0 !important;
-  --rk-radii-modal: 0 !important;
-  --rk-radii-modalMobile: 0 !important;
-  --rk-fonts-body: "DM Sans", system-ui, sans-serif !important;
+  --rk-colors-actionButtonBorder: #262626 !important;
+  --rk-colors-actionButtonBorderMobile: #262626 !important;
+  --rk-colors-actionButtonSecondaryBackground: #1A1A1A !important;
+  --rk-colors-closeButton: #A0A0A0 !important;
+  --rk-colors-closeButtonBackground: #1A1A1A !important;
+  --rk-colors-connectButtonBackground: #141414 !important;
+  --rk-colors-connectButtonBackgroundError: rgba(239,68,68,0.15) !important;
+  --rk-colors-connectButtonInnerBackground: #1A1A1A !important;
+  --rk-colors-connectButtonText: #F5F5F5 !important;
+  --rk-colors-connectButtonTextError: #EF4444 !important;
+  --rk-colors-connectionIndicator: #0D9488 !important;
+  --rk-colors-error: #EF4444 !important;
+  --rk-colors-generalBorder: #262626 !important;
+  --rk-colors-generalBorderDim: #1A1A1A !important;
+  --rk-colors-menuItemBackground: #1A1A1A !important;
+  --rk-colors-modalBackground: #141414 !important;
+  --rk-colors-modalBorder: #262626 !important;
+  --rk-colors-modalText: #F5F5F5 !important;
+  --rk-colors-modalTextDim: #666666 !important;
+  --rk-colors-modalTextSecondary: #A0A0A0 !important;
+  --rk-colors-profileAction: #1A1A1A !important;
+  --rk-colors-profileActionHover: #262626 !important;
+  --rk-colors-profileForeground: #141414 !important;
+  --rk-radii-actionButton: 8px !important;
+  --rk-radii-connectButton: 8px !important;
+  --rk-radii-menuButton: 8px !important;
+  --rk-radii-modal: 14px !important;
+  --rk-radii-modalMobile: 14px !important;
+  --rk-fonts-body: "Inter", system-ui, sans-serif !important;
 }

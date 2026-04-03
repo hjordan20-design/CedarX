@@ -1,8 +1,8 @@
 {
-  "name": "@cedarx/web",
+  "name": "@relayx/web",
   "version": "0.1.0",
   "private": true,
-  "description": "CedarX — The real asset marketplace",
+  "description": "RelayX — Keys to furnished rentals",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -12,7 +12,6 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@cedarx/shared-types": "workspace:*",
     "@rainbow-me/rainbowkit": "^2.1.3",
     "@tanstack/react-query": "^5.45.1",
     "lucide-react": "^0.395.0",

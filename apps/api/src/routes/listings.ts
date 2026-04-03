@@ -1,62 +1,52 @@
-import { Router, type Request, type Response } from "express";
+import { Hono } from "hono";
 import { z } from "zod";
-import { getListings, type ListingFilters } from "../db/queries";
+import { getActiveListings, insertListing, updateListing } from "../db/queries.js";
 
-export const listingsRouter = Router();
+const app = new Hono();
 
-// ─── GET /api/listings ────────────────────────────────────────────────────────
+// ─── GET /listings ──────────────────────────────────────────────────────────
 
-const ListQuerySchema = z.object({
-    category: z.enum(["land", "fixed-income", "rental-property"]).optional(),
-    sort: z.enum(["price_asc", "price_desc", "newest"]).optional(),
-    page: z.coerce.number().int().positive().default(1),
-    limit: z.coerce.number().int().positive().max(100).default(20),
+app.get("/", async (c) => {
+    const listings = await getActiveListings();
+    return c.json({ data: listings });
 });
 
-listingsRouter.get("/", async (req: Request, res: Response) => {
-    const parsed = ListQuerySchema.safeParse(req.query);
+// ─── POST /listings ─────────────────────────────────────────────────────────
+
+const CreateListingSchema = z.object({
+    key_id: z.string().uuid(),
+    seller_wallet: z.string().min(1),
+    asking_price_usdc: z.number().positive(),
+    status: z.enum(["active", "sold", "cancelled"]).default("active"),
+});
+
+app.post("/", async (c) => {
+    const body = await c.req.json();
+    const parsed = CreateListingSchema.safeParse(body);
     if (!parsed.success) {
-        return res.status(400).json({ error: "Invalid query parameters", details: parsed.error.flatten() });
+        return c.json({ error: "Invalid body", details: parsed.error.flatten() }, 400);
     }
-
-    const filters: ListingFilters = parsed.data;
-    const result = await getListings(filters);
-
-    return res.json({
-        data: result.data.map(formatListing),
-        pagination: {
-            total: result.total,
-            page: result.page,
-            limit: result.limit,
-            hasMore: result.hasMore,
-        },
-    });
+    const listing = await insertListing(parsed.data);
+    return c.json({ data: listing }, 201);
 });
 
-// ─── Formatter ────────────────────────────────────────────────────────────────
+// ─── PATCH /listings/:id ────────────────────────────────────────────────────
 
-function formatListing(row: any) {
-    return {
-        listingId: row.listing_id,
-        assetId: row.asset_id,
-        seller: row.seller,
-        tokenContract: row.token_contract,
-        tokenId: row.token_id ?? undefined,
-        quantity: row.quantity,
-        askingPrice: row.asking_price,
-        tokenStandard: row.token_standard,
-        status: row.status,
-        txHash: row.tx_hash,
-        blockNumber: row.block_number,
-        createdAt: row.created_at,
-        // Joined asset data (if the JOIN returned it)
-        asset: row.assets ? {
-            id: row.assets.id,
-            name: row.assets.name,
-            protocol: row.assets.protocol,
-            category: row.assets.category,
-            imageUrl: row.assets.image_url ?? undefined,
-            details: row.assets.details ?? {},
-        } : undefined,
-    };
-}
+const UpdateListingSchema = z.object({
+    asking_price_usdc: z.number().positive().optional(),
+    status: z.enum(["active", "sold", "cancelled"]).optional(),
+    sold_at: z.string().nullable().optional(),
+});
+
+app.patch("/:id", async (c) => {
+    const id = c.req.param("id");
+    const body = await c.req.json();
+    const parsed = UpdateListingSchema.safeParse(body);
+    if (!parsed.success) {
+        return c.json({ error: "Invalid body", details: parsed.error.flatten() }, 400);
+    }
+    const listing = await updateListing(id, parsed.data);
+    return c.json({ data: listing });
+});
+
+export default app;

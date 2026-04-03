@@ -1,8 +1,8 @@
 {
-  "name": "cedarx",
+  "name": "relayx",
   "version": "0.1.0",
   "private": true,
-  "description": "CedarX - The real asset marketplace",
+  "description": "RelayX - Keys to furnished rentals",
   "workspaces": [
     "apps/*",
     "packages/*"
