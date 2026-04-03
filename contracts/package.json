@@ -1,8 +1,8 @@
 {
-  "name": "@cedarx/contracts",
+  "name": "@relayx/contracts",
   "version": "0.1.0",
   "private": true,
-  "description": "CedarX smart contracts — Foundry project",
+  "description": "RelayX smart contracts — Foundry project",
   "scripts": {
     "build": "forge build",
     "test": "forge test -vv",
@@ -11,8 +11,8 @@
     "test:gas": "forge test --gas-report",
     "lint": "forge fmt --check",
     "fmt": "forge fmt",
-    "deploy:sepolia": "forge script script/Deploy.s.sol:DeployCedarXSwap --rpc-url $SEPOLIA_RPC_URL --broadcast --verify --etherscan-api-key $ETHERSCAN_API_KEY -vvvv",
-    "deploy:mainnet": "forge script script/Deploy.s.sol:DeployCedarXSwap --rpc-url $MAINNET_RPC_URL --broadcast --verify --ledger --sender $CEDARX_OWNER --etherscan-api-key $ETHERSCAN_API_KEY -vvvv",
+    "deploy:sepolia": "forge script script/Deploy.s.sol:DeployRelayXKey --rpc-url $SEPOLIA_RPC_URL --broadcast --verify --etherscan-api-key $ETHERSCAN_API_KEY -vvvv",
+    "deploy:mainnet": "forge script script/Deploy.s.sol:DeployRelayXKey --rpc-url $MAINNET_RPC_URL --broadcast --verify --ledger --sender $RELAYX_OWNER --etherscan-api-key $ETHERSCAN_API_KEY -vvvv",
     "install:deps": "forge install OpenZeppelin/openzeppelin-contracts@v5.0.2 --no-git"
   }
 }

@@ -12,8 +12,8 @@ export default {
           text:      "#F5F5F5",
           secondary: "#A0A0A0",
           muted:     "#666666",
-          teal:      "#0D9488",
-          "teal-lt": "#14B8A6",
+          gold:      "#C9A96E",
+          "gold-lt": "#D4B87A",
           success:   "#22C55E",
           warning:   "#F59E0B",
           error:     "#EF4444",
@@ -25,8 +25,8 @@ export default {
         mono: ["JetBrains Mono", "ui-monospace", "monospace"],
       },
       fontSize: {
-        "page-title":    ["2.25rem", { lineHeight: "1.1", fontWeight: "700" }],
-        "section-header": ["1.5rem", { lineHeight: "1.2", fontWeight: "700" }],
+        "page-title":    ["2.25rem", { lineHeight: "1.1", fontWeight: "600" }],
+        "section-header": ["1.5rem", { lineHeight: "1.2", fontWeight: "600" }],
         "card-title":    ["1.25rem", { lineHeight: "1.3", fontWeight: "600" }],
       },
       borderRadius: {

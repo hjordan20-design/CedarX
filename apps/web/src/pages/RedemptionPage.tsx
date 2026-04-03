@@ -30,9 +30,9 @@ function ProgressBar({ current }: { current: number }) {
           <div
             className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium shrink-0 transition-colors ${
               i < current
-                ? "bg-relay-teal text-white"
+                ? "bg-relay-gold text-white"
                 : i === current
-                ? "bg-relay-teal/20 text-relay-teal border border-relay-teal"
+                ? "bg-relay-gold/20 text-relay-gold border border-relay-gold"
                 : "bg-relay-subtle text-relay-muted border border-relay-border"
             }`}
           >
@@ -41,7 +41,7 @@ function ProgressBar({ current }: { current: number }) {
           {i < STEPS.length - 1 && (
             <div
               className={`h-0.5 flex-1 rounded ${
-                i < current ? "bg-relay-teal" : "bg-relay-border"
+                i < current ? "bg-relay-gold" : "bg-relay-border"
               }`}
             />
           )}
@@ -65,7 +65,7 @@ export function RedemptionPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="animate-spin text-relay-teal" size={32} />
+        <Loader2 className="animate-spin text-relay-gold" size={32} />
       </div>
     );
   }
@@ -74,7 +74,7 @@ export function RedemptionPage() {
     return (
       <div className="max-w-content mx-auto px-4 sm:px-6 py-16 text-center">
         <p className="text-relay-secondary">Key not found.</p>
-        <Link to="/my-keys" className="text-relay-teal mt-4 inline-block">
+        <Link to="/my-keys" className="text-relay-gold mt-4 inline-block">
           Back to My Keys
         </Link>
       </div>
@@ -144,7 +144,7 @@ export function RedemptionPage() {
             <p className="text-relay-secondary">
               Upload a clear photo of your government-issued ID (passport, driver's license, or national ID card).
             </p>
-            <div className="border-2 border-dashed border-relay-border rounded-xl p-12 text-center hover:border-relay-teal/30 transition-colors cursor-pointer">
+            <div className="border-2 border-dashed border-relay-border rounded-xl p-12 text-center hover:border-relay-gold/30 transition-colors cursor-pointer">
               <Upload size={32} className="mx-auto text-relay-muted mb-3" />
               <p className="text-sm text-relay-secondary">
                 Drag &amp; drop or click to upload
@@ -219,8 +219,8 @@ export function RedemptionPage() {
 
         {step === 5 && (
           <div className="text-center space-y-6">
-            <div className="w-16 h-16 bg-relay-teal/20 rounded-full flex items-center justify-center mx-auto">
-              <Check size={32} className="text-relay-teal" />
+            <div className="w-16 h-16 bg-relay-gold/20 rounded-full flex items-center justify-center mx-auto">
+              <Check size={32} className="text-relay-gold" />
             </div>
             <h2 className="text-section-header text-relay-text">
               You're all set

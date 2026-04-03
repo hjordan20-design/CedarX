@@ -2,12 +2,12 @@ import { Link } from "react-router-dom";
 
 export function Footer() {
   return (
-    <footer className="border-t border-relay-teal/30 mt-auto">
+    <footer className="mt-auto" style={{ borderTop: "1px solid rgba(201,169,110,0.3)" }}>
       <div className="max-w-content mx-auto px-4 sm:px-6 py-8 sm:py-10">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 sm:gap-6">
           <div>
-            <Link to="/" className="text-lg font-bold text-relay-text tracking-tight">
-              Relay<span className="text-relay-teal">X</span>
+            <Link to="/" className="text-lg font-semibold text-relay-text tracking-tight">
+              Relay<span className="text-relay-gold">X</span>
             </Link>
             <p className="text-sm text-relay-muted mt-1">
               Keys to furnished rentals.

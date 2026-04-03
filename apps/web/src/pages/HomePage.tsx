@@ -41,7 +41,7 @@ function PropertyCard({ property }: { property: {
       </div>
 
       {/* Info */}
-      <div className="p-5">
+      <div className="p-6">
         <h3 className="text-card-title text-relay-text truncate">
           {property.buildingName}
         </h3>
@@ -65,7 +65,7 @@ function PropertyCard({ property }: { property: {
 
         <div className="flex items-center justify-between mt-4">
           {property.minPrice ? (
-            <span className="price text-relay-teal text-base">
+            <span className="price text-relay-gold text-base">
               Keys from {formatUSDC(property.minPrice)}
             </span>
           ) : (
@@ -110,7 +110,7 @@ export function HomePage() {
             placeholder="Search properties..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-4 py-2.5 bg-relay-elevated border border-relay-border rounded-lg text-sm text-relay-text placeholder-relay-muted focus:outline-none focus:border-relay-teal transition-colors"
+            className="w-full pl-9 pr-4 py-2.5 bg-relay-elevated border border-relay-border rounded-lg text-sm text-relay-text placeholder-relay-muted focus:outline-none focus:border-relay-gold transition-colors"
           />
         </div>
 
@@ -119,7 +119,7 @@ export function HomePage() {
           <select
             value={city}
             onChange={(e) => setCity(e.target.value)}
-            className="appearance-none bg-relay-elevated border border-relay-border rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 pr-7 sm:pr-8 text-xs sm:text-sm text-relay-text focus:outline-none focus:border-relay-teal transition-colors cursor-pointer"
+            className="appearance-none bg-relay-elevated border border-relay-border rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 pr-7 sm:pr-8 text-xs sm:text-sm text-relay-text focus:outline-none focus:border-relay-gold transition-colors cursor-pointer"
           >
             {CITIES.map((c) => (
               <option key={c} value={c}>{c === "All" ? "All Cities" : c}</option>
@@ -136,7 +136,7 @@ export function HomePage() {
               onClick={() => setDuration(d)}
               className={`px-2.5 sm:px-3 py-1 sm:py-1.5 text-[11px] sm:text-xs font-medium rounded-md transition-colors ${
                 duration === d
-                  ? "bg-relay-teal text-white"
+                  ? "bg-relay-gold text-black"
                   : "text-relay-secondary hover:text-relay-text"
               }`}
             >
@@ -148,7 +148,7 @@ export function HomePage() {
 
       {/* Property grid */}
       {isLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
           {[1, 2, 3, 4, 5, 6].map((i) => (
             <div key={i} className="card animate-pulse">
               <div className="aspect-[16/10] bg-relay-subtle" />
@@ -161,7 +161,7 @@ export function HomePage() {
           ))}
         </div>
       ) : properties.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
           {properties
             .filter((p) =>
               search
@@ -180,7 +180,7 @@ export function HomePage() {
             className="absolute inset-0 bg-cover bg-center"
             style={{ backgroundImage: "url('https://images.unsplash.com/photo-1535498730771-e735b998cd64?w=1920&q=85')" }}
           />
-          <div className="absolute inset-0 bg-black/60" />
+          <div className="absolute inset-0" style={{ background: "rgba(15,12,8,0.7)" }} />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40" />
           <div className="relative z-20 flex flex-col items-center justify-center py-28 sm:py-40 md:py-52 px-4 sm:px-6 text-center">
             <h2 className="text-3xl sm:text-[48px] md:text-[56px] font-bold text-white mb-4 sm:mb-5 tracking-tight leading-tight">
@@ -198,7 +198,7 @@ export function HomePage() {
               <input
                 type="email"
                 placeholder="your@email.com"
-                className="w-full sm:flex-1 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg px-5 py-3.5 text-sm text-white placeholder-white/50 focus:outline-none focus:border-relay-teal transition-colors"
+                className="w-full sm:flex-1 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg px-5 py-3.5 text-sm text-white placeholder-white/50 focus:outline-none focus:border-relay-gold transition-colors"
               />
               <button type="submit" className="btn-primary w-full sm:w-auto whitespace-nowrap px-8 py-3.5">
                 Join Waitlist

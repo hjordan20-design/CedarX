@@ -23,12 +23,12 @@ export function Header() {
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-50 bg-relay-bg/80 backdrop-blur-xl border-b border-relay-border/60">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-relay-bg/80 backdrop-blur-xl" style={{ borderBottom: "1px solid rgba(201,169,110,0.1)" }}>
         <div className="max-w-content mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           {/* Logo */}
           <Link to="/" className="flex items-center shrink-0">
-            <span className="text-xl font-bold text-relay-text tracking-tight">
-              Relay<span className="text-relay-teal">X</span>
+            <span className="text-xl font-semibold text-relay-text tracking-tight">
+              Relay<span className="text-relay-gold">X</span>
             </span>
           </Link>
 
@@ -42,7 +42,7 @@ export function Header() {
                 className={({ isActive }) =>
                   `text-sm font-medium transition-colors duration-150 pb-1 ${
                     isActive
-                      ? "text-relay-text border-b-[3px] border-relay-teal"
+                      ? "text-relay-text border-b-[3px] border-relay-gold"
                       : "text-relay-secondary hover:text-relay-text border-b-[3px] border-transparent"
                   }`
                 }
@@ -59,8 +59,8 @@ export function Header() {
               className={({ isActive }) =>
                 `hidden md:inline-flex items-center text-sm font-medium px-4 py-1.5 rounded-full border transition-all duration-150 ${
                   isActive
-                    ? "border-relay-teal text-relay-teal"
-                    : "border-relay-border text-white hover:border-relay-teal/60 hover:text-relay-teal"
+                    ? "border-relay-gold text-relay-gold"
+                    : "border-relay-border text-white hover:border-relay-gold/60 hover:text-relay-gold"
                 }`
               }
             >

@@ -177,7 +177,8 @@ export function TradePage() {
         ].map((stat) => (
           <div
             key={stat.label}
-            className="bg-relay-elevated border border-relay-border rounded-xl px-3 sm:px-4 py-2.5 sm:py-3"
+            className="bg-relay-elevated rounded-xl px-3 sm:px-4 py-2.5 sm:py-3"
+            style={{ border: "1px solid rgba(201,169,110,0.08)" }}
           >
             <div className="text-[10px] sm:text-[11px] text-relay-muted uppercase tracking-wider">{stat.label}</div>
             <div className="text-sm sm:text-lg font-bold mt-0.5 text-relay-text font-mono truncate">
@@ -198,7 +199,7 @@ export function TradePage() {
               <select
                 value={sort}
                 onChange={(e) => setSort(e.target.value as SortKey)}
-                className="bg-relay-elevated border border-relay-border rounded-lg px-3 py-1.5 text-xs text-relay-text focus:outline-none focus:border-relay-teal cursor-pointer"
+                className="bg-relay-elevated border border-relay-border rounded-lg px-3 py-1.5 text-xs text-relay-text focus:outline-none focus:border-relay-gold cursor-pointer"
               >
                 <option value="newest">Newest</option>
                 <option value="ask_asc">Ask: Low → High</option>
@@ -228,7 +229,7 @@ export function TradePage() {
               return (
                 <div
                   key={listing.id}
-                  className="bg-relay-elevated border border-relay-border/60 rounded-xl px-3 sm:px-4 py-3 hover:border-relay-teal/30 transition-colors"
+                  className="bg-relay-elevated border border-relay-border/60 rounded-xl px-3 sm:px-4 py-3 hover:border-relay-gold/30 transition-colors"
                 >
                   {/* Desktop row */}
                   <div className="hidden sm:grid grid-cols-[2fr_1.2fr_1fr_1fr_0.8fr_auto] gap-3 items-center">
@@ -271,9 +272,9 @@ export function TradePage() {
         <div className="lg:col-span-3">
           <div className="lg:sticky lg:top-24 space-y-5">
             {/* Quick Stats */}
-            <div className="bg-relay-elevated border border-relay-border rounded-xl p-4">
+            <div className="bg-relay-elevated rounded-xl p-4" style={{ border: "1px solid rgba(201,169,110,0.08)" }}>
               <div className="flex items-center gap-2 mb-3">
-                <Activity size={14} className="text-relay-teal" />
+                <Activity size={14} className="text-relay-gold" />
                 <h3 className="text-sm font-semibold text-relay-text">Market Overview</h3>
               </div>
               <div className="grid grid-cols-2 gap-3">
@@ -283,7 +284,7 @@ export function TradePage() {
                 </div>
                 <div>
                   <div className="text-[11px] text-relay-muted uppercase tracking-wider">24h Vol</div>
-                  <div className="font-mono text-lg font-bold text-relay-teal">{formatPrice(STATS.volume24h)}</div>
+                  <div className="font-mono text-lg font-bold text-relay-text">{formatPrice(STATS.volume24h)}</div>
                 </div>
                 <div>
                   <div className="text-[11px] text-relay-muted uppercase tracking-wider">Floor</div>
@@ -297,7 +298,7 @@ export function TradePage() {
             </div>
 
             {/* Recent Trades */}
-            <div className="bg-relay-elevated border border-relay-border rounded-xl p-4">
+            <div className="bg-relay-elevated rounded-xl p-4" style={{ border: "1px solid rgba(201,169,110,0.08)" }}>
               <h3 className="text-sm font-semibold text-relay-text mb-3">Recent Trades</h3>
               <div className="space-y-0">
                 {MOCK_TRADES.map((trade, i) => (

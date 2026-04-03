@@ -64,7 +64,7 @@ export function SellPage() {
   if (success) {
     return (
       <div className="max-w-content mx-auto px-4 sm:px-6 py-24 text-center">
-        <Tag size={48} className="mx-auto text-relay-teal mb-4" />
+        <Tag size={48} className="mx-auto text-relay-gold mb-4" />
         <h2 className="text-section-header text-relay-text mb-2">
           Listed successfully
         </h2>
@@ -90,7 +90,7 @@ export function SellPage() {
 
       {isLoading ? (
         <div className="flex justify-center py-16">
-          <Loader2 className="animate-spin text-relay-teal" size={32} />
+          <Loader2 className="animate-spin text-relay-gold" size={32} />
         </div>
       ) : selectedKey ? (
         /* Pricing form */
@@ -127,7 +127,7 @@ export function SellPage() {
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
                 placeholder="0"
-                className="w-full bg-relay-subtle border border-relay-border rounded-lg pl-9 pr-4 py-3 font-mono text-relay-text focus:outline-none focus:border-relay-teal transition-colors"
+                className="w-full bg-relay-subtle border border-relay-border rounded-lg pl-9 pr-4 py-3 font-mono text-relay-text focus:outline-none focus:border-relay-gold transition-colors"
               />
             </div>
           </div>
@@ -159,7 +159,7 @@ export function SellPage() {
             <button
               key={key.id}
               onClick={() => setSelectedKey(key)}
-              className="card text-left p-5 hover:border-relay-teal/30"
+              className="card text-left p-5 hover:border-relay-gold/30"
             >
               <h3 className="text-card-title text-relay-text">
                 {key.property?.buildingName ?? "Property"}
@@ -170,7 +170,7 @@ export function SellPage() {
               <p className="text-sm text-relay-secondary mt-1">
                 {formatDateRange(key.startDate, key.endDate)}
               </p>
-              <p className="price text-relay-teal mt-2">
+              <p className="price text-relay-gold mt-2">
                 {formatUSDC(key.priceUsdc)}
               </p>
             </button>

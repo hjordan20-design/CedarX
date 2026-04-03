@@ -20,8 +20,8 @@
   body {
     background: #0A0A0A;
     background-image:
-      radial-gradient(ellipse 80% 50% at 50% 0%, rgba(13,148,136,0.06) 0%, transparent 60%),
-      radial-gradient(ellipse 60% 40% at 80% 100%, rgba(245,158,11,0.03) 0%, transparent 50%);
+      radial-gradient(ellipse 80% 50% at 50% 0%, rgba(201,169,110,0.05) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 100%, rgba(201,169,110,0.03) 0%, transparent 50%);
     min-height: 100vh;
     color: #F5F5F5;
   }
@@ -40,11 +40,11 @@
   /* Scrollbar */
   ::-webkit-scrollbar { width: 6px; }
   ::-webkit-scrollbar-track { background: #0A0A0A; }
-  ::-webkit-scrollbar-thumb { background: rgba(13,148,136,0.3); border-radius: 3px; }
-  ::-webkit-scrollbar-thumb:hover { background: rgba(13,148,136,0.5); }
+  ::-webkit-scrollbar-thumb { background: rgba(201,169,110,0.3); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(201,169,110,0.5); }
 
   /* Selection */
-  ::selection { background: rgba(13,148,136,0.25); color: #F5F5F5; }
+  ::selection { background: rgba(201,169,110,0.25); color: #F5F5F5; }
 }
 
 @layer components {
@@ -55,12 +55,14 @@
            px-6 py-3 text-sm font-medium
            rounded-lg
            transition-all duration-200
-           focus-visible:outline focus-visible:outline-2 focus-visible:outline-relay-teal focus-visible:outline-offset-2;
-    background: #0D9488;
-    color: #FFFFFF;
+           focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2;
+    background: #C9A96E;
+    color: #0A0A0A;
+    focus-visible-outline-color: #C9A96E;
   }
   .btn-primary:hover {
-    background: #14B8A6;
+    background: #D4B87A;
+    box-shadow: 0 0 20px rgba(201,169,110,0.15);
   }
   .btn-primary:disabled {
     opacity: 0.5;
@@ -77,7 +79,7 @@
     border: 1px solid #262626;
   }
   .btn-secondary:hover {
-    border-color: #0D9488;
+    border-color: #C9A96E;
     color: #F5F5F5;
   }
 
@@ -85,22 +87,22 @@
 
   .card {
     background: #141414;
-    border: 1px solid rgba(255,255,255,0.04);
+    border: 1px solid rgba(201,169,110,0.08);
     border-radius: 14px;
     overflow: hidden;
     transition: transform 250ms ease, box-shadow 250ms ease, border-color 250ms ease;
   }
   .card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 12px 40px rgba(0,0,0,0.5), 0 2px 8px rgba(13,148,136,0.08);
-    border-color: rgba(255,255,255,0.08);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.5), 0 2px 8px rgba(201,169,110,0.06);
+    border-color: rgba(201,169,110,0.2);
   }
 
   /* ── Price display (mono) ────────────────────────────────────────────────── */
 
   .price {
     font-family: "JetBrains Mono", ui-monospace, monospace;
-    font-weight: 700;
+    font-weight: 600;
   }
 
   /* ── Status badges ───────────────────────────────────────────────────────── */
@@ -109,8 +111,8 @@
     @apply inline-flex items-center px-2.5 py-0.5 text-xs font-medium rounded-full;
   }
   .badge-tradeable {
-    background: rgba(13,148,136,0.15);
-    color: #14B8A6;
+    background: rgba(201,169,110,0.15);
+    color: #C9A96E;
   }
   .badge-redeemed {
     background: rgba(245,158,11,0.15);
@@ -134,7 +136,7 @@
 
 @keyframes trade-pulse {
   0%, 100% { background: transparent; }
-  50% { background: rgba(13,148,136,0.06); }
+  50% { background: rgba(201,169,110,0.06); }
 }
 
 /* ── Scroll-triggered fade-in ────────────────────────────────────────────── */
@@ -149,22 +151,22 @@
   transform: translateY(0);
 }
 
-/* ── RainbowKit overrides — dark palette ─────────────────────────────────── */
+/* ── RainbowKit overrides — dark palette with gold accent ────────────────── */
 
 [data-rk] {
-  --rk-colors-accentColor: #0D9488 !important;
-  --rk-colors-accentColorForeground: #FFFFFF !important;
+  --rk-colors-accentColor: #C9A96E !important;
+  --rk-colors-accentColorForeground: #0A0A0A !important;
   --rk-colors-actionButtonBorder: #262626 !important;
   --rk-colors-actionButtonBorderMobile: #262626 !important;
   --rk-colors-actionButtonSecondaryBackground: #1A1A1A !important;
   --rk-colors-closeButton: #A0A0A0 !important;
   --rk-colors-closeButtonBackground: #1A1A1A !important;
-  --rk-colors-connectButtonBackground: #141414 !important;
+  --rk-colors-connectButtonBackground: #C9A96E !important;
   --rk-colors-connectButtonBackgroundError: rgba(239,68,68,0.15) !important;
-  --rk-colors-connectButtonInnerBackground: #1A1A1A !important;
-  --rk-colors-connectButtonText: #F5F5F5 !important;
+  --rk-colors-connectButtonInnerBackground: #D4B87A !important;
+  --rk-colors-connectButtonText: #0A0A0A !important;
   --rk-colors-connectButtonTextError: #EF4444 !important;
-  --rk-colors-connectionIndicator: #0D9488 !important;
+  --rk-colors-connectionIndicator: #C9A96E !important;
   --rk-colors-error: #EF4444 !important;
   --rk-colors-generalBorder: #262626 !important;
   --rk-colors-generalBorderDim: #1A1A1A !important;

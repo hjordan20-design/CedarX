@@ -35,7 +35,7 @@ export function MarketPage() {
               <select
                 value={sort}
                 onChange={(e) => setSort(e.target.value as SortKey)}
-                className="bg-relay-elevated border border-relay-border rounded-lg px-3 py-2 text-sm text-relay-text focus:outline-none focus:border-relay-teal cursor-pointer"
+                className="bg-relay-elevated border border-relay-border rounded-lg px-3 py-2 text-sm text-relay-text focus:outline-none focus:border-relay-gold cursor-pointer"
               >
                 <option value="newest">Newest</option>
                 <option value="price_asc">Price: Low to High</option>
@@ -46,7 +46,7 @@ export function MarketPage() {
 
           {isLoading ? (
             <div className="flex justify-center py-16">
-              <Loader2 className="animate-spin text-relay-teal" size={32} />
+              <Loader2 className="animate-spin text-relay-gold" size={32} />
             </div>
           ) : sorted.length > 0 ? (
             <div className="space-y-3">
@@ -56,7 +56,7 @@ export function MarketPage() {
                 return (
                   <div
                     key={listing.id}
-                    className="bg-relay-elevated border border-relay-border rounded-xl p-4 flex items-center gap-4 hover:border-relay-teal/30 transition-colors"
+                    className="bg-relay-elevated border border-relay-border rounded-xl p-4 flex items-center gap-4 hover:border-relay-gold/30 transition-colors"
                   >
                     {/* Thumbnail */}
                     {property?.photos?.[0] ? (
@@ -103,7 +103,7 @@ export function MarketPage() {
 
                     {/* Asking price */}
                     <div className="text-right shrink-0">
-                      <div className="price text-lg text-relay-teal">
+                      <div className="price text-lg text-relay-gold">
                         {formatUSDC(listing.askingPriceUsdc)}
                       </div>
                     </div>

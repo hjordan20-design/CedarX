@@ -12,7 +12,7 @@ import {Base64} from "@openzeppelin/contracts/utils/Base64.sol";
 import {IRelayXKey} from "./interfaces/IRelayXKey.sol";
 
 /// @title RelayXKey
-/// @author CedarX
+/// @author RelayX
 /// @notice ERC-721 contract for RelayX property reservation keys.
 ///
 ///         Each token represents a reservation key with on-chain metadata
@@ -23,7 +23,7 @@ import {IRelayXKey} from "./interfaces/IRelayXKey.sol";
 ///
 ///         Payment is in USDC, transferred from buyer to contract owner on mint.
 ///
-/// @custom:security-contact security@cedarx.io
+/// @custom:security-contact security@relayx.io
 contract RelayXKey is IRelayXKey, ERC721Enumerable, Ownable, ReentrancyGuard {
     using SafeERC20 for IERC20;
     using Strings for uint256;

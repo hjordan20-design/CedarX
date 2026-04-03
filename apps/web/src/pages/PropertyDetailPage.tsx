@@ -143,7 +143,7 @@ function PurchaseModal({
           </div>
           <div className="border-t border-relay-border pt-4 flex justify-between">
             <span className="text-relay-secondary font-medium">Total</span>
-            <span className="price text-xl text-relay-teal">
+            <span className="price text-xl text-relay-gold">
               {formatUSDC(keyData.priceUsdc)}
             </span>
           </div>
@@ -178,7 +178,7 @@ export function PropertyDetailPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="animate-spin text-relay-teal" size={32} />
+        <Loader2 className="animate-spin text-relay-gold" size={32} />
       </div>
     );
   }
@@ -187,7 +187,7 @@ export function PropertyDetailPage() {
     return (
       <div className="max-w-content mx-auto px-4 sm:px-6 py-16 text-center">
         <p className="text-relay-secondary">Property not found.</p>
-        <Link to="/" className="text-relay-teal hover:text-relay-teal-lt mt-4 inline-block">
+        <Link to="/" className="text-relay-gold hover:text-relay-gold-lt mt-4 inline-block">
           Back to browse
         </Link>
       </div>
@@ -283,7 +283,7 @@ export function PropertyDetailPage() {
                     className="flex items-center gap-2.5 text-sm text-relay-secondary bg-relay-subtle rounded-lg px-4 py-3"
                   >
                     {AMENITY_ICONS[amenity.toLowerCase()] ?? (
-                      <div className="w-4 h-4 rounded-full bg-relay-teal/20" />
+                      <div className="w-4 h-4 rounded-full bg-relay-gold/20" />
                     )}
                     <span className="capitalize">{amenity}</span>
                   </div>

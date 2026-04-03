@@ -158,7 +158,7 @@ export function MyKeysPage() {
 
       {isLoading ? (
         <div className="flex justify-center py-16">
-          <Loader2 className="animate-spin text-relay-teal" size={32} />
+          <Loader2 className="animate-spin text-relay-gold" size={32} />
         </div>
       ) : keys.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

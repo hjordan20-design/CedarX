@@ -25,8 +25,8 @@ const queryClient = new QueryClient({
 });
 
 const rkTheme = darkTheme({
-  accentColor: "#0D9488",
-  accentColorForeground: "#FFFFFF",
+  accentColor: "#C9A96E",
+  accentColorForeground: "#0A0A0A",
   borderRadius: "medium",
   fontStack: "system",
   overlayBlur: "small",
