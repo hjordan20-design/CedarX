@@ -6,9 +6,10 @@ import { Menu, X } from "lucide-react";
 const NAV_LINKS = [
   { to: "/", label: "Browse" },
   { to: "/my-keys", label: "My Keys" },
-  { to: "/market", label: "Market" },
-  { to: "/sell", label: "Sell" },
+  { to: "/trade", label: "Trade" },
 ];
+
+const LIST_LINK = { to: "/landlords", label: "List Your Property" };
 
 export function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -22,7 +23,7 @@ export function Header() {
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-50 bg-relay-bg/80 backdrop-blur-2xl border-b border-relay-border/60">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-relay-bg/80 backdrop-blur-xl border-b border-relay-border/60">
         <div className="max-w-content mx-auto px-6 h-16 flex items-center justify-between">
           {/* Logo */}
           <Link to="/" className="flex items-center shrink-0">
@@ -53,6 +54,18 @@ export function Header() {
 
           {/* Right side */}
           <div className="flex items-center gap-4">
+            <NavLink
+              to={LIST_LINK.to}
+              className={({ isActive }) =>
+                `hidden md:inline-flex items-center text-sm font-medium px-4 py-1.5 rounded-full border transition-all duration-150 ${
+                  isActive
+                    ? "border-relay-teal text-relay-teal"
+                    : "border-relay-border text-white hover:border-relay-teal/60 hover:text-relay-teal"
+                }`
+              }
+            >
+              {LIST_LINK.label}
+            </NavLink>
             <div className="hidden md:block">
               <ConnectButton
                 chainStatus="none"
@@ -83,7 +96,7 @@ export function Header() {
           />
           <div className="absolute top-16 left-0 right-0 bg-relay-bg border-b border-relay-border animate-fade-in">
             <nav className="flex flex-col px-6 py-4 gap-1">
-              {NAV_LINKS.map(({ to, label }) => (
+              {[...NAV_LINKS, LIST_LINK].map(({ to, label }) => (
                 <NavLink
                   key={to}
                   to={to}

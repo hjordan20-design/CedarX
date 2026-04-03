@@ -180,10 +180,10 @@ export function HomePage() {
             className="absolute inset-0 bg-cover bg-center"
             style={{ backgroundImage: "url('https://images.unsplash.com/photo-1535498730771-e735b998cd64?w=1920&q=85')" }}
           />
-          <div className="absolute inset-0 bg-black/65" />
+          <div className="absolute inset-0 bg-black/60" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40" />
           <div className="relative z-20 flex flex-col items-center justify-center py-52 px-6 text-center">
-            <h2 className="text-5xl md:text-6xl font-bold text-white mb-5 tracking-tight leading-tight">
+            <h2 className="text-[48px] md:text-[56px] font-bold text-white mb-5 tracking-tight leading-tight">
               Properties coming soon
             </h2>
             <p className="text-white/75 text-lg md:text-xl max-w-lg mb-10 leading-relaxed">

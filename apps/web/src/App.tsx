@@ -10,7 +10,7 @@ import { Layout } from "@/components/layout/Layout";
 import { HomePage } from "@/pages/HomePage";
 import { PropertyDetailPage } from "@/pages/PropertyDetailPage";
 import { MyKeysPage } from "@/pages/MyKeysPage";
-import { MarketPage } from "@/pages/MarketPage";
+import { TradePage } from "@/pages/TradePage";
 import { SellPage } from "@/pages/SellPage";
 import { RedemptionPage } from "@/pages/RedemptionPage";
 import { LandlordPage } from "@/pages/LandlordPage";
@@ -52,7 +52,7 @@ export function App() {
                 <Route path="/" element={<HomePage />} />
                 <Route path="/properties/:id" element={<PropertyDetailPage />} />
                 <Route path="/my-keys" element={<MyKeysPage />} />
-                <Route path="/market" element={<MarketPage />} />
+                <Route path="/trade" element={<TradePage />} />
                 <Route path="/sell" element={<SellPage />} />
                 <Route path="/redeem/:id" element={<RedemptionPage />} />
                 <Route path="/landlords" element={<LandlordPage />} />

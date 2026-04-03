@@ -1,11 +1,14 @@
 import { useState } from "react";
 import {
-  DollarSign,
   Clock,
   Shield,
   Users,
   ArrowRight,
   Check,
+  X,
+  DollarSign,
+  AlertTriangle,
+  Zap,
 } from "lucide-react";
 
 const STEPS = [
@@ -17,7 +20,7 @@ const STEPS = [
   {
     num: "02",
     title: "We mint Keys",
-    desc: "Each occupancy period becomes a Key—a digital right to live in the unit for that timeframe.",
+    desc: "Each occupancy period becomes a Key — a digital right to live in the unit for that timeframe.",
   },
   {
     num: "03",
@@ -52,37 +55,43 @@ export function LandlordPage() {
         </p>
       </div>
 
-      {/* Economics comparison */}
+      {/* Economics comparison — no dollar figures */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-20">
+        {/* Traditional */}
         <div className="bg-relay-elevated border border-relay-border rounded-2xl p-8">
           <h3 className="text-sm font-medium text-relay-muted uppercase tracking-wider mb-6">
             Traditional Rental
           </h3>
-          <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <Clock size={18} className="text-relay-muted" />
-              <span className="text-relay-secondary">Monthly rent collection</span>
+          <div className="space-y-5">
+            <div className="flex items-start gap-3">
+              <Clock size={18} className="text-relay-muted mt-0.5 shrink-0" />
+              <div>
+                <span className="text-relay-secondary">Monthly collection</span>
+                <p className="text-xs text-relay-muted mt-0.5">Chase payments every 30 days</p>
+              </div>
             </div>
-            <div className="flex items-center gap-3">
-              <DollarSign size={18} className="text-relay-muted" />
-              <span className="text-relay-secondary">
-                $3,000/mo &times; 12 = $36,000/yr
-              </span>
+            <div className="flex items-start gap-3">
+              <AlertTriangle size={18} className="text-relay-muted mt-0.5 shrink-0" />
+              <div>
+                <span className="text-relay-secondary">Vacancy risk</span>
+                <p className="text-xs text-relay-muted mt-0.5">Empty units between turnovers</p>
+              </div>
             </div>
-            <div className="flex items-center gap-3">
-              <Users size={18} className="text-relay-muted" />
-              <span className="text-relay-secondary">Vacancy risk each turnover</span>
+            <div className="flex items-start gap-3">
+              <Users size={18} className="text-relay-muted mt-0.5 shrink-0" />
+              <div>
+                <span className="text-relay-secondary">Late payment risk</span>
+                <p className="text-xs text-relay-muted mt-0.5">Collections, evictions, legal costs</p>
+              </div>
             </div>
           </div>
-          <div className="mt-6 pt-6 border-t border-relay-border">
-            <div className="text-sm text-relay-muted">Annual Revenue</div>
-            <div className="price text-2xl text-relay-text mt-1">$36,000</div>
-            <div className="text-xs text-relay-muted mt-1">
-              Collected monthly, minus vacancy
-            </div>
+          <div className="mt-6 pt-6 border-t border-relay-border flex items-center gap-2 text-relay-muted text-sm">
+            <X size={16} className="text-red-400" />
+            Revenue trickles in monthly
           </div>
         </div>
 
+        {/* RelayX */}
         <div className="bg-relay-elevated border border-relay-teal/30 rounded-2xl p-8 relative overflow-hidden">
           <div className="absolute top-0 right-0 bg-relay-teal text-white text-xs font-medium px-3 py-1 rounded-bl-lg">
             RelayX
@@ -90,28 +99,32 @@ export function LandlordPage() {
           <h3 className="text-sm font-medium text-relay-teal uppercase tracking-wider mb-6">
             RelayX Pre-Sale
           </h3>
-          <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <DollarSign size={18} className="text-relay-teal" />
-              <span className="text-relay-text">Lump sum upfront</span>
+          <div className="space-y-5">
+            <div className="flex items-start gap-3">
+              <DollarSign size={18} className="text-relay-teal mt-0.5 shrink-0" />
+              <div>
+                <span className="text-relay-text">Full payment upfront in USDC</span>
+                <p className="text-xs text-relay-secondary mt-0.5">Funds settle to your wallet instantly</p>
+              </div>
             </div>
-            <div className="flex items-center gap-3">
-              <Shield size={18} className="text-relay-teal" />
-              <span className="text-relay-text">
-                $18,000 per 6-month Key &times; 4 = $72,000
-              </span>
+            <div className="flex items-start gap-3">
+              <Shield size={18} className="text-relay-teal mt-0.5 shrink-0" />
+              <div>
+                <span className="text-relay-text">Zero vacancy</span>
+                <p className="text-xs text-relay-secondary mt-0.5">Every period is sold before it starts</p>
+              </div>
             </div>
-            <div className="flex items-center gap-3">
-              <Check size={18} className="text-relay-teal" />
-              <span className="text-relay-text">Zero vacancy risk—sold upfront</span>
+            <div className="flex items-start gap-3">
+              <Zap size={18} className="text-relay-teal mt-0.5 shrink-0" />
+              <div>
+                <span className="text-relay-text">No collections</span>
+                <p className="text-xs text-relay-secondary mt-0.5">No chasing tenants — payment is done</p>
+              </div>
             </div>
           </div>
-          <div className="mt-6 pt-6 border-t border-relay-teal/20">
-            <div className="text-sm text-relay-teal">2-Year Revenue (Upfront)</div>
-            <div className="price text-2xl text-relay-teal mt-1">$72,000</div>
-            <div className="text-xs text-relay-secondary mt-1">
-              Time value of money: invest today, not in 24 months
-            </div>
+          <div className="mt-6 pt-6 border-t border-relay-teal/20 flex items-center gap-2 text-relay-teal text-sm font-medium">
+            <Check size={16} />
+            Revenue arrives all at once
           </div>
         </div>
       </div>

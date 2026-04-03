@@ -18,8 +18,8 @@ export function Footer() {
             <Link to="/" className="hover:text-relay-text transition-colors">
               Browse
             </Link>
-            <Link to="/market" className="hover:text-relay-text transition-colors">
-              Market
+            <Link to="/trade" className="hover:text-relay-text transition-colors">
+              Trade
             </Link>
             <Link to="/landlords" className="hover:text-relay-text transition-colors">
               List Your Property
