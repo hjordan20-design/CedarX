@@ -62,7 +62,7 @@
   }
   .btn-primary:hover {
     background: #D4B87A;
-    box-shadow: 0 0 20px rgba(201,169,110,0.15);
+    box-shadow: 0 0 24px rgba(201,169,110,0.2);
   }
   .btn-primary:disabled {
     opacity: 0.5;
