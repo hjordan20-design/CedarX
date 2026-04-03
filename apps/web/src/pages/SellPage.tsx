@@ -46,7 +46,7 @@ export function SellPage() {
 
   if (!isConnected) {
     return (
-      <div className="max-w-content mx-auto px-6 py-24 text-center">
+      <div className="max-w-content mx-auto px-4 sm:px-6 py-24 text-center">
         <Wallet size={48} className="mx-auto text-relay-muted mb-4" />
         <h2 className="text-section-header text-relay-text mb-2">
           Connect your wallet
@@ -63,7 +63,7 @@ export function SellPage() {
 
   if (success) {
     return (
-      <div className="max-w-content mx-auto px-6 py-24 text-center">
+      <div className="max-w-content mx-auto px-4 sm:px-6 py-24 text-center">
         <Tag size={48} className="mx-auto text-relay-teal mb-4" />
         <h2 className="text-section-header text-relay-text mb-2">
           Listed successfully
@@ -82,7 +82,7 @@ export function SellPage() {
   }
 
   return (
-    <div className="max-w-content mx-auto px-6 py-8">
+    <div className="max-w-content mx-auto px-4 sm:px-6 py-8">
       <h1 className="text-page-title text-relay-text mb-2">List a Key</h1>
       <p className="text-relay-secondary mb-8">
         Select a Key from your wallet and set your asking price.

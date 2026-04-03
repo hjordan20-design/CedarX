@@ -99,11 +99,11 @@ export function HomePage() {
   const properties = data?.data ?? [];
 
   return (
-    <div className="max-w-content mx-auto px-6 py-8">
+    <div className="max-w-content mx-auto px-4 sm:px-6 py-6 sm:py-8">
       {/* Filter bar */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-8">
-        {/* Search */}
-        <div className="relative flex-1 max-w-sm">
+      <div className="flex flex-wrap items-center gap-3 sm:gap-4 mb-6 sm:mb-8">
+        {/* Search — hidden on mobile */}
+        <div className="relative flex-1 max-w-sm hidden md:block">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-relay-muted" />
           <input
             type="text"
@@ -119,22 +119,22 @@ export function HomePage() {
           <select
             value={city}
             onChange={(e) => setCity(e.target.value)}
-            className="appearance-none bg-relay-elevated border border-relay-border rounded-lg px-4 py-2.5 pr-8 text-sm text-relay-text focus:outline-none focus:border-relay-teal transition-colors cursor-pointer"
+            className="appearance-none bg-relay-elevated border border-relay-border rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 pr-7 sm:pr-8 text-xs sm:text-sm text-relay-text focus:outline-none focus:border-relay-teal transition-colors cursor-pointer"
           >
             {CITIES.map((c) => (
               <option key={c} value={c}>{c === "All" ? "All Cities" : c}</option>
             ))}
           </select>
-          <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-relay-muted pointer-events-none" />
+          <ChevronDown size={14} className="absolute right-2 sm:right-2.5 top-1/2 -translate-y-1/2 text-relay-muted pointer-events-none" />
         </div>
 
         {/* Duration */}
-        <div className="flex items-center gap-1 bg-relay-elevated border border-relay-border rounded-lg p-1">
+        <div className="flex items-center gap-0.5 sm:gap-1 bg-relay-elevated border border-relay-border rounded-lg p-0.5 sm:p-1">
           {DURATIONS.map((d) => (
             <button
               key={d}
               onClick={() => setDuration(d)}
-              className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+              className={`px-2.5 sm:px-3 py-1 sm:py-1.5 text-[11px] sm:text-xs font-medium rounded-md transition-colors ${
                 duration === d
                   ? "bg-relay-teal text-white"
                   : "text-relay-secondary hover:text-relay-text"
@@ -175,23 +175,24 @@ export function HomePage() {
         </div>
       ) : (
         /* Empty state — aspirational waitlist hero */
-        <div className="relative rounded-2xl overflow-hidden mt-8 -mx-6 sm:mx-0">
+        <div className="relative rounded-2xl overflow-hidden mt-6 sm:mt-8 -mx-4 sm:mx-0">
           <div
             className="absolute inset-0 bg-cover bg-center"
             style={{ backgroundImage: "url('https://images.unsplash.com/photo-1535498730771-e735b998cd64?w=1920&q=85')" }}
           />
           <div className="absolute inset-0 bg-black/60" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40" />
-          <div className="relative z-20 flex flex-col items-center justify-center py-52 px-6 text-center">
-            <h2 className="text-[48px] md:text-[56px] font-bold text-white mb-5 tracking-tight leading-tight">
+          <div className="relative z-20 flex flex-col items-center justify-center py-28 sm:py-40 md:py-52 px-4 sm:px-6 text-center">
+            <h2 className="text-3xl sm:text-[48px] md:text-[56px] font-bold text-white mb-4 sm:mb-5 tracking-tight leading-tight">
               Properties coming soon
             </h2>
-            <p className="text-white/75 text-lg md:text-xl max-w-lg mb-10 leading-relaxed">
-              Furnished rentals in Fort Lauderdale and Miami.<br className="hidden md:block" />
+            <p className="text-white/75 text-base sm:text-lg md:text-xl max-w-lg mb-8 sm:mb-10 leading-relaxed">
+              Furnished rentals in Fort Lauderdale and Miami.{" "}
+              <br className="hidden md:block" />
               Join the waitlist for early access to Keys.
             </p>
             <form
-              className="flex flex-col sm:flex-row items-center gap-3 w-full max-w-md"
+              className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full max-w-md"
               onSubmit={(e) => e.preventDefault()}
             >
               <input
@@ -199,7 +200,7 @@ export function HomePage() {
                 placeholder="your@email.com"
                 className="w-full sm:flex-1 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg px-5 py-3.5 text-sm text-white placeholder-white/50 focus:outline-none focus:border-relay-teal transition-colors"
               />
-              <button type="submit" className="btn-primary whitespace-nowrap px-8 py-3.5">
+              <button type="submit" className="btn-primary w-full sm:w-auto whitespace-nowrap px-8 py-3.5">
                 Join Waitlist
               </button>
             </form>

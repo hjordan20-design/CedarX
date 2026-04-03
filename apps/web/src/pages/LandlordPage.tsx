@@ -44,7 +44,7 @@ export function LandlordPage() {
   };
 
   return (
-    <div className="max-w-content mx-auto px-6 py-16">
+    <div className="max-w-content mx-auto px-4 sm:px-6 py-10 sm:py-16">
       {/* Header */}
       <div className="max-w-2xl mb-20">
         <h1 className="text-page-title text-relay-text mb-4">
@@ -58,7 +58,7 @@ export function LandlordPage() {
       {/* Economics comparison — no dollar figures */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-20">
         {/* Traditional */}
-        <div className="bg-relay-elevated border border-relay-border rounded-2xl p-8">
+        <div className="bg-relay-elevated border border-relay-border rounded-2xl p-5 sm:p-8">
           <h3 className="text-sm font-medium text-relay-muted uppercase tracking-wider mb-6">
             Traditional Rental
           </h3>
@@ -92,7 +92,7 @@ export function LandlordPage() {
         </div>
 
         {/* RelayX */}
-        <div className="bg-relay-elevated border border-relay-teal/30 rounded-2xl p-8 relative overflow-hidden">
+        <div className="bg-relay-elevated border border-relay-teal/30 rounded-2xl p-5 sm:p-8 relative overflow-hidden">
           <div className="absolute top-0 right-0 bg-relay-teal text-white text-xs font-medium px-3 py-1 rounded-bl-lg">
             RelayX
           </div>
@@ -155,7 +155,7 @@ export function LandlordPage() {
       </div>
 
       {/* CTA */}
-      <div className="bg-relay-elevated border border-relay-border rounded-2xl p-10 text-center max-w-xl mx-auto">
+      <div className="bg-relay-elevated border border-relay-border rounded-2xl p-6 sm:p-10 text-center max-w-xl mx-auto">
         <h2 className="text-section-header text-relay-text mb-3">
           Get started
         </h2>
@@ -169,7 +169,7 @@ export function LandlordPage() {
             <span>We'll be in touch shortly.</span>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="flex items-center gap-2 max-w-sm mx-auto">
+          <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 max-w-sm mx-auto">
             <input
               type="email"
               required

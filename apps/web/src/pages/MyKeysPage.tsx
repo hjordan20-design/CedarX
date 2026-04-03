@@ -135,7 +135,7 @@ export function MyKeysPage() {
 
   if (!address) {
     return (
-      <div className="max-w-content mx-auto px-6 py-24 text-center">
+      <div className="max-w-content mx-auto px-4 sm:px-6 py-24 text-center">
         <KeyIcon size={48} className="mx-auto text-relay-muted mb-4" />
         <h2 className="text-section-header text-relay-text mb-2">
           Connect your wallet
@@ -153,7 +153,7 @@ export function MyKeysPage() {
   const keys = data?.data ?? [];
 
   return (
-    <div className="max-w-content mx-auto px-6 py-8">
+    <div className="max-w-content mx-auto px-4 sm:px-6 py-8">
       <h1 className="text-page-title text-relay-text mb-8">My Keys</h1>
 
       {isLoading ? (

@@ -185,7 +185,7 @@ export function PropertyDetailPage() {
 
   if (error || !data) {
     return (
-      <div className="max-w-content mx-auto px-6 py-16 text-center">
+      <div className="max-w-content mx-auto px-4 sm:px-6 py-16 text-center">
         <p className="text-relay-secondary">Property not found.</p>
         <Link to="/" className="text-relay-teal hover:text-relay-teal-lt mt-4 inline-block">
           Back to browse
@@ -215,7 +215,7 @@ export function PropertyDetailPage() {
   };
 
   return (
-    <div className="max-w-content mx-auto px-6 py-8">
+    <div className="max-w-content mx-auto px-4 sm:px-6 py-8">
       {/* Back */}
       <Link
         to="/"

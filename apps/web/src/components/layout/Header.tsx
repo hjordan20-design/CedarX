@@ -24,7 +24,7 @@ export function Header() {
   return (
     <>
       <header className="fixed top-0 left-0 right-0 z-50 bg-relay-bg/80 backdrop-blur-xl border-b border-relay-border/60">
-        <div className="max-w-content mx-auto px-6 h-16 flex items-center justify-between">
+        <div className="max-w-content mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           {/* Logo */}
           <Link to="/" className="flex items-center shrink-0">
             <span className="text-xl font-bold text-relay-text tracking-tight">
@@ -95,7 +95,7 @@ export function Header() {
             onClick={() => setMobileOpen(false)}
           />
           <div className="absolute top-16 left-0 right-0 bg-relay-bg border-b border-relay-border animate-fade-in">
-            <nav className="flex flex-col px-6 py-4 gap-1">
+            <nav className="flex flex-col px-4 sm:px-6 py-4 gap-1">
               {[...NAV_LINKS, LIST_LINK].map(({ to, label }) => (
                 <NavLink
                   key={to}

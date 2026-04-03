@@ -168,19 +168,19 @@ export function TradePage() {
   return (
     <div className="max-w-content mx-auto px-4 sm:px-6 py-6">
       {/* ── Summary Stats Bar ──────────────────────────────────────────────── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 mb-5 sm:mb-6">
         {[
-          { label: "Active Listings", value: STATS.activeListings.toString(), mono: true },
-          { label: "24h Volume", value: formatPrice(STATS.volume24h) + " USDC", mono: true },
-          { label: "Total Traded", value: formatPrice(STATS.totalTraded) + " USDC", mono: true },
-          { label: "Floor Price", value: formatPrice(STATS.floorPrice) + " USDC", mono: true },
+          { label: "Active Listings", value: STATS.activeListings.toString() },
+          { label: "24h Volume", value: formatPrice(STATS.volume24h) + " USDC" },
+          { label: "Total Traded", value: formatPrice(STATS.totalTraded) + " USDC" },
+          { label: "Floor Price", value: formatPrice(STATS.floorPrice) + " USDC" },
         ].map((stat) => (
           <div
             key={stat.label}
-            className="bg-relay-elevated border border-relay-border rounded-xl px-4 py-3"
+            className="bg-relay-elevated border border-relay-border rounded-xl px-3 sm:px-4 py-2.5 sm:py-3"
           >
-            <div className="text-[11px] text-relay-muted uppercase tracking-wider">{stat.label}</div>
-            <div className={`text-lg font-bold mt-0.5 text-relay-text ${stat.mono ? "font-mono" : ""}`}>
+            <div className="text-[10px] sm:text-[11px] text-relay-muted uppercase tracking-wider">{stat.label}</div>
+            <div className="text-sm sm:text-lg font-bold mt-0.5 text-relay-text font-mono truncate">
               {stat.value}
             </div>
           </div>
@@ -188,7 +188,7 @@ export function TradePage() {
       </div>
 
       {/* ── Main Grid ──────────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-10 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-10 gap-8 lg:gap-6">
         {/* Left — Listings Table (7/10 = 70%) */}
         <div className="lg:col-span-7">
           <div className="flex items-center justify-between mb-4">
@@ -221,54 +221,46 @@ export function TradePage() {
           </div>
 
           {/* Rows */}
-          <div className="space-y-1">
+          <div className="space-y-1.5 sm:space-y-1">
             {sorted.map((listing) => {
               const pct = changePct(listing.mintPrice, listing.askPrice);
               const isUp = pct >= 0;
               return (
                 <div
                   key={listing.id}
-                  className="grid grid-cols-1 sm:grid-cols-[2fr_1.2fr_1fr_1fr_0.8fr_auto] gap-3 items-center bg-relay-elevated border border-relay-border/60 rounded-xl px-4 py-3 hover:border-relay-teal/30 transition-colors"
+                  className="bg-relay-elevated border border-relay-border/60 rounded-xl px-3 sm:px-4 py-3 hover:border-relay-teal/30 transition-colors"
                 >
-                  {/* Property */}
-                  <div className="flex items-center gap-3 min-w-0">
-                    <img
-                      src={listing.photo}
-                      alt={listing.property}
-                      className="w-10 h-10 rounded-lg object-cover shrink-0"
-                    />
-                    <div className="min-w-0">
-                      <div className="text-sm font-semibold text-relay-text truncate">
-                        {listing.property}
+                  {/* Desktop row */}
+                  <div className="hidden sm:grid grid-cols-[2fr_1.2fr_1fr_1fr_0.8fr_auto] gap-3 items-center">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <img src={listing.photo} alt={listing.property} className="w-10 h-10 rounded-lg object-cover shrink-0" />
+                      <div className="min-w-0">
+                        <div className="text-sm font-semibold text-relay-text truncate">{listing.property}</div>
+                        <div className="text-xs text-relay-secondary">{listing.unit}</div>
                       </div>
-                      <div className="text-xs text-relay-secondary">{listing.unit}</div>
                     </div>
+                    <div className="text-xs text-relay-secondary font-mono">{listing.periodStart} – {listing.periodEnd}</div>
+                    <div className="text-right font-mono text-sm text-relay-muted">{formatPrice(listing.mintPrice)}</div>
+                    <div className="text-right font-mono text-sm font-bold text-relay-text">{formatPrice(listing.askPrice)}</div>
+                    <div className={`text-right font-mono text-sm font-bold ${isUp ? "text-emerald-400" : "text-red-400"}`}>{isUp ? "+" : ""}{pct.toFixed(1)}%</div>
+                    <button className="btn-primary px-4 py-1.5 text-xs">Buy</button>
                   </div>
 
-                  {/* Period */}
-                  <div className="text-xs text-relay-secondary font-mono">
-                    {listing.periodStart} – {listing.periodEnd}
+                  {/* Mobile card */}
+                  <div className="flex sm:hidden items-center gap-3">
+                    <img src={listing.photo} alt={listing.property} className="w-10 h-10 rounded-lg object-cover shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-semibold text-relay-text truncate">
+                        {listing.property} <span className="text-relay-secondary font-normal text-xs">{listing.unit}</span>
+                      </div>
+                      <div className="text-[11px] text-relay-muted font-mono mt-0.5">{listing.periodStart} – {listing.periodEnd}</div>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <div className="font-mono text-sm font-bold text-relay-text">{formatPrice(listing.askPrice)}</div>
+                      <div className={`font-mono text-[11px] font-bold ${isUp ? "text-emerald-400" : "text-red-400"}`}>{isUp ? "+" : ""}{pct.toFixed(1)}%</div>
+                    </div>
+                    <button className="btn-primary px-3 py-1.5 text-[11px] shrink-0">Buy</button>
                   </div>
-
-                  {/* Mint Price */}
-                  <div className="text-right font-mono text-sm text-relay-muted">
-                    {formatPrice(listing.mintPrice)}
-                  </div>
-
-                  {/* Ask Price */}
-                  <div className="text-right font-mono text-sm font-bold text-relay-text">
-                    {formatPrice(listing.askPrice)}
-                  </div>
-
-                  {/* Change % */}
-                  <div className={`text-right font-mono text-sm font-bold ${isUp ? "text-emerald-400" : "text-red-400"}`}>
-                    {isUp ? "+" : ""}{pct.toFixed(1)}%
-                  </div>
-
-                  {/* Buy */}
-                  <button className="btn-primary px-4 py-1.5 text-xs">
-                    Buy
-                  </button>
                 </div>
               );
             })}

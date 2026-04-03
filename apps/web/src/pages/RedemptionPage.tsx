@@ -72,7 +72,7 @@ export function RedemptionPage() {
 
   if (!keyData) {
     return (
-      <div className="max-w-content mx-auto px-6 py-16 text-center">
+      <div className="max-w-content mx-auto px-4 sm:px-6 py-16 text-center">
         <p className="text-relay-secondary">Key not found.</p>
         <Link to="/my-keys" className="text-relay-teal mt-4 inline-block">
           Back to My Keys
