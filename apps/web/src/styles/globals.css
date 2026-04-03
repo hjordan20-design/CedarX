@@ -19,6 +19,9 @@
 
   body {
     background: #0A0A0A;
+    background-image:
+      radial-gradient(ellipse 80% 50% at 50% 0%, rgba(13,148,136,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 100%, rgba(245,158,11,0.03) 0%, transparent 50%);
     min-height: 100vh;
     color: #F5F5F5;
   }
@@ -82,13 +85,15 @@
 
   .card {
     background: #141414;
+    border: 1px solid rgba(255,255,255,0.04);
     border-radius: 14px;
     overflow: hidden;
-    transition: transform 200ms ease, box-shadow 200ms ease;
+    transition: transform 250ms ease, box-shadow 250ms ease, border-color 250ms ease;
   }
   .card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.5), 0 2px 8px rgba(13,148,136,0.08);
+    border-color: rgba(255,255,255,0.08);
   }
 
   /* ── Price display (mono) ────────────────────────────────────────────────── */

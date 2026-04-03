@@ -174,27 +174,32 @@ export function HomePage() {
             ))}
         </div>
       ) : (
-        /* Empty state — waitlist */
-        <div className="relative rounded-2xl overflow-hidden mt-8">
-          <div className="absolute inset-0 bg-gradient-to-b from-relay-bg/60 to-relay-bg/95 z-10" />
-          <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1506929562872-bb421503ef21?w=1400&q=80')] bg-cover bg-center opacity-30" />
-          <div className="relative z-20 flex flex-col items-center justify-center py-24 px-6 text-center">
-            <h2 className="text-page-title text-relay-text mb-3">
+        /* Empty state — aspirational waitlist hero */
+        <div className="relative rounded-2xl overflow-hidden mt-8 -mx-6 sm:mx-0">
+          <div
+            className="absolute inset-0 bg-cover bg-center"
+            style={{ backgroundImage: "url('https://images.unsplash.com/photo-1535498730771-e735b998cd64?w=1920&q=85')" }}
+          />
+          <div className="absolute inset-0 bg-black/65" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40" />
+          <div className="relative z-20 flex flex-col items-center justify-center py-52 px-6 text-center">
+            <h2 className="text-5xl md:text-6xl font-bold text-white mb-5 tracking-tight leading-tight">
               Properties coming soon
             </h2>
-            <p className="text-relay-secondary text-base max-w-md mb-8">
-              Furnished rentals in Fort Lauderdale and Miami. Join the waitlist to get early access to Keys.
+            <p className="text-white/75 text-lg md:text-xl max-w-lg mb-10 leading-relaxed">
+              Furnished rentals in Fort Lauderdale and Miami.<br className="hidden md:block" />
+              Join the waitlist for early access to Keys.
             </p>
             <form
-              className="flex items-center gap-2 w-full max-w-sm"
+              className="flex flex-col sm:flex-row items-center gap-3 w-full max-w-md"
               onSubmit={(e) => e.preventDefault()}
             >
               <input
                 type="email"
                 placeholder="your@email.com"
-                className="flex-1 bg-relay-elevated border border-relay-border rounded-lg px-4 py-3 text-sm text-relay-text placeholder-relay-muted focus:outline-none focus:border-relay-teal transition-colors"
+                className="w-full sm:flex-1 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg px-5 py-3.5 text-sm text-white placeholder-white/50 focus:outline-none focus:border-relay-teal transition-colors"
               />
-              <button type="submit" className="btn-primary whitespace-nowrap">
+              <button type="submit" className="btn-primary whitespace-nowrap px-8 py-3.5">
                 Join Waitlist
               </button>
             </form>

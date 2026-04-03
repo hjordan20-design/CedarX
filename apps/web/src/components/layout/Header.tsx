@@ -22,7 +22,7 @@ export function Header() {
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-50 bg-relay-bg/90 backdrop-blur-xl border-b border-relay-border">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-relay-bg/80 backdrop-blur-2xl border-b border-relay-border/60">
         <div className="max-w-content mx-auto px-6 h-16 flex items-center justify-between">
           {/* Logo */}
           <Link to="/" className="flex items-center shrink-0">
@@ -39,10 +39,10 @@ export function Header() {
                 to={to}
                 end={to === "/"}
                 className={({ isActive }) =>
-                  `text-sm font-medium transition-colors duration-150 ${
+                  `text-sm font-medium transition-colors duration-150 pb-1 ${
                     isActive
-                      ? "text-relay-text"
-                      : "text-relay-secondary hover:text-relay-text"
+                      ? "text-relay-text border-b-[3px] border-relay-teal"
+                      : "text-relay-secondary hover:text-relay-text border-b-[3px] border-transparent"
                   }`
                 }
               >

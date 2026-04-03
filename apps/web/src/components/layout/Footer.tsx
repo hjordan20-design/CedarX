@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 
 export function Footer() {
   return (
-    <footer className="border-t border-relay-border mt-auto">
+    <footer className="border-t border-relay-teal/30 mt-auto">
       <div className="max-w-content mx-auto px-6 py-10">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           <div>
