@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import {
   Key,
@@ -11,16 +11,23 @@ import {
   Lock,
   BadgeCheck,
   ArrowLeftRight,
+  MapPin,
+  Bed,
+  Calendar,
 } from "lucide-react";
 
 // ─── Mock listings for market preview ───────────────────────────────────────
 
 const PREVIEW_LISTINGS = [
-  { property: "Tiffany House", unit: "1BR", period: "Jul – Dec 2026", months: 6, mintPrice: 18000, askPrices: [19200, 19400, 19100] },
-  { property: "The Atlantic", unit: "2BR", period: "Jan – Jun 2027", months: 6, mintPrice: 24000, askPrices: [22800, 23100, 22600] },
-  { property: "Icon Brickell", unit: "1BR", period: "Oct 2026 – Mar 2027", months: 6, mintPrice: 21000, askPrices: [23100, 22900, 23400] },
-  { property: "Harbour House", unit: "Studio", period: "Jul – Sep 2026", months: 3, mintPrice: 9600, askPrices: [10400, 10600, 10300] },
+  { property: "Tiffany House", unit: "1BR", city: "Fort Lauderdale", period: "Jul – Dec 2026", months: 6, mintPrice: 18000, askPrices: [19200, 19400, 19100] },
+  { property: "The Atlantic", unit: "2BR", city: "Fort Lauderdale", period: "Jan – Jun 2027", months: 6, mintPrice: 24000, askPrices: [22800, 23100, 22600] },
+  { property: "Icon Brickell", unit: "1BR", city: "Miami", period: "Oct 2026 – Mar 2027", months: 6, mintPrice: 21000, askPrices: [23100, 22900, 23400] },
+  { property: "Harbour House", unit: "Studio", city: "Fort Lauderdale", period: "Jul – Sep 2026", months: 3, mintPrice: 9600, askPrices: [10400, 10600, 10300] },
 ];
+
+const CITIES = ["All Cities", "Fort Lauderdale", "Miami"];
+const UNIT_TYPES = ["All Types", "Studio", "1BR", "2BR"];
+const MOVE_IN_QUARTERS = ["Any Move-in", "Q3 2026", "Q4 2026", "Q1 2027", "Q2 2027"];
 
 function formatPrice(n: number): string {
   return `$${n.toLocaleString("en-US")}`;
@@ -55,6 +62,22 @@ export function HomePage() {
   const [counterBump, setCounterBump] = useState(false);
   const [priceIndex, setPriceIndex] = useState(0);
   const [priceFading, setPriceFading] = useState(false);
+  const [lmCity, setLmCity] = useState("All Cities");
+  const [lmUnit, setLmUnit] = useState("All Types");
+  const [lmMoveIn, setLmMoveIn] = useState("Any Move-in");
+
+  const filteredPreview = useMemo(() => {
+    return PREVIEW_LISTINGS.filter((l) => {
+      if (lmCity !== "All Cities" && l.city !== lmCity) return false;
+      if (lmUnit !== "All Types" && l.unit !== lmUnit) return false;
+      if (lmMoveIn !== "Any Move-in") {
+        // Simple match: check if the period string contains the year from the quarter
+        const year = lmMoveIn.slice(-4);
+        if (!l.period.includes(year)) return false;
+      }
+      return true;
+    });
+  }, [lmCity, lmUnit, lmMoveIn]);
 
   useEffect(() => {
     const id = setInterval(() => {
@@ -84,23 +107,23 @@ export function HomePage() {
       <section className="relative overflow-hidden">
         <div
           className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: "url('https://images.unsplash.com/photo-1582268611958-ebfd161ef9cf?w=1920&q=85')" }}
+          style={{ backgroundImage: "url('https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=1920&q=85')" }}
         />
-        <div className="absolute inset-0" style={{ background: "rgba(10,8,5,0.7)" }} />
+        <div className="absolute inset-0 hero-overlay" />
         <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A] via-transparent to-transparent" />
 
-        <div className="relative z-10 max-w-content mx-auto px-4 sm:px-6 pt-28 sm:pt-36 md:pt-44 pb-16 sm:pb-20 md:pb-24">
+        <div className="relative z-10 max-w-content mx-auto px-4 sm:px-6 pt-20 sm:pt-28 md:pt-32 pb-16 sm:pb-20 md:pb-24">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between md:gap-12">
             {/* Left — text */}
             <div className="flex-1">
-              <h1 className="font-semibold text-white tracking-tight">
-                <span className="block text-[30px] sm:text-[44px] md:text-[56px] leading-[1.1]">Stay or trade.</span>
-                <span className="block text-[30px] sm:text-[44px] md:text-[56px] leading-[1.1] text-relay-gold">Your Key.</span>
+              <h1 className="font-semibold text-white">
+                <span className="block text-[32px] sm:text-[48px] md:text-[64px] leading-[1.1] tracking-wide">Stay or trade.</span>
+                <span className="block text-[32px] sm:text-[48px] md:text-[64px] leading-[1.1] text-relay-gold italic">Your Key.</span>
               </h1>
               <p className="mt-5 sm:mt-6 text-base sm:text-lg md:text-xl text-white/70 max-w-xl leading-relaxed">
-                RelayX turns furnished rentals into tradeable Keys. Buy a stay with USDC — live in it, or sell it when the price is right.
+                <span className="hidden sm:inline">RelayX turns furnished rentals into tradeable Keys. </span>Buy a furnished stay with USDC. Live in it, or sell it when the price is right.
               </p>
-              <div className="mt-8 flex flex-col sm:flex-row gap-3 sm:gap-4">
+              <div className="mt-8 flex flex-col sm:flex-row gap-2 sm:gap-4">
                 <a
                   href="#waitlist"
                   className="btn-primary w-full sm:w-auto text-center px-8 py-3.5"
@@ -108,8 +131,8 @@ export function HomePage() {
                 >
                   Get Early Access
                 </a>
-                <a href="#how-it-works" className="btn-secondary w-full sm:w-auto text-center px-8 py-3.5">
-                  See how it works
+                <a href="#how-it-works" className="sm:btn-secondary w-full sm:w-auto text-center px-8 py-3 text-sm text-white/50 hover:text-white/80 transition-colors sm:border sm:border-relay-border sm:rounded-lg sm:text-relay-secondary">
+                  See how it works <span className="sm:hidden">&darr;</span>
                 </a>
               </div>
             </div>
@@ -175,6 +198,13 @@ export function HomePage() {
         </div>
       </section>
 
+      {/* Demo property link */}
+      <div className="max-w-content mx-auto px-4 sm:px-6 py-4">
+        <Link to="/properties/demo" className="text-sm text-relay-secondary hover:text-relay-gold transition-colors inline-flex items-center gap-1.5">
+          View demo property <ArrowRight size={14} />
+        </Link>
+      </div>
+
       {/* ══════════════════════════════════════════════════════════════════
           SECTION 2 — THE PROBLEM (left-aligned)
       ══════════════════════════════════════════════════════════════════ */}
@@ -187,7 +217,7 @@ export function HomePage() {
 
           <div className="mt-8 sm:mt-10 grid grid-cols-1 md:grid-cols-5 gap-3 sm:gap-5">
             {/* Renters — more prominent */}
-            <div className="md:col-span-3 bg-relay-elevated rounded-2xl p-6 sm:p-8" style={{ border: "1px solid rgba(201,169,110,0.06)" }}>
+            <div className="md:col-span-3 bg-relay-elevated rounded-2xl p-5 sm:p-8" style={{ border: "1px solid rgba(201,169,110,0.06)" }}>
               <h3 className="text-base sm:text-lg font-semibold text-relay-text mb-4">For renters</h3>
               <ul className="space-y-3">
                 {[
@@ -197,8 +227,8 @@ export function HomePage() {
                   "Eviction risk if the landlord sells",
                   "Nothing to show at the end",
                 ].map((item) => (
-                  <li key={item} className="flex items-start gap-3 text-[15px] text-relay-muted">
-                    <span className="text-relay-border mt-0.5 shrink-0 select-none">—</span>
+                  <li key={item} className="flex items-start gap-3 text-[14px] sm:text-[15px] text-relay-muted">
+                    <span className="mt-1 shrink-0 select-none text-[8px]" style={{ color: "rgba(201,169,110,0.4)" }}>●</span>
                     {item}
                   </li>
                 ))}
@@ -206,7 +236,7 @@ export function HomePage() {
             </div>
 
             {/* Landlords */}
-            <div className="md:col-span-2 bg-relay-elevated rounded-2xl p-6 sm:p-8" style={{ border: "1px solid rgba(201,169,110,0.06)" }}>
+            <div className="md:col-span-2 bg-relay-elevated rounded-2xl p-5 sm:p-8" style={{ border: "1px solid rgba(201,169,110,0.06)" }}>
               <h3 className="text-base sm:text-lg font-semibold text-relay-text mb-4">For landlords</h3>
               <ul className="space-y-3">
                 {[
@@ -215,8 +245,8 @@ export function HomePage() {
                   "Late payments, collections, legal costs",
                   "Revenue trickles in monthly",
                 ].map((item) => (
-                  <li key={item} className="flex items-start gap-3 text-[15px] text-relay-muted">
-                    <span className="text-relay-border mt-0.5 shrink-0 select-none">—</span>
+                  <li key={item} className="flex items-start gap-3 text-[14px] sm:text-[15px] text-relay-muted">
+                    <span className="mt-1 shrink-0 select-none text-[8px]" style={{ color: "rgba(201,169,110,0.4)" }}>●</span>
                     {item}
                   </li>
                 ))}
@@ -468,14 +498,34 @@ export function HomePage() {
             Keys are trading now.
           </h2>
 
-          {/* Animated counter */}
-          <div className="mt-4 mb-6 sm:mb-8">
+          {/* Filters + counter */}
+          <div className="mt-4 mb-6 sm:mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <span className="text-sm text-relay-secondary">
               <span className={`inline-block font-mono text-relay-gold font-semibold transition-all duration-400 ${counterBump ? "opacity-60 -translate-y-0.5" : ""}`}>
                 {tradeCount}
               </span>
               {" "}Keys traded in the last 24 hours
             </span>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1.5">
+                <MapPin size={12} className="text-relay-muted" />
+                <select value={lmCity} onChange={(e) => setLmCity(e.target.value)} className="bg-relay-elevated border border-relay-border rounded-lg px-2.5 py-1 text-xs text-relay-text focus:outline-none focus:border-relay-gold cursor-pointer">
+                  {CITIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Bed size={12} className="text-relay-muted" />
+                <select value={lmUnit} onChange={(e) => setLmUnit(e.target.value)} className="bg-relay-elevated border border-relay-border rounded-lg px-2.5 py-1 text-xs text-relay-text focus:outline-none focus:border-relay-gold cursor-pointer">
+                  {UNIT_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+                </select>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Calendar size={12} className="text-relay-muted" />
+                <select value={lmMoveIn} onChange={(e) => setLmMoveIn(e.target.value)} className="bg-relay-elevated border border-relay-border rounded-lg px-2.5 py-1 text-xs text-relay-text focus:outline-none focus:border-relay-gold cursor-pointer">
+                  {MOVE_IN_QUARTERS.map((q) => <option key={q} value={q}>{q}</option>)}
+                </select>
+              </div>
+            </div>
           </div>
 
           <div className="space-y-1.5">
@@ -488,7 +538,7 @@ export function HomePage() {
               <span className="text-right">Change</span>
             </div>
 
-            {PREVIEW_LISTINGS.map((listing) => {
+            {filteredPreview.map((listing) => {
               const currentAsk = listing.askPrices[priceIndex];
               const pct = changePct(listing.mintPrice, currentAsk);
               const isUp = pct >= 0;

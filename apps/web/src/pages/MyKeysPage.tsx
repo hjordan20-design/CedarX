@@ -142,17 +142,50 @@ export function MyKeysPage() {
 
   if (!address) {
     return (
-      <div className="max-w-content mx-auto px-4 sm:px-6 py-24 text-center">
-        <KeyIcon size={48} className="mx-auto text-relay-muted mb-4" />
-        <h2 className="text-section-header text-relay-text mb-2">
-          Connect your wallet
-        </h2>
-        <p className="text-relay-secondary mb-6">
-          Connect your wallet to view your Keys.
-        </p>
-        <button onClick={openConnectModal} className="btn-primary">
-          Connect Wallet
-        </button>
+      <div className="max-w-content mx-auto px-4 sm:px-6 py-12">
+        <div className="text-center mb-12">
+          <KeyIcon size={48} className="mx-auto text-relay-muted mb-4" />
+          <h2 className="text-section-header text-relay-text mb-2">
+            Connect your wallet
+          </h2>
+          <p className="text-relay-secondary mb-6">
+            Connect your wallet to view your Keys.
+          </p>
+          <button onClick={openConnectModal} className="btn-primary">
+            Connect Wallet
+          </button>
+        </div>
+
+        {/* Demo Preview */}
+        <div className="border-t border-relay-border pt-8">
+          <p className="text-xs text-relay-muted text-center mb-6">Preview — what your dashboard looks like with Keys</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[
+              { name: "Tiffany House", unit: "1BR", neighborhood: "Fort Lauderdale Beach", dates: "Jan 1 – Jun 30, 2027", price: "$18,000 USDC", mo: "~$3,000/mo", status: "Tradeable", statusClass: "badge-tradeable", photo: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=400&q=80", dim: false },
+              { name: "Icon Brickell", unit: "2BR", neighborhood: "Brickell, Miami", dates: "Oct 1, 2026 – Mar 31, 2027", price: "$23,100 USDC", mo: "~$3,850/mo", status: "Active", statusClass: "badge-active", photo: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&q=80", dim: false },
+              { name: "The Atlantic", unit: "1BR", neighborhood: "Fort Lauderdale", dates: "Jul 1 – Dec 31, 2026", price: "$16,900 USDC", mo: "~$2,817/mo", status: "Redeemed", statusClass: "badge-redeemed", photo: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=400&q=80", dim: false },
+              { name: "Harbour House", unit: "Studio", neighborhood: "Fort Lauderdale", dates: "Jan 1 – Jun 30, 2026", price: "$9,600 USDC", mo: "~$1,600/mo", status: "Expired", statusClass: "badge-expired", photo: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400&q=80", dim: true },
+            ].map((demo) => (
+              <div key={demo.name + demo.status} className={`card ${demo.dim ? "opacity-50" : ""}`}>
+                <div className="aspect-[16/10] overflow-hidden w-full">
+                  <img src={demo.photo} alt={demo.name} className="w-full h-full object-cover" />
+                </div>
+                <div className="p-4">
+                  <div className="flex items-start justify-between mb-1">
+                    <h3 className="text-sm font-semibold text-relay-text truncate">{demo.name}</h3>
+                    <span className={`badge ${demo.statusClass} shrink-0 ml-2`}>{demo.status}</span>
+                  </div>
+                  <p className="text-xs text-relay-secondary">{demo.neighborhood}</p>
+                  <p className="text-xs text-relay-secondary mt-1.5">{demo.dates}</p>
+                  <div className="mt-2">
+                    <span className="price text-sm text-relay-text">{demo.price}</span>
+                    <div className="font-mono text-[11px] text-relay-muted">{demo.mo}</div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }

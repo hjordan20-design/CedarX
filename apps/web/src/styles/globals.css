@@ -139,6 +139,18 @@
   50% { background: rgba(201,169,110,0.06); }
 }
 
+/* ── Hero overlay — lighter on mobile ──────────────────────────────────── */
+
+.hero-overlay {
+  background: rgba(10,8,5,0.6);
+}
+
+@media (min-width: 640px) {
+  .hero-overlay {
+    background: rgba(10,8,5,0.7);
+  }
+}
+
 /* ── Floating Key card animation ───────────────────────────────────────── */
 
 @keyframes hero-float {
@@ -149,7 +161,13 @@
 .hero-key-card {
   animation: hero-float 4s ease-in-out infinite;
   transform: rotate(2deg);
-  box-shadow: 0 8px 40px rgba(0,0,0,0.4), 0 0 20px rgba(201,169,110,0.12);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3), 0 0 10px rgba(201,169,110,0.08);
+}
+
+@media (min-width: 768px) {
+  .hero-key-card {
+    box-shadow: 0 8px 40px rgba(0,0,0,0.4), 0 0 20px rgba(201,169,110,0.12);
+  }
 }
 
 @media (max-width: 639px) {
@@ -184,6 +202,28 @@
 .counter-bump {
   transform: translateY(-2px);
   opacity: 0.6;
+}
+
+/* ── Marquee ticker ─────────────────────────────────────────────────────── */
+
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  animation: marquee 30s linear infinite;
+}
+
+/* ── Buy button pulse glow ─────────────────────────────────────────────── */
+
+@keyframes buy-glow {
+  0%, 100% { box-shadow: 0 0 0 rgba(201,169,110,0); }
+  50% { box-shadow: 0 0 12px rgba(201,169,110,0.25); }
+}
+
+.buy-pulse {
+  animation: buy-glow 3s ease-in-out infinite;
 }
 
 /* ── Scroll-triggered fade-in ────────────────────────────────────────────── */
