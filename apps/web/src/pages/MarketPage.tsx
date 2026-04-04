@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Loader2, ArrowUpDown, TrendingUp } from "lucide-react";
 import { useState } from "react";
 import { fetchListings } from "@/lib/api";
-import { formatUSDC, formatDateRange, timeAgo, truncateAddress } from "@/lib/formatters";
+import { formatUSDC, formatDateRange, timeAgo, truncateAddress, monthsBetween, formatPerMonth } from "@/lib/formatters";
 
 type SortKey = "price_asc" | "price_desc" | "newest";
 
@@ -106,6 +106,11 @@ export function MarketPage() {
                       <div className="price text-lg text-relay-gold">
                         {formatUSDC(listing.askingPriceUsdc)}
                       </div>
+                      {key?.startDate && key?.endDate && (
+                        <div className="font-mono text-[11px] text-relay-muted">
+                          {formatPerMonth(listing.askingPriceUsdc, monthsBetween(key.startDate, key.endDate))}
+                        </div>
+                      )}
                     </div>
 
                     {/* Buy button */}

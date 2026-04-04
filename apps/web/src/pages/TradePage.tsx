@@ -117,14 +117,14 @@ const MOCK_LISTINGS = [
 ];
 
 const MOCK_TRADES = [
-  { id: "t-1", property: "Icon Brickell", unit: "1BR", price: 21400, time: "2 min ago", buyer: "0xD2c5…a8F1" },
-  { id: "t-2", property: "Tiffany House", unit: "Studio", price: 9800, time: "8 min ago", buyer: "0x7aB1…e3C4" },
-  { id: "t-3", property: "The Atlantic", unit: "2BR", price: 25200, time: "23 min ago", buyer: "0xF1d9…b6A2" },
-  { id: "t-4", property: "Harbour House", unit: "1BR", price: 17200, time: "1 hr ago", buyer: "0x3eC8…d5F7" },
-  { id: "t-5", property: "Las Olas Grand", unit: "1BR", price: 10800, time: "1 hr ago", buyer: "0xA4b2…c9E1" },
-  { id: "t-6", property: "Icon Brickell", unit: "2BR", price: 28600, time: "2 hr ago", buyer: "0x8fD3…a1B4" },
-  { id: "t-7", property: "Tiffany House", unit: "1BR", price: 18400, time: "3 hr ago", buyer: "0xC7e6…f2D8" },
-  { id: "t-8", property: "The Atlantic", unit: "1BR", price: 17500, time: "5 hr ago", buyer: "0x5aF0…b8C3" },
+  { id: "t-1", property: "Icon Brickell", unit: "1BR", price: 21400, months: 6, time: "2 min ago", buyer: "0xD2c5…a8F1" },
+  { id: "t-2", property: "Tiffany House", unit: "Studio", price: 9800, months: 3, time: "8 min ago", buyer: "0x7aB1…e3C4" },
+  { id: "t-3", property: "The Atlantic", unit: "2BR", price: 25200, months: 6, time: "23 min ago", buyer: "0xF1d9…b6A2" },
+  { id: "t-4", property: "Harbour House", unit: "1BR", price: 17200, months: 6, time: "1 hr ago", buyer: "0x3eC8…d5F7" },
+  { id: "t-5", property: "Las Olas Grand", unit: "1BR", price: 10800, months: 3, time: "1 hr ago", buyer: "0xA4b2…c9E1" },
+  { id: "t-6", property: "Icon Brickell", unit: "2BR", price: 28600, months: 6, time: "2 hr ago", buyer: "0x8fD3…a1B4" },
+  { id: "t-7", property: "Tiffany House", unit: "1BR", price: 18400, months: 6, time: "3 hr ago", buyer: "0xC7e6…f2D8" },
+  { id: "t-8", property: "The Atlantic", unit: "1BR", price: 17500, months: 6, time: "5 hr ago", buyer: "0x5aF0…b8C3" },
 ];
 
 const STATS = {
@@ -138,6 +138,17 @@ const STATS = {
 
 function formatPrice(n: number): string {
   return `$${n.toLocaleString("en-US")}`;
+}
+
+function calcMonths(start: string, end: string): number {
+  const s = new Date(start);
+  const e = new Date(end);
+  const months = (e.getFullYear() - s.getFullYear()) * 12 + (e.getMonth() - s.getMonth());
+  return Math.max(months, 1);
+}
+
+function perMonth(price: number, months: number): string {
+  return `~$${Math.round(price / months).toLocaleString("en-US")}/mo`;
 }
 
 function changePct(mint: number, ask: number): number {
@@ -242,7 +253,10 @@ export function TradePage() {
                     </div>
                     <div className="text-xs text-relay-secondary font-mono">{listing.periodStart} – {listing.periodEnd}</div>
                     <div className="text-right font-mono text-sm text-relay-muted">{formatPrice(listing.mintPrice)}</div>
-                    <div className="text-right font-mono text-sm font-bold text-relay-text">{formatPrice(listing.askPrice)}</div>
+                    <div className="text-right">
+                      <div className="font-mono text-sm font-bold text-relay-text">{formatPrice(listing.askPrice)}</div>
+                      <div className="font-mono text-[11px] text-relay-muted">{perMonth(listing.askPrice, calcMonths(listing.periodStart, listing.periodEnd))}</div>
+                    </div>
                     <div className={`text-right font-mono text-sm font-bold ${isUp ? "text-emerald-400" : "text-red-400"}`}>{isUp ? "+" : ""}{pct.toFixed(1)}%</div>
                     <button className="btn-primary px-4 py-1.5 text-xs">Buy</button>
                   </div>
@@ -258,6 +272,7 @@ export function TradePage() {
                     </div>
                     <div className="text-right shrink-0">
                       <div className="font-mono text-sm font-bold text-relay-text">{formatPrice(listing.askPrice)}</div>
+                      <div className="font-mono text-[10px] text-relay-muted">{perMonth(listing.askPrice, calcMonths(listing.periodStart, listing.periodEnd))}</div>
                       <div className={`font-mono text-[11px] font-bold ${isUp ? "text-emerald-400" : "text-red-400"}`}>{isUp ? "+" : ""}{pct.toFixed(1)}%</div>
                     </div>
                     <button className="btn-primary px-3 py-1.5 text-[11px] shrink-0">Buy</button>
@@ -317,8 +332,9 @@ export function TradePage() {
                         {trade.buyer} · {trade.time}
                       </div>
                     </div>
-                    <div className="font-mono text-sm font-bold text-emerald-400 shrink-0 ml-3">
-                      {formatPrice(trade.price)}
+                    <div className="text-right shrink-0 ml-3">
+                      <div className="font-mono text-sm font-bold text-emerald-400">{formatPrice(trade.price)}</div>
+                      <div className="font-mono text-[10px] text-relay-muted">{perMonth(trade.price, trade.months)}</div>
                     </div>
                   </div>
                 ))}

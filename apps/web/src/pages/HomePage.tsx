@@ -13,14 +13,18 @@ import {
 // ─── Mock listings for market preview ───────────────────────────────────────
 
 const PREVIEW_LISTINGS = [
-  { property: "Tiffany House", unit: "1BR", period: "Jul – Dec 2026", mintPrice: 18000, askPrice: 19200 },
-  { property: "The Atlantic", unit: "2BR", period: "Jan – Jun 2027", mintPrice: 24000, askPrice: 22800 },
-  { property: "Icon Brickell", unit: "1BR", period: "Oct 2026 – Mar 2027", mintPrice: 21000, askPrice: 23100 },
-  { property: "Harbour House", unit: "Studio", period: "Jul – Sep 2026", mintPrice: 9600, askPrice: 10400 },
+  { property: "Tiffany House", unit: "1BR", period: "Jul – Dec 2026", months: 6, mintPrice: 18000, askPrice: 19200 },
+  { property: "The Atlantic", unit: "2BR", period: "Jan – Jun 2027", months: 6, mintPrice: 24000, askPrice: 22800 },
+  { property: "Icon Brickell", unit: "1BR", period: "Oct 2026 – Mar 2027", months: 6, mintPrice: 21000, askPrice: 23100 },
+  { property: "Harbour House", unit: "Studio", period: "Jul – Sep 2026", months: 3, mintPrice: 9600, askPrice: 10400 },
 ];
 
 function formatPrice(n: number): string {
   return `$${n.toLocaleString("en-US")}`;
+}
+
+function perMonth(price: number, months: number): string {
+  return `~$${Math.round(price / months).toLocaleString("en-US")}/mo`;
 }
 
 function changePct(mint: number, ask: number): number {
@@ -322,7 +326,10 @@ export function HomePage() {
                     </div>
                     <div className="text-xs text-relay-secondary font-mono">{listing.period}</div>
                     <div className="text-right font-mono text-sm text-relay-muted">{formatPrice(listing.mintPrice)}</div>
-                    <div className="text-right font-mono text-sm font-semibold text-relay-text">{formatPrice(listing.askPrice)}</div>
+                    <div className="text-right">
+                      <div className="font-mono text-sm font-semibold text-relay-text">{formatPrice(listing.askPrice)}</div>
+                      <div className="font-mono text-[11px] text-relay-muted">{perMonth(listing.askPrice, listing.months)}</div>
+                    </div>
                     <div className={`text-right font-mono text-sm font-semibold ${isUp ? "text-emerald-400" : "text-red-400"}`}>
                       {isUp ? "+" : ""}{pct.toFixed(1)}%
                     </div>
@@ -338,6 +345,7 @@ export function HomePage() {
                     </div>
                     <div className="text-right shrink-0 ml-4">
                       <div className="font-mono text-sm font-semibold text-relay-text">{formatPrice(listing.askPrice)}</div>
+                      <div className="font-mono text-[10px] text-relay-muted">{perMonth(listing.askPrice, listing.months)}</div>
                       <div className={`font-mono text-[11px] font-semibold ${isUp ? "text-emerald-400" : "text-red-400"}`}>
                         {isUp ? "+" : ""}{pct.toFixed(1)}%
                       </div>

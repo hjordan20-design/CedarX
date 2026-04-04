@@ -19,7 +19,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { fetchProperty } from "@/lib/api";
-import { formatUSDC, formatDateRange } from "@/lib/formatters";
+import { formatUSDC, formatDateRange, monthsBetween, formatPerMonth } from "@/lib/formatters";
 import type { Key } from "@/lib/types";
 
 const AMENITY_ICONS: Record<string, React.ReactNode> = {
@@ -94,9 +94,14 @@ function KeyCard({
       <div className="text-base text-relay-text font-medium mb-3">
         {formatDateRange(keyData.startDate, keyData.endDate)}
       </div>
-      <div className="price text-2xl text-relay-text mb-4">
+      <div className="price text-2xl text-relay-text mb-1">
         {formatUSDC(keyData.priceUsdc)}
       </div>
+      {keyData.startDate && keyData.endDate && (
+        <div className="font-mono text-xs text-relay-muted mb-4">
+          {formatPerMonth(Number(keyData.priceUsdc), monthsBetween(keyData.startDate, keyData.endDate))}
+        </div>
+      )}
       <button
         onClick={() => onBuy(keyData)}
         className="btn-primary w-full"
@@ -143,9 +148,16 @@ function PurchaseModal({
           </div>
           <div className="border-t border-relay-border pt-4 flex justify-between">
             <span className="text-relay-secondary font-medium">Total</span>
-            <span className="price text-xl text-relay-gold">
-              {formatUSDC(keyData.priceUsdc)}
-            </span>
+            <div className="text-right">
+              <span className="price text-xl text-relay-gold">
+                {formatUSDC(keyData.priceUsdc)}
+              </span>
+              {keyData.startDate && keyData.endDate && (
+                <div className="font-mono text-xs text-relay-muted mt-0.5">
+                  {formatPerMonth(Number(keyData.priceUsdc), monthsBetween(keyData.startDate, keyData.endDate))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 

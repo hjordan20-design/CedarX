@@ -11,7 +11,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { fetchKeys } from "@/lib/api";
-import { formatUSDC, formatDateRange, truncateAddress } from "@/lib/formatters";
+import { formatUSDC, formatDateRange, truncateAddress, monthsBetween, formatPerMonth } from "@/lib/formatters";
 import type { Key, KeyStatus } from "@/lib/types";
 
 const STATUS_BADGES: Record<KeyStatus, { class: string; label: string }> = {
@@ -72,9 +72,16 @@ function KeyDetailModal({
           </div>
           <div className="flex justify-between text-sm">
             <span className="text-relay-secondary">Purchase Price</span>
-            <span className="price text-relay-text">
-              {formatUSDC(keyData.priceUsdc)}
-            </span>
+            <div className="text-right">
+              <span className="price text-relay-text">
+                {formatUSDC(keyData.priceUsdc)}
+              </span>
+              {keyData.startDate && keyData.endDate && (
+                <div className="font-mono text-[11px] text-relay-muted mt-0.5">
+                  {formatPerMonth(Number(keyData.priceUsdc), monthsBetween(keyData.startDate, keyData.endDate))}
+                </div>
+              )}
+            </div>
           </div>
           {keyData.tokenId !== null && (
             <div className="flex justify-between text-sm">
@@ -205,9 +212,16 @@ export function MyKeysPage() {
                     {formatDateRange(key.startDate, key.endDate)}
                   </p>
                   <div className="flex items-center justify-between mt-3">
-                    <span className="price text-relay-text">
-                      {formatUSDC(key.priceUsdc)}
-                    </span>
+                    <div>
+                      <span className="price text-relay-text">
+                        {formatUSDC(key.priceUsdc)}
+                      </span>
+                      {key.startDate && key.endDate && (
+                        <div className="font-mono text-[11px] text-relay-muted mt-0.5">
+                          {formatPerMonth(Number(key.priceUsdc), monthsBetween(key.startDate, key.endDate))}
+                        </div>
+                      )}
+                    </div>
                     <ArrowRight size={16} className="text-relay-muted" />
                   </div>
                 </div>

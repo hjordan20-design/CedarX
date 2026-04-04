@@ -78,6 +78,23 @@ export function timeAgo(iso: string | undefined): string {
   return `${days}d ago`;
 }
 
+// ─── Per-month pricing ──────────────────────────────────────────────────────
+
+/** Calculate months between two dates (minimum 1) */
+export function monthsBetween(start: string | Date, end: string | Date): number {
+  const s = new Date(start);
+  const e = new Date(end);
+  const months = (e.getFullYear() - s.getFullYear()) * 12 + (e.getMonth() - s.getMonth());
+  return Math.max(months, 1);
+}
+
+/** Format per-month price. e.g. 18000, 6 months → "~$3,000/mo" */
+export function formatPerMonth(totalPrice: number, months: number): string {
+  if (!totalPrice || !months) return "";
+  const perMonth = Math.round(totalPrice / months);
+  return `~$${perMonth.toLocaleString("en-US")}/mo`;
+}
+
 // ─── Numbers ─────────────────────────────────────────────────────────────────
 
 /** Compact number formatting. e.g. 1250 → "1.25K" */
