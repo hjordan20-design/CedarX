@@ -1,22 +1,25 @@
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
   Key,
   Home,
   TrendingUp,
-  DollarSign,
-  Shield,
-  Zap,
   ArrowRight,
   Check,
+  Shield,
+  FileText,
+  Lock,
+  BadgeCheck,
+  ArrowLeftRight,
 } from "lucide-react";
 
 // ─── Mock listings for market preview ───────────────────────────────────────
 
 const PREVIEW_LISTINGS = [
-  { property: "Tiffany House", unit: "1BR", period: "Jul – Dec 2026", months: 6, mintPrice: 18000, askPrice: 19200 },
-  { property: "The Atlantic", unit: "2BR", period: "Jan – Jun 2027", months: 6, mintPrice: 24000, askPrice: 22800 },
-  { property: "Icon Brickell", unit: "1BR", period: "Oct 2026 – Mar 2027", months: 6, mintPrice: 21000, askPrice: 23100 },
-  { property: "Harbour House", unit: "Studio", period: "Jul – Sep 2026", months: 3, mintPrice: 9600, askPrice: 10400 },
+  { property: "Tiffany House", unit: "1BR", period: "Jul – Dec 2026", months: 6, mintPrice: 18000, askPrices: [19200, 19400, 19100] },
+  { property: "The Atlantic", unit: "2BR", period: "Jan – Jun 2027", months: 6, mintPrice: 24000, askPrices: [22800, 23100, 22600] },
+  { property: "Icon Brickell", unit: "1BR", period: "Oct 2026 – Mar 2027", months: 6, mintPrice: 21000, askPrices: [23100, 22900, 23400] },
+  { property: "Harbour House", unit: "Studio", period: "Jul – Sep 2026", months: 3, mintPrice: 9600, askPrices: [10400, 10600, 10300] },
 ];
 
 function formatPrice(n: number): string {
@@ -33,9 +36,9 @@ function changePct(mint: number, ask: number): number {
 
 // ─── Reusable components ────────────────────────────────────────────────────
 
-function SectionLabel({ children }: { children: string }) {
+function SectionLabel({ children, center }: { children: string; center?: boolean }) {
   return (
-    <span className="text-[11px] sm:text-xs font-semibold uppercase tracking-[0.2em] text-relay-gold">
+    <span className={`text-[11px] sm:text-xs font-semibold uppercase tracking-[0.2em] text-relay-gold ${center ? "block text-center" : ""}`}>
       {children}
     </span>
   );
@@ -48,6 +51,31 @@ function GoldDivider() {
 // ─── Page ───────────────────────────────────────────────────────────────────
 
 export function HomePage() {
+  const [tradeCount, setTradeCount] = useState(47);
+  const [counterBump, setCounterBump] = useState(false);
+  const [priceIndex, setPriceIndex] = useState(0);
+  const [priceFading, setPriceFading] = useState(false);
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      setCounterBump(true);
+      setTradeCount((c) => c + 1);
+      setTimeout(() => setCounterBump(false), 400);
+    }, 4500);
+    return () => clearInterval(id);
+  }, []);
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      setPriceFading(true);
+      setTimeout(() => {
+        setPriceIndex((i) => (i + 1) % 3);
+        setPriceFading(false);
+      }, 350);
+    }, 9000);
+    return () => clearInterval(id);
+  }, []);
+
   return (
     <div>
       {/* ══════════════════════════════════════════════════════════════════
@@ -56,36 +84,99 @@ export function HomePage() {
       <section className="relative overflow-hidden">
         <div
           className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: "url('https://images.unsplash.com/photo-1535498730771-e735b998cd64?w=1920&q=85')" }}
+          style={{ backgroundImage: "url('https://images.unsplash.com/photo-1582268611958-ebfd161ef9cf?w=1920&q=85')" }}
         />
-        <div className="absolute inset-0" style={{ background: "rgba(15,12,8,0.75)" }} />
+        <div className="absolute inset-0" style={{ background: "rgba(10,8,5,0.7)" }} />
         <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A] via-transparent to-transparent" />
 
         <div className="relative z-10 max-w-content mx-auto px-4 sm:px-6 pt-28 sm:pt-36 md:pt-44 pb-16 sm:pb-20 md:pb-24">
-          <h1 className="font-semibold text-white tracking-tight max-w-3xl">
-            <span className="block text-[32px] sm:text-[44px] md:text-[56px] leading-[1.1]">Own the time.</span>
-            <span className="block text-[32px] sm:text-[44px] md:text-[56px] leading-[1.1] text-relay-gold">Trade the rest.</span>
-          </h1>
-          <p className="mt-5 sm:mt-6 text-base sm:text-lg md:text-xl text-white/70 max-w-xl leading-relaxed">
-            RelayX is a marketplace where landlords pre-sell furnished rental periods as tradeable digital Keys. Buyers pay in USDC. Move in or flip it.
-          </p>
-          <div className="mt-8 flex flex-col sm:flex-row gap-3 sm:gap-4">
-            <a
-              href="#waitlist"
-              className="btn-primary w-full sm:w-auto text-center px-8 py-3.5"
-              style={{ boxShadow: "0 0 24px rgba(201,169,110,0.12)" }}
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between md:gap-12">
+            {/* Left — text */}
+            <div className="flex-1">
+              <h1 className="font-semibold text-white tracking-tight">
+                <span className="block text-[30px] sm:text-[44px] md:text-[56px] leading-[1.1]">Stay or trade.</span>
+                <span className="block text-[30px] sm:text-[44px] md:text-[56px] leading-[1.1] text-relay-gold">Your Key.</span>
+              </h1>
+              <p className="mt-5 sm:mt-6 text-base sm:text-lg md:text-xl text-white/70 max-w-xl leading-relaxed">
+                RelayX turns furnished rentals into tradeable Keys. Buy a stay with USDC — live in it, or sell it when the price is right.
+              </p>
+              <div className="mt-8 flex flex-col sm:flex-row gap-3 sm:gap-4">
+                <a
+                  href="#waitlist"
+                  className="btn-primary w-full sm:w-auto text-center px-8 py-3.5"
+                  style={{ boxShadow: "0 0 24px rgba(201,169,110,0.12)" }}
+                >
+                  Get Early Access
+                </a>
+                <a href="#how-it-works" className="btn-secondary w-full sm:w-auto text-center px-8 py-3.5">
+                  See how it works
+                </a>
+              </div>
+            </div>
+
+            {/* Right — floating Key card (desktop) */}
+            <div className="hidden md:block w-[280px] lg:w-[300px] shrink-0">
+              <div
+                className="hero-key-card rounded-2xl overflow-hidden"
+                style={{ background: "#141414", border: "1px solid rgba(201,169,110,0.25)" }}
+              >
+                <img
+                  src="https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=400&q=80"
+                  alt="Furnished living room"
+                  className="w-full h-32 object-cover"
+                />
+                <div className="p-4">
+                  <div className="text-sm font-semibold text-relay-text">Tiffany House</div>
+                  <div className="text-xs text-relay-secondary">Fort Lauderdale, FL</div>
+                  <div className="text-xs text-relay-muted font-mono mt-2">Jan 1 – Jun 30, 2027</div>
+                  <div className="font-mono text-lg font-semibold text-relay-text mt-1">$18,000 USDC</div>
+                  <div className="font-mono text-xs text-relay-muted">~$3,000/mo</div>
+                  <div className="mt-2">
+                    <span
+                      className="inline-flex text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full"
+                      style={{ background: "rgba(201,169,110,0.15)", color: "#C9A96E" }}
+                    >
+                      Tradeable
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Mobile floating Key card */}
+          <div className="mt-8 flex md:hidden justify-center">
+            <div
+              className="hero-key-card rounded-2xl overflow-hidden w-full max-w-[280px]"
+              style={{ background: "#141414", border: "1px solid rgba(201,169,110,0.25)" }}
             >
-              Get Early Access
-            </a>
-            <a href="#how-it-works" className="btn-secondary w-full sm:w-auto text-center px-8 py-3.5">
-              See how it works
-            </a>
+              <img
+                src="https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=400&q=80"
+                alt="Furnished living room"
+                className="w-full h-28 object-cover"
+              />
+              <div className="p-4">
+                <div className="text-sm font-semibold text-relay-text">Tiffany House</div>
+                <div className="text-xs text-relay-secondary">Fort Lauderdale, FL</div>
+                <div className="text-xs text-relay-muted font-mono mt-2">Jan 1 – Jun 30, 2027</div>
+                <div className="font-mono text-lg font-semibold text-relay-text mt-1">$18,000 USDC</div>
+                <div className="font-mono text-xs text-relay-muted">~$3,000/mo</div>
+                <div className="mt-2">
+                  <span
+                    className="inline-flex text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full"
+                    style={{ background: "rgba(201,169,110,0.15)", color: "#C9A96E" }}
+                  >
+                    Tradeable
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
       {/* ══════════════════════════════════════════════════════════════════
-          SECTION 2 — THE PROBLEM
+          SECTION 2 — THE PROBLEM (left-aligned)
       ══════════════════════════════════════════════════════════════════ */}
       <section className="py-10 sm:py-14 md:py-16">
         <div className="max-w-content mx-auto px-4 sm:px-6">
@@ -94,9 +185,9 @@ export function HomePage() {
             Renting is broken for everyone.
           </h2>
 
-          <div className="mt-8 sm:mt-10 grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-5">
-            {/* Renters */}
-            <div className="bg-relay-elevated rounded-2xl p-6 sm:p-8" style={{ border: "1px solid rgba(239,68,68,0.08)" }}>
+          <div className="mt-8 sm:mt-10 grid grid-cols-1 md:grid-cols-5 gap-3 sm:gap-5">
+            {/* Renters — more prominent */}
+            <div className="md:col-span-3 bg-relay-elevated rounded-2xl p-6 sm:p-8" style={{ border: "1px solid rgba(201,169,110,0.06)" }}>
               <h3 className="text-base sm:text-lg font-semibold text-relay-text mb-4">For renters</h3>
               <ul className="space-y-3">
                 {[
@@ -115,7 +206,7 @@ export function HomePage() {
             </div>
 
             {/* Landlords */}
-            <div className="bg-relay-elevated rounded-2xl p-6 sm:p-8" style={{ border: "1px solid rgba(239,68,68,0.08)" }}>
+            <div className="md:col-span-2 bg-relay-elevated rounded-2xl p-6 sm:p-8" style={{ border: "1px solid rgba(201,169,110,0.06)" }}>
               <h3 className="text-base sm:text-lg font-semibold text-relay-text mb-4">For landlords</h3>
               <ul className="space-y-3">
                 {[
@@ -138,39 +229,56 @@ export function HomePage() {
       <GoldDivider />
 
       {/* ══════════════════════════════════════════════════════════════════
-          SECTION 3 — THE SOLUTION
+          SECTION 3 — THE SOLUTION (center-aligned)
       ══════════════════════════════════════════════════════════════════ */}
       <section className="py-10 sm:py-14 md:py-16">
-        <div className="max-w-content mx-auto px-4 sm:px-6">
-          <SectionLabel>THE SOLUTION</SectionLabel>
-          <h2 className="mt-3 text-[26px] sm:text-[36px] md:text-[44px] font-semibold text-relay-text leading-tight tracking-tight max-w-2xl">
+        <div className="max-w-content mx-auto px-4 sm:px-6 text-center">
+          <SectionLabel center>THE SOLUTION</SectionLabel>
+          <h2 className="mt-3 text-[26px] sm:text-[36px] md:text-[44px] font-semibold text-relay-text leading-tight tracking-tight max-w-2xl mx-auto">
             What if rent was a one-time purchase you could flip?
           </h2>
-          <p className="mt-4 text-base sm:text-lg md:text-xl text-relay-secondary max-w-xl leading-relaxed">
+          <p className="mt-4 text-base sm:text-lg md:text-xl text-relay-secondary max-w-xl mx-auto leading-relaxed">
             RelayX turns future occupancy into tradeable Keys. Landlords get paid upfront. Buyers get a real asset they can live in or sell.
           </p>
 
-          <div className="mt-10 sm:mt-12 grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-5">
+          {/* Featured card */}
+          <div
+            className="mt-10 sm:mt-12 bg-relay-elevated rounded-2xl p-6 sm:p-8 md:p-10 text-left"
+            style={{ border: "1px solid rgba(201,169,110,0.15)" }}
+          >
+            <div className="flex flex-col sm:flex-row sm:items-start gap-5">
+              <div
+                className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl flex items-center justify-center shrink-0"
+                style={{ background: "rgba(201,169,110,0.1)" }}
+              >
+                <Key className="w-6 h-6 sm:w-7 sm:h-7 text-relay-gold" />
+              </div>
+              <div>
+                <h3 className="text-lg sm:text-xl font-semibold text-relay-text mb-2">Buy a Key</h3>
+                <p className="text-[15px] sm:text-base text-relay-secondary leading-relaxed">
+                  Pick a property, pick your dates, pay in USDC. Your Key is your right to live there.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Two smaller cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-5 mt-3 sm:mt-5">
             {[
               {
-                icon: <Key className="w-6 h-6 sm:w-7 sm:h-7" />,
-                title: "Buy a Key",
-                desc: "Pick a property, pick your dates, pay in USDC. Your Key is your right to live there.",
-              },
-              {
-                icon: <Home className="w-6 h-6 sm:w-7 sm:h-7" />,
+                icon: <Home className="w-5 h-5 sm:w-6 sm:h-6" />,
                 title: "Live in it",
                 desc: "Redeem your Key, pass a background check, move in. No lease, no monthly payments.",
               },
               {
-                icon: <TrendingUp className="w-6 h-6 sm:w-7 sm:h-7" />,
-                title: "Or flip it",
+                icon: <ArrowLeftRight className="w-5 h-5 sm:w-6 sm:h-6" />,
+                title: "Or trade it",
                 desc: "Don't want to move in? List your Key on the secondary market. If demand rises, so does your Key's value.",
               },
             ].map((card) => (
               <div
                 key={card.title}
-                className="bg-relay-elevated rounded-2xl p-6 sm:p-8"
+                className="bg-relay-elevated rounded-2xl p-6 sm:p-8 text-left"
                 style={{ border: "1px solid rgba(201,169,110,0.1)" }}
               >
                 <div
@@ -190,7 +298,7 @@ export function HomePage() {
       <GoldDivider />
 
       {/* ══════════════════════════════════════════════════════════════════
-          SECTION 4 — HOW IT WORKS
+          SECTION 4 — HOW IT WORKS (left-aligned)
       ══════════════════════════════════════════════════════════════════ */}
       <section id="how-it-works" className="py-10 sm:py-14 md:py-16 scroll-mt-20">
         <div className="max-w-content mx-auto px-4 sm:px-6">
@@ -233,20 +341,22 @@ export function HomePage() {
       <GoldDivider />
 
       {/* ══════════════════════════════════════════════════════════════════
-          SECTION 5 — FOR LANDLORDS
+          SECTION 5 — FOR LANDLORDS (center-aligned)
       ══════════════════════════════════════════════════════════════════ */}
       <section className="py-10 sm:py-14 md:py-16">
         <div className="max-w-content mx-auto px-4 sm:px-6">
-          <SectionLabel>FOR LANDLORDS</SectionLabel>
-          <h2 className="mt-3 text-[26px] sm:text-[36px] md:text-[44px] font-semibold text-relay-text leading-tight tracking-tight">
-            Get years of rent. Today.
-          </h2>
-          <p className="mt-4 text-base sm:text-lg md:text-xl text-relay-secondary max-w-lg leading-relaxed">
-            Your property manager handles everything. You receive USDC the moment Keys sell.
-          </p>
+          <div className="text-center">
+            <SectionLabel center>FOR LANDLORDS</SectionLabel>
+            <h2 className="mt-3 text-[26px] sm:text-[36px] md:text-[44px] font-semibold text-relay-text leading-tight tracking-tight">
+              Get years of rent. Today.
+            </h2>
+            <p className="mt-4 text-base sm:text-lg md:text-xl text-relay-secondary max-w-lg mx-auto leading-relaxed">
+              Your property manager handles everything. You receive USDC the moment Keys sell.
+            </p>
+          </div>
 
           <div className="mt-8 sm:mt-10 grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-5">
-            {/* Traditional — calm gray, no icons */}
+            {/* Traditional */}
             <div className="bg-relay-elevated rounded-2xl p-6 sm:p-8" style={{ border: "1px solid rgba(201,169,110,0.06)" }}>
               <h3 className="text-xs font-semibold text-relay-muted uppercase tracking-wider mb-5">Traditional Rental</h3>
               <ul className="space-y-3">
@@ -257,7 +367,7 @@ export function HomePage() {
               </ul>
             </div>
 
-            {/* RelayX — gold accents, checkmarks */}
+            {/* RelayX */}
             <div className="bg-relay-elevated rounded-2xl p-6 sm:p-8 relative overflow-hidden" style={{ border: "1px solid rgba(201,169,110,0.2)" }}>
               <div className="absolute top-0 right-0 bg-relay-gold text-black text-[11px] font-semibold px-3 py-1 rounded-bl-lg">
                 RelayX
@@ -279,7 +389,7 @@ export function HomePage() {
             </div>
           </div>
 
-          <div className="mt-8">
+          <div className="mt-8 text-center">
             <Link to="/landlords" className="btn-primary inline-flex px-8 py-3.5">
               List Your Property <ArrowRight size={16} />
             </Link>
@@ -287,8 +397,69 @@ export function HomePage() {
         </div>
       </section>
 
+      <GoldDivider />
+
       {/* ══════════════════════════════════════════════════════════════════
-          SECTION 6 — SECONDARY MARKET PREVIEW
+          SECTION 6 — YOUR PROTECTION (Trust & Safety)
+      ══════════════════════════════════════════════════════════════════ */}
+      <section className="py-10 sm:py-14 md:py-16">
+        <div className="max-w-content mx-auto px-4 sm:px-6">
+          <SectionLabel>YOUR PROTECTION</SectionLabel>
+          <h2 className="mt-3 text-[26px] sm:text-[36px] md:text-[44px] font-semibold text-relay-text leading-tight tracking-tight">
+            Built on trust. Enforced by code.
+          </h2>
+          <p className="mt-4 text-base sm:text-lg md:text-xl text-relay-secondary max-w-xl leading-relaxed">
+            Every Key is backed by real legal protections and professional property management.
+          </p>
+
+          <div className="mt-8 sm:mt-10 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-5">
+            {[
+              {
+                icon: <Shield className="w-5 h-5 sm:w-6 sm:h-6" />,
+                title: "Professional management",
+                desc: "Every property is managed by a licensed, vetted property management company. Real reviews, real track record, real reputation.",
+              },
+              {
+                icon: <FileText className="w-5 h-5 sm:w-6 sm:h-6" />,
+                title: "Legal occupancy rights",
+                desc: "A memorandum of occupancy is recorded against the property title when Keys are minted. Your right to stay is legally enforceable — not just a token.",
+              },
+              {
+                icon: <Lock className="w-5 h-5 sm:w-6 sm:h-6" />,
+                title: "Damage deposit in escrow",
+                desc: "Your 10% deposit is held in smart contract escrow. No damages after your stay? Auto-released to your wallet. No disputes, no delays.",
+              },
+              {
+                icon: <BadgeCheck className="w-5 h-5 sm:w-6 sm:h-6" />,
+                title: "Verified properties",
+                desc: "PM inspects every property before listing. HOA compliance confirmed. Furnished to standard. Photos verified — what you see is what you get.",
+              },
+            ].map((card) => (
+              <div
+                key={card.title}
+                className="bg-relay-elevated rounded-2xl p-6 sm:p-8"
+                style={{ border: "1px solid rgba(201,169,110,0.08)" }}
+              >
+                <div
+                  className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center mb-4 sm:mb-5"
+                  style={{ background: "rgba(201,169,110,0.1)" }}
+                >
+                  <span className="text-relay-gold">{card.icon}</span>
+                </div>
+                <h3 className="text-base sm:text-lg font-semibold text-relay-text mb-2">{card.title}</h3>
+                <p className="text-[15px] text-relay-secondary leading-relaxed">{card.desc}</p>
+              </div>
+            ))}
+          </div>
+
+          <p className="mt-6 text-xs text-relay-muted text-center sm:text-left">
+            At launch, every listing displays the managing PM&apos;s company profile with links to their Google and Yelp reviews.
+          </p>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════════════════════════════
+          SECTION 7 — SECONDARY MARKET PREVIEW (left-aligned)
       ══════════════════════════════════════════════════════════════════ */}
       <section className="py-10 sm:py-14 md:py-16">
         <div className="max-w-content mx-auto px-4 sm:px-6">
@@ -297,7 +468,17 @@ export function HomePage() {
             Keys are trading now.
           </h2>
 
-          <div className="mt-8 sm:mt-10 space-y-1.5">
+          {/* Animated counter */}
+          <div className="mt-4 mb-6 sm:mb-8">
+            <span className="text-sm text-relay-secondary">
+              <span className={`inline-block font-mono text-relay-gold font-semibold transition-all duration-400 ${counterBump ? "opacity-60 -translate-y-0.5" : ""}`}>
+                {tradeCount}
+              </span>
+              {" "}Keys traded in the last 24 hours
+            </span>
+          </div>
+
+          <div className="space-y-1.5">
             {/* Table header — desktop only */}
             <div className="hidden sm:grid grid-cols-[2fr_1.5fr_1fr_1fr_1fr] gap-4 px-5 py-2 text-[11px] text-relay-muted uppercase tracking-wider">
               <span>Property</span>
@@ -308,7 +489,8 @@ export function HomePage() {
             </div>
 
             {PREVIEW_LISTINGS.map((listing) => {
-              const pct = changePct(listing.mintPrice, listing.askPrice);
+              const currentAsk = listing.askPrices[priceIndex];
+              const pct = changePct(listing.mintPrice, currentAsk);
               const isUp = pct >= 0;
               return (
                 <div
@@ -326,11 +508,11 @@ export function HomePage() {
                     </div>
                     <div className="text-xs text-relay-secondary font-mono">{listing.period}</div>
                     <div className="text-right font-mono text-sm text-relay-muted">{formatPrice(listing.mintPrice)}</div>
-                    <div className="text-right">
-                      <div className="font-mono text-sm font-semibold text-relay-text">{formatPrice(listing.askPrice)}</div>
-                      <div className="font-mono text-[11px] text-relay-muted">{perMonth(listing.askPrice, listing.months)}</div>
+                    <div className={`text-right price-tick ${priceFading ? "price-tick-fade" : ""}`}>
+                      <div className="font-mono text-sm font-semibold text-relay-text">{formatPrice(currentAsk)}</div>
+                      <div className="font-mono text-[11px] text-relay-muted">{perMonth(currentAsk, listing.months)}</div>
                     </div>
-                    <div className={`text-right font-mono text-sm font-semibold ${isUp ? "text-emerald-400" : "text-red-400"}`}>
+                    <div className={`text-right font-mono text-sm font-semibold price-tick ${priceFading ? "price-tick-fade" : ""} ${isUp ? "text-emerald-400" : "text-red-400"}`}>
                       {isUp ? "+" : ""}{pct.toFixed(1)}%
                     </div>
                   </div>
@@ -343,9 +525,9 @@ export function HomePage() {
                       </div>
                       <div className="text-[11px] text-relay-muted font-mono mt-0.5">{listing.period}</div>
                     </div>
-                    <div className="text-right shrink-0 ml-4">
-                      <div className="font-mono text-sm font-semibold text-relay-text">{formatPrice(listing.askPrice)}</div>
-                      <div className="font-mono text-[10px] text-relay-muted">{perMonth(listing.askPrice, listing.months)}</div>
+                    <div className={`text-right shrink-0 ml-4 price-tick ${priceFading ? "price-tick-fade" : ""}`}>
+                      <div className="font-mono text-sm font-semibold text-relay-text">{formatPrice(currentAsk)}</div>
+                      <div className="font-mono text-[10px] text-relay-muted">{perMonth(currentAsk, listing.months)}</div>
                       <div className={`font-mono text-[11px] font-semibold ${isUp ? "text-emerald-400" : "text-red-400"}`}>
                         {isUp ? "+" : ""}{pct.toFixed(1)}%
                       </div>
@@ -365,19 +547,18 @@ export function HomePage() {
       </section>
 
       {/* ══════════════════════════════════════════════════════════════════
-          SECTION 7 — WAITLIST CTA
+          SECTION 8 — WAITLIST CTA
       ══════════════════════════════════════════════════════════════════ */}
       <section id="waitlist" className="relative py-14 sm:py-20 md:py-24 scroll-mt-20 overflow-hidden">
         <div
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: "url('https://images.unsplash.com/photo-1535498730771-e735b998cd64?w=1920&q=85')" }}
+          className="absolute inset-0"
+          style={{ background: "linear-gradient(to bottom, rgba(201,169,110,0.03) 0%, transparent 40%)" }}
         />
-        <div className="absolute inset-0" style={{ background: "rgba(10,10,10,0.92)" }} />
 
         <div className="relative z-10 max-w-content mx-auto px-4 sm:px-6 text-center">
           <h2 className="font-semibold text-relay-text leading-tight tracking-tight">
-            <span className="block text-[26px] sm:text-[36px] md:text-[48px]">Own the time.</span>
-            <span className="block text-[26px] sm:text-[36px] md:text-[48px] text-relay-gold">Trade the rest.</span>
+            <span className="block text-[26px] sm:text-[36px] md:text-[48px]">Stay or trade.</span>
+            <span className="block text-[26px] sm:text-[36px] md:text-[48px] text-relay-gold">Your Key.</span>
           </h2>
           <p className="mt-4 text-base sm:text-lg md:text-xl text-relay-secondary max-w-md mx-auto leading-relaxed">
             Early access for landlords and renters. Be first when we go live.

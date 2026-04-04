@@ -139,6 +139,53 @@
   50% { background: rgba(201,169,110,0.06); }
 }
 
+/* ── Floating Key card animation ───────────────────────────────────────── */
+
+@keyframes hero-float {
+  0%, 100% { transform: rotate(2deg) translateY(0px); }
+  50% { transform: rotate(2deg) translateY(-6px); }
+}
+
+.hero-key-card {
+  animation: hero-float 4s ease-in-out infinite;
+  transform: rotate(2deg);
+  box-shadow: 0 8px 40px rgba(0,0,0,0.4), 0 0 20px rgba(201,169,110,0.12);
+}
+
+@media (max-width: 639px) {
+  .hero-key-card {
+    animation: hero-float-mobile 4s ease-in-out infinite;
+    transform: rotate(0deg);
+  }
+}
+
+@keyframes hero-float-mobile {
+  0%, 100% { transform: rotate(0deg) translateY(0px); }
+  50% { transform: rotate(0deg) translateY(-4px); }
+}
+
+/* ── Price tick fade transition ─────────────────────────────────────────── */
+
+.price-tick {
+  transition: opacity 0.35s ease;
+}
+
+.price-tick-fade {
+  opacity: 0.3;
+}
+
+/* ── Counter tick animation ─────────────────────────────────────────────── */
+
+.counter-value {
+  display: inline-block;
+  transition: transform 0.4s ease, opacity 0.4s ease;
+}
+
+.counter-bump {
+  transform: translateY(-2px);
+  opacity: 0.6;
+}
+
 /* ── Scroll-triggered fade-in ────────────────────────────────────────────── */
 
 .scroll-fade {
