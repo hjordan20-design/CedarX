@@ -84,14 +84,10 @@ export function formatCount(n: number | undefined): string {
   return n.toLocaleString("en-US");
 }
 
-/** Format acreage. e.g. 1.5 → "1.5 ac" */
+/** Format acreage — always 2 decimal places. e.g. 5 → "5.00 acres", 12.1 → "12.10 acres" */
 export function formatAcreage(acres: number | undefined): string {
   if (acres == null) return "—";
-  // Show as whole number if integer, otherwise 2 decimal places
-  const formatted = Number.isInteger(acres)
-    ? acres.toLocaleString("en-US")
-    : acres.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  return `${formatted} acres`;
+  return `${acres.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} acres`;
 }
 
 // ─── Addresses ───────────────────────────────────────────────────────────────

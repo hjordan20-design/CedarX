@@ -2,10 +2,10 @@ import { useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Hero } from "@/components/home/Hero";
 import { StatsBar } from "@/components/home/StatsBar";
-import { CategoryLanes } from "@/components/home/CategoryLanes";
-import { CategoryCards } from "@/components/home/CategoryCards";
-import { HowItWorks } from "@/components/home/HowItWorks";
-import { EmailCapture } from "@/components/home/EmailCapture";
+import { IntentCards } from "@/components/home/IntentCards";
+import { FeaturedPropertiesGrid } from "@/components/home/FeaturedPropertiesGrid";
+import { DarkCtaBlock } from "@/components/home/DarkCtaBlock";
+import { HomeFooter } from "@/components/home/HomeFooter";
 import { fetchHomepage } from "@/lib/api";
 import type { MarketStats } from "@/lib/types";
 
@@ -36,7 +36,7 @@ export function HomePage() {
     placeholderData: readCachedHomepage,
   });
 
-  // Pre-populate child caches so StatsBar renders from homepage response
+  // Pre-populate StatsBar cache from homepage response
   useEffect(() => {
     if (!homepage) return;
     queryClient.setQueryData<MarketStats>(["stats"], homepage.stats);
@@ -46,10 +46,10 @@ export function HomePage() {
     <>
       <Hero />
       <StatsBar />
-      <CategoryLanes />
-      <CategoryCards />
-      <HowItWorks />
-      <EmailCapture />
+      <IntentCards />
+      <FeaturedPropertiesGrid />
+      <DarkCtaBlock />
+      <HomeFooter />
     </>
   );
 }

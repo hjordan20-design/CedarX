@@ -511,11 +511,25 @@ function AssetActions({ asset }: { asset: Asset }) {
             )}
           </div>
         )}
-        {asset.details.acreage != null && (
-          <p className="text-cedar-amber/80 text-sm font-mono">
-            {formatAcreage(Number(asset.details.acreage))}
-          </p>
-        )}
+        {asset.details.acreage != null && (() => {
+          const acres = Number(asset.details.acreage);
+          const price = hasSeaport
+            ? Number(seaportOrder!.price) / Math.pow(10, seaportOrder!.paymentTokenDecimals || 6)
+            : asset.currentListingPrice ?? null;
+          const perAcre = price != null && acres > 0 ? Math.round(price / acres) : null;
+          return (
+            <>
+              <p className="text-cedar-amber/80 text-sm font-mono">
+                {formatAcreage(acres)}
+              </p>
+              {perAcre != null && (
+                <p className="text-cedar-amber/50 text-xs font-mono">
+                  ~{perAcre.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 })} per acre
+                </p>
+              )}
+            </>
+          );
+        })()}
         {asset.lastSalePrice != null && (
           <p className="text-cedar-muted text-xs">
             Last sale: {formatUSDC(asset.lastSalePrice)}
