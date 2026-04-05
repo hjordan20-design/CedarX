@@ -112,3 +112,4 @@ See [`docs/research/`](./docs/research/) for detailed protocol research:
 | 3 | API Development | 🔜 Planned |
 | 4 | Frontend Marketplace | 🔜 Planned |
 | 5 | Testing + Deployment | 🔜 Planned |
+
