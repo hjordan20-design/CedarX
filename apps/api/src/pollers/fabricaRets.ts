@@ -196,11 +196,7 @@ function buildPropertyName(listing: RetsListing): string {
     if (acresRaw) {
         const acres = Number(acresRaw);
         if (isFinite(acres) && acres > 0) {
-            const formatted = acres < 10
-                ? acres.toFixed(2)
-                : acres < 100
-                ? acres.toFixed(1)
-                : String(Math.round(acres));
+            const formatted = acres.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             return `${base} · ${formatted} acres`;
         }
     }
